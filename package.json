@@ -1,0 +1,31 @@
+{
+  "name": "refinable-nft-sdk-test",
+  "version": "1.0.8",
+  "description": "NFT SDK",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "yarn build",
+    "test": "env-cmd jest --runInBand",
+    "test:silent": "yarn test --silent=true",
+    "test:watch": "yarn test --watch"
+  },
+  "files": [
+    "/lib"
+  ],
+  "dependencies": {
+    "cross-fetch": "^3.1.4",
+    "env-cmd": "^10.1.0",
+    "ethers": "^5.4.2",
+    "web3": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.24",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
+  }
+}
