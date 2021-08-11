@@ -1,4 +1,3 @@
-import { Refinable } from "./refinable";
-import { Network } from "./type";
+import { Refinable } from "./Refinable";
 
-export { Network, Refinable };
+export { Refinable };

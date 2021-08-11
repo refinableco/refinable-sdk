@@ -2,65 +2,84 @@
 
 `refinable-sdk` is a NPM package that can be added to the project to work with Refinable contracts.
 
-The way to work with this SDK is extremely simple as you just need to initialize and use the methods that we have built.
+## Get started
+
+To get started, create an instance of the refinable sdk.
 
 ```javascript
-//import detectEthereumProvider from "@metamask/detect-provider";
-
-const token = localStorage.getItem("token") || "";
-const provider: any = await detectEthereumProvider();
-const refinable = new Refinable(
-  provider,
-  Network.BSCTest,
-  {
-    address: "",
-    privateKey: "",
-  },
-  token
-);
+const refinable = Refinable.create(wallet, address, "API_KEY");
 ```
 
-- Token is the token that authenticates to the API.
-- Provider is the provider you want to initialize (I am using the metamask here).
-- Network: you can choose BSCTest for testnet and BSC for mainnet
+Where there are some arguments
+|Argument|Description|Values|
+|---|---|---|
+|wallet | The Provider that is allowed to call functions. | Ethers Signer |
+|address|The Wallet address|string|
+|Api Key|The API key, obtained from Refinable|string|
 
-Or here is another way in case you use with private key.
+For creating the wallet you can rely on the added helper factories
 
 ```javascript
-const provider = new Web3.providers.HttpProvider(
-  "https://data-seed-prebsc-1-s1.binance.org:8545/"
-);
+const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC_MAINNET);
+const address = await wallet.getAddress();
+```
 
-const refinable = new Refinable(provider, Network.BSCTest, {
-  address: ACCOUNT_ADDRESS,
-  privateKey: PRIVATE_KEY,
+where `REFINABLE_NETWORK` can be any value of the enum and represents the supported network
+
+## Methods
+
+### Listing for sale
+
+```javascript
+await refinable.putForSale({
+  type: TOKEN_TYPE.ERC721,
+  contractAddress: erc721TokenAddress,
+  tokenId: tokenId,
+  amount: amount,
+  supply: 1,
+  currency: REFINABLE_CURRENCY.BNB,
 });
 ```
 
-By initializing an instant like above, you will already be able to use our method.
-This is a method that we have developed allowing you to approve ERC721 and ERC1155 tokens. You just need to fill in the parameter and it will do the rest which is approving the token for you.
+| Argument         | Description                                                                                               | Values                                                                                                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type             | Whether it's an 721 or 1155 standard NFT                                                                  | `TOKEN_TYPE.ERC721`, `TOKEN_TYPE.ERC1155`                                                                                                                                 |
+| Contract Address | Which Contract address the item is located under                                                          | the type is a contract address `string`, You can use `erc721TokenAddress` or `erc1155TokenAddress`. ex. `import { erc721TokenAddress } from "@refinableco/refinable-sdk"` |
+| tokenId          | The token ID of the NFT                                                                                   | the type is a `number`                                                                                                                                                    |
+| amount           | The price that you want to list the NFT for sale for                                                      | `number`                                                                                                                                                                  |
+| supply           | For ERC721 this is `1`, for ERC1155 NFTs this is the amount of items you want to put for sale of that nft | `number`                                                                                                                                                                  |
+| currency         | The currency you want to use                                                                              | `USDT`, `BNB`                                                                                                                                                             |
+
+### Cancelling sale
+
+Want to unlist an item from sale?
 
 ```javascript
-refinable.approveNFT({
-  tokenId: nft.node.tokenId,
-  contractAddress: nft.node.contractAddress,
-  nftBillInfo: {
-    supply: Number(nft.supply),
-    amount: Number(nft.price),
-    currency: nft.currency,
-  },
+await refinable.cancelSale({
+  type: TOKEN_TYPE.ERC721,
+  contractAddress: erc721TokenAddress,
+  tokenId: tokenId,
 });
 ```
 
-To run the test you need to configure your own `.env` file then run `yarn test`
+## Supported Networks
 
-```javascript
-ACCOUNT_ADDRESS: // Your wallet address
-PRIVATE_KEY: // Your private key
-UNKNOWN_TOKEN: // TokenId that does not exist
-AVAILABLE_TOKEN_1155: // Invalid tokenId eg -1
-SAMPLE_TOKEN_721: // TokenId of some ERC721 in your wallet
-SAMPLE_TOKEN_1155: // TokenId of some ERC1155 in your wallet
-```
+Refinable currently supports the following networks:
 
-We have this key in env.example
+- Binance Smart Chain (BSC)
+- Polygon
+
+## Requesting an API Key
+
+In order to obtain an API key, please email us at `sdk@refinable.com` and use the following template:
+
+|                      |                                                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Project Name         | The name of your project                                                                                                            |
+| User address         | The public wallet address that the API key will be attached to, This user should have connected to the Refinable site at least once |
+| Est. Calls per month | The amount of estimated calls per month                                                                                             |
+| Description          | Tell us a bit more about your project, why do you have to use an SDK?                                                               |
+
+## Jobs
+
+Interested in joining us? We're always on the lookout for good talent. Feel free to send us your most up-to-date resume at careers@refinable.com

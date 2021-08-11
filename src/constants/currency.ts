@@ -1,2 +1,9 @@
-export const USDT = { code: "USDT", multiplier: 8 };
-export const BNB = { code: "BNB", multiplier: 18 };
+export interface Price {
+    currency: REFINABLE_CURRENCY;
+    amount: number;
+};
+  
+export enum REFINABLE_CURRENCY {
+    BNB = 'BNB',
+    USDT = 'USDT',
+}

@@ -17,3 +17,5 @@ export const ERC1155_NONCE_ADDRESS =
   "0x8b3880579CC41f7c26e8100a3069D3A73EA0A056";
 export const PROXY_CONTRACT = "0x98c7C3e1F30b34Cc373FaB6Fb4B9f3D41c801C41";
 export const GRAPHQL_URL = "https://api.refinable.com/graphql";
+
+export const WAIT_CONFIRMATIONS = 1;
