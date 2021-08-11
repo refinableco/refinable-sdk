@@ -20,7 +20,7 @@ Where there are some arguments
 For creating the wallet you can rely on the added helper factories
 
 ```javascript
-const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC_MAINNET);
+const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
 const address = await wallet.getAddress();
 ```
 

@@ -2,7 +2,6 @@ import * as readline from "readline";
 import * as fs from "fs";
 
 import { Refinable } from "../Refinable";
-import { REFINABLE_CURRENCY } from "../constants/currency";
 import { TOKEN_TYPE } from "../nft/nft";
 import { createWallet } from "../providers";
 import { REFINABLE_NETWORK } from "../constants/network";
@@ -39,16 +38,13 @@ async function main() {
   // like this we can process them sync, otherwise blockchain will say we're doing too many txs
   rl.on("close", async function () {
     for (const parameters of nfts) {
-      await refinable.putForSale({
+      await refinable.cancelSale({
         type: TOKEN_TYPE.ERC721,
         contractAddress: erc721TokenAddress,
         tokenId: parameters[1],
-        amount: parameters[4],
-        supply: parameters[5],
-        currency: parameters[3] as REFINABLE_CURRENCY,
       });
       console.log(
-        `${erc721TokenAddress}:${parameters[1]} - Put ${parameters[5]} for sale for ${parameters[4]} ${parameters[3]}`
+        `${erc721TokenAddress}:${parameters[1]} - Canceled from sale`
       );
     }
   });

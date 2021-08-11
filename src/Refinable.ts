@@ -7,6 +7,7 @@ import { CREATE_OFFERS, TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
 import { REFINABLE_CURRENCY } from "./constants/currency";
 import { Client, createClient } from "@urql/core";
+import { GRAPHQL_URL } from "./constants";
 
 interface BaseData {
   contractAddress: string;
@@ -29,7 +30,7 @@ export class Refinable {
   static create(provider: any, address: string, apiToken: string) {
     const refinable = new Refinable(provider, address);
     refinable.apiClient = createClient({
-      url: "https://api.refinable.com/graphql",
+      url: GRAPHQL_URL,
       fetchOptions: () => {
         return {
           headers: {
