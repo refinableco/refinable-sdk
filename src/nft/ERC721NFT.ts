@@ -12,7 +12,6 @@ import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
 import { Price } from "../constants/currency";
 import { erc721TokenContract } from "../contracts";
-import { WAIT_CONFIRMATIONS } from "../constants";
 
 export class ERC721NFT extends AbstractNFT {
   protected nonceContract = erc721SaleNonceHolderContract;
@@ -40,7 +39,7 @@ export class ERC721NFT extends AbstractNFT {
       );
 
       // Wait for 1 confirmation
-      await approvalResult.wait(WAIT_CONFIRMATIONS);
+      await approvalResult.wait(this.refinable.waitConfirmations);
     }
 
     const saleParamsHash = await this.getSaleParamsHash(

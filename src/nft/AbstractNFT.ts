@@ -7,8 +7,6 @@ import { Refinable } from "../Refinable";
 import { TOKEN_TYPE } from "./nft";
 import { Price, REFINABLE_CURRENCY } from "../constants/currency";
 import { optionalParam } from "../utils";
-import { WAIT_CONFIRMATIONS } from "../constants";
-
 export interface PartialNFTItem {
   contractAddress: string;
   tokenId: number;
@@ -92,7 +90,7 @@ export abstract class AbstractNFT {
           .approve(spenderAddress, toWei(price.amount.toString(), "ether"));
 
         // Wait for 1 confirmation
-        await approvalResult.wait(WAIT_CONFIRMATIONS);
+        await approvalResult.wait(this.refinable.waitConfirmations);
       }
     }
 

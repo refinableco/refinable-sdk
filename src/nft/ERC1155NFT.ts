@@ -7,7 +7,6 @@ import {
   erc115SaleAddress,
   transferProxyAddress,
 } from "../contracts";
-import { WAIT_CONFIRMATIONS } from "../constants";
 import { Price } from "../constants/currency";
 import {
   erc1155SaleNonceHolderContract,
@@ -43,7 +42,7 @@ export class ERC1155NFT extends AbstractNFT {
       const approvalResult = await this.approveForAll(transferProxyAddress);
 
       // Wait for 1 confirmation
-      await approvalResult.wait(WAIT_CONFIRMATIONS);
+      await approvalResult.wait(this.refinable.waitConfirmations);
     }
 
     const saleParamHash = await this.getSaleParamsHash(

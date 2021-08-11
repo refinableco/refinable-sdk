@@ -24,6 +24,7 @@ interface CancelSaleData extends BaseData {}
 
 export class Refinable {
   private _apiClient?: Client;
+  private _waitConfirmations = 3;
 
   static create(provider: any, address: string, apiToken: string) {
     const refinable = new Refinable(provider, address);
@@ -52,8 +53,16 @@ export class Refinable {
     return this._apiClient;
   }
 
+  get waitConfirmations() {
+    return this._waitConfirmations;
+  }
+
   set apiClient(apiClient) {
     this._apiClient = apiClient;
+  }
+
+  set waitConfirmations(waitConfirmations: number) {
+    this._waitConfirmations = waitConfirmations;
   }
 
   setApiClient(client: Client) {
