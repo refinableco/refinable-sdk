@@ -1,0 +1,20 @@
+overwrite: true
+schema: "http://localhost:8001/graphql"
+documents:
+  - "./src/graphql/*.ts"
+generates:
+  src/@types/graphql.ts:
+    plugins:
+      - add:
+          content:
+            - "/* eslint-disable */"
+            - "// THIS IS A GENERATED FILE, DO NOT EDIT IT!"
+      - "typescript"
+      - "typescript-operations"
+    config:
+      exportFragmentSpreadSubTypes: true
+      scalars:
+        Long: number
+hooks:
+  afterAllFileWrite:
+    - prettier --write

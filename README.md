@@ -26,48 +26,87 @@ const address = await wallet.getAddress();
 
 where `REFINABLE_NETWORK` can be any value of the enum and represents the supported network
 
+To get started, make an nft `object` using the factory
+
+```javascript
+const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
+  chainId: 56,
+  contractAddress: erc721TokenAddress,
+  tokenId: parameters[1],
+});
+```
+
+where `tokenId` is _optional_ in case you want to mint a new one.
+
 ## Methods
+
+### Minting a new NFT
+
+```javascript
+const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
+  chainId: 1337,
+  contractAddress,
+});
+
+// SDK: mint nft
+await nft.mint(
+  {
+    file: fileStream,
+    description: "some test description",
+    name: "The Test NFT",
+  },
+  new StandardRoyaltyStrategy([])
+);
+```
+
+more detailed examples can be found in [the examples folder](./src/examples/mint)
 
 ### Listing for sale
 
 ```javascript
-await refinable.putForSale({
-  type: TOKEN_TYPE.ERC721,
+const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
+  chainId: 56,
   contractAddress: erc721TokenAddress,
-  tokenId: tokenId,
+  tokenId: parameters[1],
+});
+
+await nft.putForSale({
   amount: amount,
   supply: 1,
   currency: REFINABLE_CURRENCY.BNB,
 });
 ```
 
-| Argument         | Description                                                                                               | Values                                                                                                                                                                    |
-| ---------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Type             | Whether it's an 721 or 1155 standard NFT                                                                  | `TOKEN_TYPE.ERC721`, `TOKEN_TYPE.ERC1155`                                                                                                                                 |
-| Contract Address | Which Contract address the item is located under                                                          | the type is a contract address `string`, You can use `erc721TokenAddress` or `erc1155TokenAddress`. ex. `import { erc721TokenAddress } from "@refinableco/refinable-sdk"` |
-| tokenId          | The token ID of the NFT                                                                                   | the type is a `number`                                                                                                                                                    |
-| amount           | The price that you want to list the NFT for sale for                                                      | `number`                                                                                                                                                                  |
-| supply           | For ERC721 this is `1`, for ERC1155 NFTs this is the amount of items you want to put for sale of that nft | `number`                                                                                                                                                                  |
-| currency         | The currency you want to use                                                                              | `USDT`, `BNB`                                                                                                                                                             |
+| Argument         | Description                                                                                                      | Values                                                                                                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type             | Whether it's an 721 or 1155 standard NFT                                                                         | `TOKEN_TYPE.ERC721`, `TOKEN_TYPE.ERC1155`                                                                                                                                 |
+| Contract Address | Which Contract address the item is located under                                                                 | the type is a contract address `string`, You can use `erc721TokenAddress` or `erc1155TokenAddress`. ex. `import { erc721TokenAddress } from "@refinableco/refinable-sdk"` |
+| tokenId          | The token ID of the NFT                                                                                          | the type is a `number`                                                                                                                                                    |
+| amount           | The price that you want to list the NFT for sale for                                                             | `number`                                                                                                                                                                  |
+| supply           | For ERC721 this is not needed, for ERC1155 NFTs this is the amount of items you want to put for sale of that nft | `number`                                                                                                                                                                  |
+| currency         | The currency you want to use                                                                                     | `USDT`, `BNB`                                                                                                                                                             |
 
 ### Cancelling sale
 
 Want to unlist an item from sale?
 
+Construct the item you have for sale and cancel its sale.
+
 ```javascript
-await refinable.cancelSale({
-  type: TOKEN_TYPE.ERC721,
+const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
+  chainId: 56,
   contractAddress: erc721TokenAddress,
-  tokenId: tokenId,
+  tokenId: parameters[1],
 });
+await nft.cancelSale();
 ```
 
 ## Supported Networks
 
 Refinable currently supports the following networks:
 
-- Binance Smart Chain (BSC)
-- Polygon
+- `56`: Binance Smart Chain (BSC) Mainnet
+- `137`: Polygon Mainnet
 
 ## Requesting an API Key
 

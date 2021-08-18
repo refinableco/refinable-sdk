@@ -1,13 +1,8 @@
-import { gql } from "@urql/core";
+import { gql } from "graphql-request";
 
 export enum TOKEN_TYPE {
-  ERC721 = 'ERC721',
-  ERC1155 = 'ERC1155',
-}
-
-export interface Royalties {
-  value: number;
-  recipient: string;
+  ERC721 = "ERC721",
+  ERC1155 = "ERC1155",
 }
 
 export interface Signature {

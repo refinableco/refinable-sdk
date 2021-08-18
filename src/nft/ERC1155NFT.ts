@@ -1,37 +1,138 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Contract, ethers } from "ethers";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { Contract } from "ethers";
 
-import {
-  erc1155SaleContract,
-  erc115SaleAddress,
-  transferProxyAddress,
-} from "../contracts";
+import { transferProxyAddress } from "../contracts";
 import { Price } from "../constants/currency";
-import {
-  erc1155SaleNonceHolderContract,
-  erc1155TokenContract,
-} from "../contracts";
 import { Refinable } from "../Refinable";
-import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
+import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
+import { IRoyalty } from "./royaltyStrategies/Royalty";
+import { ContractType, getContracts } from "./TokenManager";
+import { uploadFile } from "../graphql/utils";
+import { API_KEY } from "../constants";
+import {
+  CreateItemMutation,
+  CreateItemMutationVariables,
+  FinishMintMutation,
+  FinishMintMutationVariables,
+} from "../@types/graphql";
+import { CREATE_ITEM, FINISH_MINT } from "../graphql/mint";
+import { soliditySha3 } from "web3-utils";
+import { CREATE_OFFERS } from "../graphql/sale";
 
 export class ERC1155NFT extends AbstractNFT {
-  protected mintContract = erc1155TokenContract;
-  protected nonceContract = erc1155SaleNonceHolderContract;
-  private erc1155SaleContract: Contract;
+  protected nonceContract?: Contract;
+  protected saleContract?: Contract;
+  protected mintContract?: Contract;
 
   constructor(
     protected readonly refinable: Refinable,
     protected readonly item: PartialNFTItem
   ) {
     super(TOKEN_TYPE.ERC1155, refinable, item);
-
-    this.erc1155SaleContract = erc1155SaleContract.connect(refinable.provider);
   }
 
-  getSaleContractAddress(): string {
-    return erc115SaleAddress;
+  async mint(
+    nftValues: NftValues,
+    royalty?: IRoyalty
+  ): Promise<TransactionResponse> {
+    if (!this._initialized) {
+      throw Error("SDK_NOT_INITIALIZED");
+    }
+
+    this.verifyItem();
+
+    // get royalty settings
+    const royaltySettings = royalty ? royalty.serialize() : null;
+
+    // Upload image / video
+    const { uploadFile: uploadedFileName } = await uploadFile(
+      nftValues.file,
+      API_KEY as string
+    );
+
+    if (!uploadedFileName) {
+      throw new Error("Couldn't upload image for NFT");
+    }
+
+    // API Call
+    const { createItem } = await this.refinable.apiClient.request<
+      CreateItemMutation,
+      CreateItemMutationVariables
+    >(CREATE_ITEM, {
+      input: {
+        description: nftValues.description,
+        marketingDescription: nftValues.marketingDescription,
+        name: nftValues.name,
+        supply: nftValues.supply,
+        royaltySettings,
+        tags: nftValues.tags,
+        airdropAddresses: nftValues.airdropAddresses,
+        file: uploadedFileName as string,
+        type: TOKEN_TYPE.ERC1155,
+        contractAddress: this.item.contractAddress,
+        chainId: this.item.chainId,
+      },
+    });
+
+    if (!createItem) {
+      throw new Error("Couldn't create data object for NFT");
+    }
+
+    let { signature, item } = createItem;
+
+    // update nft
+    this.setItem(item);
+
+    // Blockchain part
+    if (!signature) {
+      const approveMintSha3 = soliditySha3(
+        this.item.contractAddress,
+        item.tokenId,
+        this.refinable.account
+      );
+
+      signature = await this.refinable.personalSign(approveMintSha3 as string);
+    }
+
+    const mintArgs = [
+      item.tokenId,
+      signature,
+      royaltySettings?.shares
+        ? royaltySettings.shares.map((share) => [share.recipient, share.value])
+        : [],
+      item.supply.toString(),
+      item.properties.ipfsDocument,
+    ];
+
+    // TODO: When V2 is deployed
+    // if (royaltySettings) {
+    //   mintArgs.push(
+    //     royaltySettings.royaltyBps,
+    //     royaltySettings.royaltyStrategy
+    //   );
+    // }
+
+    const result: TransactionResponse = await this.mintContract?.mint(
+      ...mintArgs
+    );
+
+    // Wait for 1 confirmation
+    await result.wait(1);
+
+    await this.refinable.apiClient.request<
+      FinishMintMutation,
+      FinishMintMutationVariables
+    >(FINISH_MINT, {
+      input: {
+        tokenId: item.tokenId,
+        contractAddress: item.contractAddress,
+        transactionHash: result.hash,
+      },
+    });
+
+    return result;
   }
 
   async putForSale(price: Price, supply = 1): Promise<string> {
@@ -39,7 +140,9 @@ export class ERC1155NFT extends AbstractNFT {
 
     const isApproved = await this.isApprovedForAll();
     if (!isApproved) {
-      const approvalResult = await this.approveForAll(transferProxyAddress);
+      const approvalResult = await this.approveForAll(
+        this.transferProxyContract?.address as string
+      );
 
       // Wait for 1 confirmation
       await approvalResult.wait(this.refinable.waitConfirmations);
@@ -51,19 +154,38 @@ export class ERC1155NFT extends AbstractNFT {
       supply
     );
 
-    return await this.refinable.personalSign(saleParamHash as string);
+    const signedHash = await this.refinable.personalSign(
+      saleParamHash as string
+    );
+
+    const result = await this.refinable.apiClient.request(CREATE_OFFERS, {
+      input: {
+        tokenId: this.item.tokenId,
+        signature: signedHash,
+        type: "SALE",
+        contractAddress: this.item.contractAddress,
+        price: {
+          currency: price.currency,
+          amount: parseFloat(price.amount.toString()),
+        },
+        supply,
+      },
+    });
+
+    return result;
   }
 
   async isApprovedForAll() {
-    return this.getMintContractWithSigner().isApprovedForAll(
-      this.refinable.account
+    return this.mintContract?.isApprovedForAll(
+      this.refinable.account,
+      this.transferProxyContract?.address
     );
   }
 
   cancelSale(): Promise<TransactionResponse> {
     this.verifyItem();
 
-    return this.erc1155SaleContract.cancel(
+    return this.saleContract?.cancel(
       this.item.contractAddress,
       this.item.tokenId //tokenId, // uint256 tokenId
     );
