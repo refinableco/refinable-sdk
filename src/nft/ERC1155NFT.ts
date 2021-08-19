@@ -145,7 +145,7 @@ export class ERC1155NFT extends AbstractNFT {
       );
 
       // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable.waitConfirmations);
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
     }
 
     const saleParamHash = await this.getSaleParamsHash(

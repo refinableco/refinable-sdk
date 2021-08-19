@@ -20,9 +20,11 @@ interface NftRegistry {
   [TOKEN_TYPE.ERC1155]: ERC1155NFT;
 }
 
+interface RefinableOptions {
+  waitConfirmations: number;
+}
 export class Refinable {
   private _apiClient?: GraphQLClient;
-  private _waitConfirmations = 0;
 
   static create(provider: any, address: string, apiToken: string) {
     const refinable = new Refinable(provider, address);
@@ -36,7 +38,10 @@ export class Refinable {
 
   constructor(
     public readonly provider: ethers.Signer,
-    public readonly account: string
+    public readonly account: string,
+    public readonly options: RefinableOptions = {
+      waitConfirmations: 3,
+    }
   ) {}
 
   get apiClient() {
@@ -46,16 +51,8 @@ export class Refinable {
     return this._apiClient;
   }
 
-  get waitConfirmations() {
-    return this._waitConfirmations;
-  }
-
   set apiClient(apiClient) {
     this._apiClient = apiClient;
-  }
-
-  set waitConfirmations(waitConfirmations: number) {
-    this._waitConfirmations = waitConfirmations;
   }
 
   setApiClient(client: GraphQLClient) {

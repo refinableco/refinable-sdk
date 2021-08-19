@@ -142,7 +142,7 @@ export abstract class AbstractNFT {
           .approve(spenderAddress, toWei(price.amount.toString(), "ether"));
 
         // Wait for 1 confirmation
-        await approvalResult.wait(this.refinable.waitConfirmations);
+        await approvalResult.wait(this.refinable.options.waitConfirmations);
       }
     }
 
