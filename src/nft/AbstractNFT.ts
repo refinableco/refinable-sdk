@@ -3,13 +3,12 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { BigNumber, Contract, ethers } from "ethers";
 import { soliditySha3, toWei } from "web3-utils";
 import { getERC20Address, getERC20Contract } from "../contracts";
-import { Refinable } from "../Refinable";
+import { ContractType, Refinable } from "../Refinable";
 import { TOKEN_TYPE } from "./nft";
 import { Price, REFINABLE_CURRENCY } from "../constants/currency";
 import { optionalParam } from "../utils";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
 import { CreateItemInput } from "../@types/graphql";
-import { ContractType, getContracts } from "./TokenManager";
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
@@ -46,7 +45,7 @@ export abstract class AbstractNFT {
   }
 
   public async build(): Promise<this> {
-    const { refinableContracts } = await getContracts(
+    const { refinableContracts } = await this.refinable.getContracts(
       this.refinable.apiClient,
       this._types
     );

@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Contract, ethers } from "ethers";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 
-import { transferProxyAddress } from "../contracts";
 import { Price } from "../constants/currency";
 import { Refinable } from "../Refinable";
 import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { ContractType, getContracts } from "./TokenManager";
 import { uploadFile } from "../graphql/utils";
 import { API_KEY } from "../constants";
 import {

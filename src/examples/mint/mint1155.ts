@@ -9,24 +9,23 @@ import { REFINABLE_CURRENCY } from "../../constants/currency";
 import * as fs from "fs";
 import * as path from "path";
 import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
-import { getContracts } from "../../nft/TokenManager";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 
 async function main() {
   const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
-  const address = await wallet.getAddress();
 
-  const refinable = Refinable.create(wallet, address, "API_KEY");
+  const refinable = Refinable.create(wallet, "API_KEY");
 
   const fileStream = await fs.createReadStream(
     path.join(__dirname, "image.jpg")
   );
 
   // SDK: Get contract address
-  const { refinableContracts } = await getContracts(refinable.apiClient, [
-    "ERC1155_TOKEN",
-  ]);
+  const { refinableContracts } = await refinable.getContracts(
+    refinable.apiClient,
+    ["ERC1155_TOKEN"]
+  );
 
   const { contractAddress } = refinableContracts[0] ?? {};
 

@@ -6,12 +6,45 @@ import { ERC721NFT } from "./nft/ERC721NFT";
 import { TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
 import { GRAPHQL_URL } from "./constants";
-import { GraphQLClient } from "graphql-request";
+import { gql, GraphQLClient } from "graphql-request";
 
 interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
   [TOKEN_TYPE.ERC1155]: ERC1155NFT;
 }
+
+export type ContractType =
+  | "ERC721_TOKEN"
+  | "ERC1155_TOKEN"
+  | "ERC721_SALE"
+  | "ERC1155_SALE"
+  | "ERC721_SALE_NONCE_HOLDER"
+  | "ERC1155_SALE_NONCE_HOLDER"
+  | "TRANSFER_PROXY"
+  | "ERC721SaleNonceHolder"
+  | "ERC1155SaleNonceHolder"
+  | "ERC721Airdrop"
+  | "ERC1155Airdrop"
+  | "ERC721Auction"
+  | "ERC1155Auction"
+  | "TransferProxy";
+
+export type AllContractTypes =
+  | ContractType
+  | "ServiceFeeProxy"
+  | "ERC20"
+  | "RefinableERC721WhiteListedToken"
+  | "RefinableERC721WhiteListedTokenV2";
+
+const GET_REFINABLE_CONTRACT = gql`
+  query refinableContracts($input: GetRefinableContractsInput!) {
+    refinableContracts(input: $input) {
+      contractAddress
+      contractABI
+      type
+    }
+  }
+`;
 
 interface RefinableOptions {
   waitConfirmations: number;
@@ -84,5 +117,14 @@ export class Refinable {
     }
 
     return nft.build() as Promise<NftRegistry[K]>;
+  }
+  getContracts(
+    apiClient: GraphQLClient,
+    types: ContractType[],
+    chainId = 1337
+  ) {
+    return apiClient.request(GET_REFINABLE_CONTRACT, {
+      input: { types, chainId },
+    });
   }
 }
