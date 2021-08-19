@@ -87,7 +87,7 @@ export class Refinable {
         nft = new ERC1155NFT(this, item) as NftRegistry[K];
         break;
       default:
-        nft = new ERC721NFT(this, item) as NftRegistry[K];
+        throw new Error("This type is not supported yet");
     }
 
     return nft.build() as Promise<NftRegistry[K]>;
