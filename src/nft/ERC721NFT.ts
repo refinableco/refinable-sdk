@@ -52,7 +52,7 @@ export class ERC721NFT extends AbstractNFT {
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,
-      await this.refinable.provider.getAddress()
+      this.refinable.accountAddress
     );
 
     const signedHash = await this.refinable.personalSign(
@@ -81,7 +81,7 @@ export class ERC721NFT extends AbstractNFT {
       this.item.tokenId
     );
     const isApprovedForAll = await this.mintContract.isApprovedForAll(
-      await this.refinable.provider.getAddress(),
+      this.refinable.accountAddress,
       transferProxyAddress
     );
 
@@ -148,7 +148,7 @@ export class ERC721NFT extends AbstractNFT {
       const approveMintSha3 = soliditySha3(
         this.item.contractAddress,
         item.tokenId,
-        await this.refinable.provider.getAddress()
+        this.refinable.accountAddress
       );
 
       signature = await this.refinable.personalSign(approveMintSha3 as string);

@@ -7,7 +7,7 @@
 To get started, create an instance of the refinable sdk.
 
 ```javascript
-const refinable = Refinable.create(wallet, address, "API_KEY");
+const refinable = await Refinable.create(wallet, address, "API_KEY");
 ```
 
 Where there are some arguments

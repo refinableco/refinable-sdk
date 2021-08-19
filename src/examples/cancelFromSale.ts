@@ -15,7 +15,7 @@ async function main() {
   const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
   const address = await wallet.getAddress();
 
-  const refinable = Refinable.create(wallet, address, "API_KEY");
+  const refinable = await Refinable.create(wallet, address, "API_KEY");
 
   let lineNumber = 0;
   const rl = readline.createInterface({

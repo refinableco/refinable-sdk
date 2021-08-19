@@ -53,12 +53,13 @@ export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
 
-  static create(
-    provider: any,
+  static async create(
+    provider: ethers.Signer,
     apiToken: string,
     options?: Partial<RefinableOptions>
   ) {
-    const refinable = new Refinable(provider, options);
+    const accountAddress = await provider.getAddress();
+    const refinable = new Refinable(provider, accountAddress, options);
 
     refinable.apiClient = new GraphQLClient(GRAPHQL_URL, {
       headers: { "X-API-KEY": apiToken },
@@ -69,6 +70,7 @@ export class Refinable {
 
   constructor(
     public readonly provider: ethers.Signer,
+    public readonly accountAddress: string,
     public readonly options: Partial<RefinableOptions> = {}
   ) {
     const { waitConfirmations = 3 } = options;

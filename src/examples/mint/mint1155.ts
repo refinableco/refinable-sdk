@@ -15,7 +15,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 async function main() {
   const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
 
-  const refinable = Refinable.create(wallet, "API_KEY");
+  const refinable = await Refinable.create(wallet, "API_KEY");
 
   const fileStream = await fs.createReadStream(
     path.join(__dirname, "image.jpg")
