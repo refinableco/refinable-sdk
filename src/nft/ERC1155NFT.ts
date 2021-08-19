@@ -22,10 +22,6 @@ import { soliditySha3 } from "web3-utils";
 import { CREATE_OFFERS } from "../graphql/sale";
 
 export class ERC1155NFT extends AbstractNFT {
-  protected nonceContract?: Contract;
-  protected saleContract?: Contract;
-  protected mintContract?: Contract;
-
   constructor(
     protected readonly refinable: Refinable,
     protected readonly item: PartialNFTItem
@@ -114,7 +110,7 @@ export class ERC1155NFT extends AbstractNFT {
     //   );
     // }
 
-    const result: TransactionResponse = await this.mintContract?.mint(
+    const result: TransactionResponse = await this.mintContract.mint(
       ...mintArgs
     );
 
@@ -141,7 +137,7 @@ export class ERC1155NFT extends AbstractNFT {
     const isApproved = await this.isApprovedForAll();
     if (!isApproved) {
       const approvalResult = await this.approveForAll(
-        this.transferProxyContract?.address as string
+        this.transferProxyContract.address as string
       );
 
       // Wait for 1 confirmation
@@ -176,16 +172,16 @@ export class ERC1155NFT extends AbstractNFT {
   }
 
   async isApprovedForAll() {
-    return this.mintContract?.isApprovedForAll(
+    return this.mintContract.isApprovedForAll(
       await this.refinable.provider.getAddress(),
-      this.transferProxyContract?.address
+      this.transferProxyContract.address
     );
   }
 
   cancelSale(): Promise<TransactionResponse> {
     this.verifyItem();
 
-    return this.saleContract?.cancel(
+    return this.saleContract.cancel(
       this.item.contractAddress,
       this.item.tokenId //tokenId, // uint256 tokenId
     );

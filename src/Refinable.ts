@@ -5,15 +5,8 @@ import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
 import { TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
-import { REFINABLE_CURRENCY } from "./constants/currency";
 import { GRAPHQL_URL } from "./constants";
 import { GraphQLClient } from "graphql-request";
-
-interface BaseData {
-  contractAddress: string;
-  tokenId: number;
-  type: TOKEN_TYPE;
-}
 
 interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;

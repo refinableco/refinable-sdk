@@ -26,10 +26,10 @@ export abstract class AbstractNFT {
   protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
 
-  protected saleContract?: Contract;
-  protected mintContract?: Contract;
-  protected nonceContract?: Contract;
-  protected transferProxyContract?: Contract;
+  protected saleContract: Contract = {} as any;
+  protected mintContract: Contract = {} as any;
+  protected nonceContract: Contract = {} as any;
+  protected transferProxyContract: Contract = {} as any;
 
   constructor(
     protected type: TOKEN_TYPE,
@@ -105,7 +105,7 @@ export abstract class AbstractNFT {
     const value = ethers.utils.parseEther(price.amount.toString()).toString();
     const paymentToken = getERC20Address(price.currency);
 
-    const nonceResult: BigNumber = await this.nonceContract?.getNonce(
+    const nonceResult: BigNumber = await this.nonceContract.getNonce(
       this.item.contractAddress,
       this.item.tokenId,
       ethAddress
@@ -150,14 +150,14 @@ export abstract class AbstractNFT {
   }
 
   protected approveForAll(address: string): Promise<TransactionResponse> {
-    return this.mintContract?.setApprovalForAll(address, true);
+    return this.mintContract.setApprovalForAll(address, true);
   }
 
   protected approve(
     address: string,
     tokenId: number
   ): Promise<TransactionResponse> {
-    return this.mintContract?.approve(address, tokenId);
+    return this.mintContract.approve(address, tokenId);
   }
 
   abstract mint(

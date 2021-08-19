@@ -20,10 +20,6 @@ import { uploadFile } from "../graphql/utils";
 import { CREATE_OFFERS } from "../graphql/sale";
 
 export class ERC721NFT extends AbstractNFT {
-  protected nonceContract?: Contract;
-  protected saleContract?: Contract;
-  protected mintContract?: Contract;
-
   constructor(
     protected readonly refinable: Refinable,
     protected readonly item: PartialNFTItem
@@ -81,10 +77,10 @@ export class ERC721NFT extends AbstractNFT {
   }
 
   async isApproved() {
-    const approvedSpender = await this.mintContract?.getApproved(
+    const approvedSpender = await this.mintContract.getApproved(
       this.item.tokenId
     );
-    const isApprovedForAll = await this.mintContract?.isApprovedForAll(
+    const isApprovedForAll = await this.mintContract.isApprovedForAll(
       await this.refinable.provider.getAddress(),
       transferProxyAddress
     );
@@ -175,7 +171,7 @@ export class ERC721NFT extends AbstractNFT {
     //   );
     // }
 
-    const result: TransactionResponse = await this.mintContract?.mint(
+    const result: TransactionResponse = await this.mintContract.mint(
       ...mintArgs
     );
 
@@ -206,7 +202,7 @@ export class ERC721NFT extends AbstractNFT {
     }
 
     this.verifyItem();
-    return this.saleContract?.cancel(
+    return this.saleContract.cancel(
       this.item.contractAddress,
       this.item.tokenId //tokenId, // uint256 tokenId
     );
