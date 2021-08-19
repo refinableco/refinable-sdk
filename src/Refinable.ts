@@ -53,8 +53,12 @@ export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
 
-  static create(provider: any, apiToken: string) {
-    const refinable = new Refinable(provider);
+  static create(
+    provider: any,
+    apiToken: string,
+    options?: Partial<RefinableOptions>
+  ) {
+    const refinable = new Refinable(provider, options);
 
     refinable.apiClient = new GraphQLClient(GRAPHQL_URL, {
       headers: { "X-API-KEY": apiToken },

@@ -25,10 +25,10 @@ export abstract class AbstractNFT {
   protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
 
-  protected saleContract: Contract = {} as any;
-  protected mintContract: Contract = {} as any;
-  protected nonceContract: Contract = {} as any;
-  protected transferProxyContract: Contract = {} as any;
+  protected saleContract: Contract;
+  protected mintContract: Contract;
+  protected nonceContract: Contract;
+  protected transferProxyContract: Contract;
 
   constructor(
     protected type: TOKEN_TYPE,
