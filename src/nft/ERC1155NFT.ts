@@ -90,7 +90,7 @@ export class ERC1155NFT extends AbstractNFT {
       const approveMintSha3 = soliditySha3(
         this.item.contractAddress,
         item.tokenId,
-        this.refinable.account
+        await this.refinable.provider.getAddress()
       );
 
       signature = await this.refinable.personalSign(approveMintSha3 as string);
@@ -150,7 +150,7 @@ export class ERC1155NFT extends AbstractNFT {
 
     const saleParamHash = await this.getSaleParamsHash(
       price,
-      this.refinable.account,
+      await this.refinable.provider.getAddress(),
       supply
     );
 
@@ -177,7 +177,7 @@ export class ERC1155NFT extends AbstractNFT {
 
   async isApprovedForAll() {
     return this.mintContract?.isApprovedForAll(
-      this.refinable.account,
+      await this.refinable.provider.getAddress(),
       this.transferProxyContract?.address
     );
   }

@@ -26,8 +26,8 @@ interface RefinableOptions {
 export class Refinable {
   private _apiClient?: GraphQLClient;
 
-  static create(provider: any, address: string, apiToken: string) {
-    const refinable = new Refinable(provider, address);
+  static create(provider: any, apiToken: string) {
+    const refinable = new Refinable(provider);
 
     refinable.apiClient = new GraphQLClient(GRAPHQL_URL, {
       headers: { "X-API-KEY": apiToken },
@@ -38,7 +38,6 @@ export class Refinable {
 
   constructor(
     public readonly provider: ethers.Signer,
-    public readonly account: string,
     public readonly options: RefinableOptions = {
       waitConfirmations: 3,
     }
