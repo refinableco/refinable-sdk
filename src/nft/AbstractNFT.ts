@@ -46,7 +46,6 @@ export abstract class AbstractNFT {
 
   public async build(): Promise<this> {
     const { refinableContracts } = await this.refinable.getContracts(
-      this.refinable.apiClient,
       this._types
     );
 

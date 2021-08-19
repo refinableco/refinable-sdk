@@ -118,12 +118,8 @@ export class Refinable {
 
     return nft.build() as Promise<NftRegistry[K]>;
   }
-  getContracts(
-    apiClient: GraphQLClient,
-    types: ContractType[],
-    chainId = 1337
-  ) {
-    return apiClient.request(GET_REFINABLE_CONTRACT, {
+  getContracts(types: ContractType[], chainId = 1337) {
+    return this.apiClient.request(GET_REFINABLE_CONTRACT, {
       input: { types, chainId },
     });
   }

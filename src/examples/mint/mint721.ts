@@ -22,10 +22,7 @@ async function main() {
   );
 
   // SDK: Get contract address
-  const { refinableContracts } = await refinable.getContracts(
-    refinable.apiClient,
-    ["ERC721_TOKEN"]
-  );
+  const { refinableContracts } = await refinable.getContracts(["ERC721_TOKEN"]);
 
   const { contractAddress } = refinableContracts[0] ?? {};
 

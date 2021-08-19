@@ -22,10 +22,9 @@ async function main() {
   );
 
   // SDK: Get contract address
-  const { refinableContracts } = await refinable.getContracts(
-    refinable.apiClient,
-    ["ERC1155_TOKEN"]
-  );
+  const { refinableContracts } = await refinable.getContracts([
+    "ERC1155_TOKEN",
+  ]);
 
   const { contractAddress } = refinableContracts[0] ?? {};
 
