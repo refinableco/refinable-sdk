@@ -4,6 +4,15 @@
 
 ## Get started
 
+## TL;DR - Start on Testnet
+
+1. `yarn install`
+2. `NODE_ENV npx ts-node src/examples/mint/mint721.ts`
+
+view your nft at http://app-testnet.refinable.com/
+
+## How to configure everything
+
 To get started, create an instance of the refinable sdk.
 
 ```javascript
@@ -44,7 +53,7 @@ where `tokenId` is _optional_ in case you want to mint a new one.
 
 ```javascript
 const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-  chainId: 1337,
+  chainId: 97,
   contractAddress,
 });
 
@@ -65,7 +74,7 @@ more detailed examples can be found in [the examples folder](./src/examples/mint
 
 ```javascript
 const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
-  chainId: 56,
+  chainId: 97,
   contractAddress: erc721TokenAddress,
   tokenId: parameters[1],
 });
@@ -94,7 +103,7 @@ Construct the item you have for sale and cancel its sale.
 
 ```javascript
 const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-  chainId: 56,
+  chainId: 97,
   contractAddress: erc721TokenAddress,
   tokenId: parameters[1],
 });
