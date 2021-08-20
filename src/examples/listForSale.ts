@@ -14,9 +14,8 @@ type ParameterTuple = [string, number, string, string, number, number];
 
 async function main() {
   const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
-  const address = await wallet.getAddress();
 
-  const refinable = Refinable.create(wallet, address, "API_KEY");
+  const refinable = await Refinable.create(wallet, "API_KEY");
 
   let lineNumber = 0;
   const rl = readline.createInterface({
@@ -39,12 +38,14 @@ async function main() {
   // like this we can process them sync, otherwise blockchain will say we're doing too many txs
   rl.on("close", async function () {
     for (const parameters of nfts) {
-      await refinable.putForSale({
-        type: TOKEN_TYPE.ERC721,
+      const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
+        chainId: 56,
         contractAddress: erc721TokenAddress,
         tokenId: parameters[1],
+      });
+
+      await nft.putForSale({
         amount: parameters[4],
-        supply: parameters[5],
         currency: parameters[3] as REFINABLE_CURRENCY,
       });
       console.log(

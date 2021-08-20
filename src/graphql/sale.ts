@@ -1,4 +1,4 @@
-import { gql } from "@urql/core";
+import { gql } from "graphql-request";
 
 export const CREATE_OFFERS = gql`
   mutation createOfferForEditions($input: CreateOffersInput!) {

@@ -3,19 +3,34 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { BigNumber, Contract, ethers } from "ethers";
 import { soliditySha3, toWei } from "web3-utils";
 import { getERC20Address, getERC20Contract } from "../contracts";
-import { Refinable } from "../Refinable";
+import { ContractType, Refinable } from "../Refinable";
 import { TOKEN_TYPE } from "./nft";
 import { Price, REFINABLE_CURRENCY } from "../constants/currency";
 import { optionalParam } from "../utils";
+import { IRoyalty } from "./royaltyStrategies/Royalty";
+import { CreateItemInput } from "../@types/graphql";
+import { ReadStream } from "fs";
+
 export interface PartialNFTItem {
   contractAddress: string;
-  tokenId: number;
+  chainId: number;
+  tokenId?: number;
+}
+
+export interface NftValues
+  extends Omit<CreateItemInput, "file" | "contractAddress" | "type"> {
+  file: ReadStream;
 }
 
 export abstract class AbstractNFT {
+  protected _types: ContractType[] = [];
+  protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
-  protected abstract mintContract: Contract;
-  protected abstract nonceContract: Contract;
+
+  protected saleContract: Contract;
+  protected mintContract: Contract;
+  protected nonceContract: Contract;
+  protected transferProxyContract: Contract;
 
   constructor(
     protected type: TOKEN_TYPE,
@@ -23,6 +38,51 @@ export abstract class AbstractNFT {
     protected item: PartialNFTItem
   ) {
     this._item = item;
+    this._types = [
+      `${type}_TOKEN`,
+      `${type}_SALE`,
+      `${type}_SALE_NONCE_HOLDER`,
+      "TRANSFER_PROXY",
+    ];
+  }
+
+  public async build(): Promise<this> {
+    const { refinableContracts } = await this.refinable.getContracts(
+      this._types
+    );
+
+    const refinableContractsMap = refinableContracts.reduce(
+      (prev: any, contract: any) => ({ ...prev, [contract.type]: contract }),
+      {}
+    );
+
+    // Token contract
+    this.mintContract = new ethers.Contract(
+      refinableContractsMap[`${this.type}_TOKEN`].contractAddress,
+      refinableContractsMap[`${this.type}_TOKEN`].contractABI
+    ).connect(this.refinable.provider);
+
+    // Sale contract
+    this.saleContract = new ethers.Contract(
+      refinableContractsMap[`${this.type}_SALE`].contractAddress,
+      refinableContractsMap[`${this.type}_SALE`].contractABI
+    ).connect(this.refinable.provider);
+
+    // Nonce contract
+    this.nonceContract = new ethers.Contract(
+      refinableContractsMap[`${this.type}_SALE_NONCE_HOLDER`].contractAddress,
+      refinableContractsMap[`${this.type}_SALE_NONCE_HOLDER`].contractABI
+    ).connect(this.refinable.provider);
+
+    // transfer proxy
+    this.transferProxyContract = new ethers.Contract(
+      refinableContractsMap["TRANSFER_PROXY"].contractAddress,
+      refinableContractsMap["TRANSFER_PROXY"].contractABI
+    ).connect(this.refinable.provider);
+
+    this._initialized = true;
+
+    return this;
   }
 
   public getItem() {
@@ -31,13 +91,6 @@ export abstract class AbstractNFT {
 
   public setItem(item: PartialNFTItem): void {
     this.item = item;
-  }
-
-  protected getMintContractWithSigner(): Contract {
-    return this.mintContract.connect(this.refinable.provider);
-  }
-  protected getNonceContractWithSigner(): Contract {
-    return this.nonceContract.connect(this.refinable.provider);
   }
 
   verifyItem() {
@@ -52,12 +105,11 @@ export abstract class AbstractNFT {
     const value = ethers.utils.parseEther(price.amount.toString()).toString();
     const paymentToken = getERC20Address(price.currency);
 
-    const nonceResult: BigNumber =
-      await this.getNonceContractWithSigner().getNonce(
-        this.item.contractAddress,
-        this.item.tokenId,
-        ethAddress
-      );
+    const nonceResult: BigNumber = await this.nonceContract.getNonce(
+      this.item.contractAddress,
+      this.item.tokenId,
+      ethAddress
+    );
 
     const params = [
       this.item.contractAddress, // token
@@ -90,7 +142,7 @@ export abstract class AbstractNFT {
           .approve(spenderAddress, toWei(price.amount.toString(), "ether"));
 
         // Wait for 1 confirmation
-        await approvalResult.wait(this.refinable.waitConfirmations);
+        await approvalResult.wait(this.refinable.options.waitConfirmations);
       }
     }
 
@@ -98,17 +150,20 @@ export abstract class AbstractNFT {
   }
 
   protected approveForAll(address: string): Promise<TransactionResponse> {
-    return this.getMintContractWithSigner().setApprovalForAll(address, true);
+    return this.mintContract.setApprovalForAll(address, true);
   }
 
   protected approve(
     address: string,
     tokenId: number
   ): Promise<TransactionResponse> {
-    return this.getMintContractWithSigner().approve(address, tokenId);
+    return this.mintContract.approve(address, tokenId);
   }
 
-  abstract putForSale(price: Price): Promise<string>;
+  abstract mint(
+    nftValues: NftValues,
+    royalty?: IRoyalty
+  ): Promise<TransactionResponse>;
 
-  abstract getSaleContractAddress(): string;
+  abstract putForSale(price: Price): Promise<string>;
 }

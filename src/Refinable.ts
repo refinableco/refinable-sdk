@@ -3,49 +3,86 @@ import "isomorphic-unfetch";
 import { PartialNFTItem } from "./nft/AbstractNFT";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
-import { CREATE_OFFERS, TOKEN_TYPE } from "./nft/nft";
+import { TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
-import { REFINABLE_CURRENCY } from "./constants/currency";
-import { Client, createClient } from "@urql/core";
 import { GRAPHQL_URL } from "./constants";
+import { gql, GraphQLClient } from "graphql-request";
 
-interface BaseData {
-  contractAddress: string;
-  tokenId: number;
-  type: TOKEN_TYPE;
+interface NftRegistry {
+  [TOKEN_TYPE.ERC721]: ERC721NFT;
+  [TOKEN_TYPE.ERC1155]: ERC1155NFT;
 }
 
-interface ListForSaleData extends BaseData {
-  amount: number;
-  supply: number;
-  currency: REFINABLE_CURRENCY;
+export type ContractType =
+  | "ERC721_TOKEN"
+  | "ERC1155_TOKEN"
+  | "ERC721_SALE"
+  | "ERC1155_SALE"
+  | "ERC721_SALE_NONCE_HOLDER"
+  | "ERC1155_SALE_NONCE_HOLDER"
+  | "TRANSFER_PROXY"
+  | "ERC721SaleNonceHolder"
+  | "ERC1155SaleNonceHolder"
+  | "ERC721Airdrop"
+  | "ERC1155Airdrop"
+  | "ERC721Auction"
+  | "ERC1155Auction"
+  | "TransferProxy";
+
+export type AllContractTypes =
+  | ContractType
+  | "ServiceFeeProxy"
+  | "ERC20"
+  | "RefinableERC721WhiteListedToken"
+  | "RefinableERC721WhiteListedTokenV2";
+
+const GET_REFINABLE_CONTRACT = gql`
+  query refinableContracts($input: GetRefinableContractsInput!) {
+    refinableContracts(input: $input) {
+      contractAddress
+      contractABI
+      type
+    }
+  }
+`;
+
+interface RefinableOptions {
+  waitConfirmations: number;
 }
-
-interface CancelSaleData extends BaseData {}
-
 export class Refinable {
-  private _apiClient?: Client;
-  private _waitConfirmations = 3;
+  private _apiClient?: GraphQLClient;
+  private _options: RefinableOptions;
 
-  static create(provider: any, address: string, apiToken: string) {
-    const refinable = new Refinable(provider, address);
-    refinable.apiClient = createClient({
-      url: GRAPHQL_URL,
-      fetchOptions: () => {
-        return {
-          headers: {
-            "X-API-KEY": apiToken,
-          },
-        };
-      },
+  static async create(
+    provider: ethers.Signer,
+    apiToken: string,
+    options?: Partial<RefinableOptions>
+  ) {
+    const accountAddress = await provider.getAddress();
+    const refinable = new Refinable(provider, accountAddress, options);
+
+    refinable.apiClient = new GraphQLClient(GRAPHQL_URL, {
+      headers: { "X-API-KEY": apiToken },
     });
+
     return refinable;
   }
 
   constructor(
     public readonly provider: ethers.Signer,
-    public readonly account: string
-  ) {}
+    public readonly accountAddress: string,
+    options: Partial<RefinableOptions> = {}
+  ) {
+    const { waitConfirmations = 3 } = options;
+
+    this._options = {
+      waitConfirmations,
+    };
+  }
+
+  get options() {
+    return this._options;
+  }
 
   get apiClient() {
     if (!this._apiClient) {
@@ -54,19 +91,11 @@ export class Refinable {
     return this._apiClient;
   }
 
-  get waitConfirmations() {
-    return this._waitConfirmations;
-  }
-
   set apiClient(apiClient) {
     this._apiClient = apiClient;
   }
 
-  set waitConfirmations(waitConfirmations: number) {
-    this._waitConfirmations = waitConfirmations;
-  }
-
-  setApiClient(client: Client) {
+  setApiClient(client: GraphQLClient) {
     this.apiClient = client;
   }
 
@@ -85,52 +114,28 @@ export class Refinable {
     return reconstructed;
   }
 
-  // SDK FUNCTIONS
-  async putForSale(data: ListForSaleData) {
-    const nft = this.createNft(data.type, {
-      contractAddress: data.contractAddress,
-      tokenId: data.tokenId,
-    });
+  async createNft<K extends keyof NftRegistry>(
+    type: K,
+    item: PartialNFTItem
+  ): Promise<NftRegistry[K]> {
+    let nft;
 
-    const signature = await nft.putForSale(
-      { currency: data.currency, amount: data.amount },
-      data.supply
-    );
-
-    const result = await this.apiClient
-      .mutation(CREATE_OFFERS, {
-        input: {
-          tokenId: data.tokenId,
-          signature,
-          type: "SALE",
-          contractAddress: data.contractAddress,
-          price: {
-            currency: data.currency,
-            amount: parseFloat(data.amount.toString()),
-          },
-          supply: 1,
-        },
-      })
-      .toPromise();
-
-    return result;
-  }
-
-  async cancelSale(data: CancelSaleData) {
-    const nft = this.createNft(data.type, {
-      contractAddress: data.contractAddress,
-      tokenId: data.tokenId,
-    });
-
-    return nft.cancelSale();
-  }
-
-  createNft(type: TOKEN_TYPE, item: PartialNFTItem) {
     switch (type) {
       case TOKEN_TYPE.ERC721:
-        return new ERC721NFT(this, item);
+        nft = new ERC721NFT(this, item) as NftRegistry[K];
+        break;
       case TOKEN_TYPE.ERC1155:
-        return new ERC1155NFT(this, item);
+        nft = new ERC1155NFT(this, item) as NftRegistry[K];
+        break;
+      default:
+        throw new Error("This type is not supported yet");
     }
+
+    return nft.build() as Promise<NftRegistry[K]>;
+  }
+  getContracts(types: ContractType[], chainId = 1337) {
+    return this.apiClient.request(GET_REFINABLE_CONTRACT, {
+      input: { types, chainId },
+    });
   }
 }
