@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 import { Refinable } from "../../Refinable";
 import { TOKEN_TYPE } from "../../nft/nft";
@@ -30,7 +30,7 @@ async function main() {
 
   // SDK: create an nft
   const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
-    chainId: 1337,
+    chainId: 97,
     contractAddress,
   });
 

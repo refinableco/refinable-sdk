@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
 import * as readline from "readline";
 import * as fs from "fs";
 

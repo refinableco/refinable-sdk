@@ -1,5 +1,5 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+import dotenv from "dotenv";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 import { Refinable } from "../../Refinable";
 import { TOKEN_TYPE } from "../../nft/nft";
@@ -28,9 +28,11 @@ async function main() {
 
   // SDK: create an nft
   const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-    chainId: 1337,
+    chainId: 97,
     contractAddress,
   });
+
+  console.log("Minting...");
 
   // SDK: mint nft
   await nft.mint(
@@ -41,6 +43,8 @@ async function main() {
     },
     new StandardRoyaltyStrategy([])
   );
+
+  console.log("Listing for sale...");
 
   // SDK: Put for sale
   await nft.putForSale({

@@ -133,9 +133,9 @@ export class Refinable {
 
     return nft.build() as Promise<NftRegistry[K]>;
   }
-  getContracts(types: ContractType[], chainId = 1337) {
+  getContracts(types: ContractType[], chainId = process.env.CHAIN_ID) {
     return this.apiClient.request(GET_REFINABLE_CONTRACT, {
-      input: { types, chainId },
+      input: { types, chainId: parseInt(chainId, 10) },
     });
   }
 }
