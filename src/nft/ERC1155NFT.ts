@@ -112,7 +112,7 @@ export class ERC1155NFT extends AbstractNFT {
     );
 
     // Wait for 1 confirmation
-    await result.wait(1);
+    await result.wait(this.refinable.options.waitConfirmations);
 
     await this.refinable.apiClient.request<
       FinishMintMutation,
@@ -138,7 +138,7 @@ export class ERC1155NFT extends AbstractNFT {
       );
 
       // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable._options.waitConfirmations);
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
     }
 
     const saleParamHash = await this.getSaleParamsHash(

@@ -71,13 +71,17 @@ export class Refinable {
   constructor(
     public readonly provider: ethers.Signer,
     public readonly accountAddress: string,
-    public readonly options: Partial<RefinableOptions> = {}
+    options: Partial<RefinableOptions> = {}
   ) {
     const { waitConfirmations = 3 } = options;
 
     this._options = {
       waitConfirmations,
     };
+  }
+
+  get options() {
+    return this._options;
   }
 
   get apiClient() {

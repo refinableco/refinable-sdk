@@ -9,6 +9,8 @@ import { Price, REFINABLE_CURRENCY } from "../constants/currency";
 import { optionalParam } from "../utils";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
 import { CreateItemInput } from "../@types/graphql";
+import { ReadStream } from "fs";
+
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
@@ -17,7 +19,7 @@ export interface PartialNFTItem {
 
 export interface NftValues
   extends Omit<CreateItemInput, "file" | "contractAddress" | "type"> {
-  file: any;
+  file: ReadStream;
 }
 
 export abstract class AbstractNFT {
@@ -140,7 +142,7 @@ export abstract class AbstractNFT {
           .approve(spenderAddress, toWei(price.amount.toString(), "ether"));
 
         // Wait for 1 confirmation
-        await approvalResult.wait(this.refinable._options.waitConfirmations);
+        await approvalResult.wait(this.refinable.options.waitConfirmations);
       }
     }
 

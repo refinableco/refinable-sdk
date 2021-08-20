@@ -47,7 +47,7 @@ export class ERC721NFT extends AbstractNFT {
       );
 
       // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable._options.waitConfirmations);
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
     }
 
     const saleParamsHash = await this.getSaleParamsHash(
