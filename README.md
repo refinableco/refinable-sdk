@@ -110,6 +110,30 @@ const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
 await nft.cancelSale();
 ```
 
+### Transfering an item
+
+Transfering an item requires you to call the `transfer` method on the NFT object.
+
+**For 721 NFTs**:
+```javascript
+await nft.transfer(<Owner Wallet Address>, <Recipient Wallet Address>);
+```
+
+|Argument|Description|Type|
+|---|---|---|
+|Owner Wallet Address|The Wallet address that currently owns the NFT, 0x....|string|
+|Recipient Wallet Address|The Recipient wallet address that should receive the NFT, 0x...|string|
+
+**For 1155 Items**:
+```javascript
+await nft.transfer(<Owner Wallet Address>, <Recipient Wallet Address>, <Amount>);
+```
+|Argument|Description|Type|
+|---|---|---|
+|Owner Wallet Address|The Wallet address that currently owns the NFT, 0x....|string|
+|Recipient Wallet Address|The Recipient wallet address that should receive the NFT, 0x...|string|
+|Amount|The amount of editions of that nft you want to send|number|
+
 ## Supported Networks
 
 Refinable currently supports the following networks:
