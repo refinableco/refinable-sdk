@@ -27,6 +27,24 @@ export class ERC721NFT extends AbstractNFT {
     super(TOKEN_TYPE.ERC721, refinable, item);
   }
 
+  protected async approveIfNeeded(
+    operatorAddress: string
+  ): Promise<TransactionResponse | null> {
+    const isApproved = await this.isApproved();
+
+    if (!isApproved) {
+      const approvalResult = await this.approve(
+        operatorAddress,
+        this.item.tokenId
+      );
+
+      // Wait for confirmations
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
+
+      return approvalResult;
+    }
+  }
+
   async putForSale(price: Price): Promise<string> {
     this.verifyItem();
 
@@ -38,17 +56,7 @@ export class ERC721NFT extends AbstractNFT {
       throw new Error("contract address is not set");
     }
 
-    const isApproved = await this.isApproved();
-
-    if (!isApproved) {
-      const approvalResult = await this.approve(
-        transferProxyAddress,
-        this.item.tokenId
-      );
-
-      // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-    }
+    await this.approveIfNeeded(transferProxyAddress);
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,
@@ -208,12 +216,15 @@ export class ERC721NFT extends AbstractNFT {
     );
   }
 
-  transfer(ownerEthAddress: string, recipientEthAddress: string): Promise<TransactionResponse> {
+  transfer(
+    ownerEthAddress: string,
+    recipientEthAddress: string
+  ): Promise<TransactionResponse> {
     // the method is overloaded, generally this is the one we want to use
-    return this.mintContract['safeTransferFrom(address,address,uint256)'](
+    return this.mintContract["safeTransferFrom(address,address,uint256)"](
       ownerEthAddress,
       recipientEthAddress,
-      this.item.tokenId,
+      this.item.tokenId
     );
   }
 }

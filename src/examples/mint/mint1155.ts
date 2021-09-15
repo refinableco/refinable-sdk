@@ -5,10 +5,10 @@ import { Refinable } from "../../Refinable";
 import { TOKEN_TYPE } from "../../nft/nft";
 import { createWallet } from "../../providers";
 import { REFINABLE_NETWORK } from "../../constants/network";
-import { REFINABLE_CURRENCY } from "../../constants/currency";
 import * as fs from "fs";
 import * as path from "path";
 import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
+import { PriceCurrency } from "../../@types/graphql";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 
@@ -49,7 +49,7 @@ async function main() {
   await nft.putForSale(
     {
       amount: 0.1,
-      currency: REFINABLE_CURRENCY.BNB,
+      currency: PriceCurrency.Bnb,
     },
     4
   );

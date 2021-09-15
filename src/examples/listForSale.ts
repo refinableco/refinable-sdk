@@ -5,11 +5,10 @@ import * as readline from "readline";
 import * as fs from "fs";
 
 import { Refinable } from "../Refinable";
-import { REFINABLE_CURRENCY } from "../constants/currency";
 import { TOKEN_TYPE } from "../nft/nft";
 import { createWallet } from "../providers";
 import { REFINABLE_NETWORK } from "../constants/network";
-import { erc721TokenAddress } from "../contracts";
+import { PriceCurrency } from "../@types/graphql";
 
 const PRIVATE_KEY = "<YOUR PRIVATE KEY>";
 
@@ -43,16 +42,16 @@ async function main() {
     for (const parameters of nfts) {
       const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
         chainId: 56,
-        contractAddress: erc721TokenAddress,
+        contractAddress: parameters[0],
         tokenId: parameters[1],
       });
 
       await nft.putForSale({
         amount: parameters[4],
-        currency: parameters[3] as REFINABLE_CURRENCY,
+        currency: parameters[3] as PriceCurrency,
       });
       console.log(
-        `${erc721TokenAddress}:${parameters[1]} - Put ${parameters[5]} for sale for ${parameters[4]} ${parameters[3]}`
+        `${parameters[0]}:${parameters[1]} - Put ${parameters[5]} for sale for ${parameters[4]} ${parameters[3]}`
       );
     }
   });

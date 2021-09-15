@@ -129,10 +129,9 @@ export class ERC1155NFT extends AbstractNFT {
     return result;
   }
 
-  async putForSale(price: Price, supply = 1): Promise<string> {
-    this.verifyItem();
-
+  protected async approveIfNeeded(): Promise<TransactionResponse | null> {
     const isApproved = await this.isApprovedForAll();
+
     if (!isApproved) {
       const approvalResult = await this.approveForAll(
         this.transferProxyContract.address as string
@@ -140,7 +139,15 @@ export class ERC1155NFT extends AbstractNFT {
 
       // Wait for 1 confirmation
       await approvalResult.wait(this.refinable.options.waitConfirmations);
+
+      return approvalResult;
     }
+  }
+
+  async putForSale(price: Price, supply = 1): Promise<string> {
+    this.verifyItem();
+
+    await this.approveIfNeeded();
 
     const saleParamHash = await this.getSaleParamsHash(
       price,

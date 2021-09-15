@@ -82,7 +82,7 @@ const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
 await nft.putForSale({
   amount: amount,
   supply: 1,
-  currency: REFINABLE_CURRENCY.BNB,
+  currency: PriceCurrency.BNB,
 });
 ```
 

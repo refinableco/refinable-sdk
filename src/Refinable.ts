@@ -16,6 +16,8 @@ interface NftRegistry {
 export type ContractType =
   | "ERC721_TOKEN"
   | "ERC1155_TOKEN"
+  | "ERC721_AUCTION" 
+  | "ERC1155_AUCTION"
   | "ERC721_SALE"
   | "ERC1155_SALE"
   | "ERC721_SALE_NONCE_HOLDER"
