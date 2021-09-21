@@ -9,6 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
 import { PriceCurrency } from "../../@types/graphql";
+import { Chain } from "../../interfaces/Network";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 
@@ -30,7 +31,7 @@ async function main() {
 
   // SDK: create an nft
   const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
-    chainId: 97,
+    chainId: Chain.BscTestnet,
     contractAddress,
   });
 

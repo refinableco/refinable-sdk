@@ -1,5 +1,6 @@
 import * as ethers from "ethers";
 import { PriceCurrency } from "./@types/graphql";
+import { Chain } from "./interfaces/Network";
 
 export function isNewRoyaltyContract(address: string) {
   return "0xB2A93B548327d59a2819DEdbC791447d16a11B42"
@@ -9,18 +10,18 @@ export function isNewRoyaltyContract(address: string) {
 }
 
 const tokenAddresses = {
-  1337: {
-    Usdt: "0x0000000000000000000000000000000000000000",
-    Bnb: "0x0000000000000000000000000000000000000000",
+  [Chain.Local]: {
+    [PriceCurrency.Usdt]: "0x0000000000000000000000000000000000000000",
+    [PriceCurrency.Bnb]: "0x0000000000000000000000000000000000000000",
   },
-  97: {
-    Busd: "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47",
-    Usdt: "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd",
-    Bnb: "0x0000000000000000000000000000000000000000",
+  [Chain.BscTestnet]: {
+    [PriceCurrency.Busd]: "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47",
+    [PriceCurrency.Usdt]: "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd",
+    [PriceCurrency.Bnb]: "0x0000000000000000000000000000000000000000",
   },
-  56: {
-    Usdt: "0x55d398326f99059ff775485246999027b3197955",
-    Bnb: "0x0000000000000000000000000000000000000000",
+  [Chain.BscMainnet]: {
+    [PriceCurrency.Usdt]: "0x55d398326f99059ff775485246999027b3197955",
+    [PriceCurrency.Bnb]: "0x0000000000000000000000000000000000000000",
   },
 };
 

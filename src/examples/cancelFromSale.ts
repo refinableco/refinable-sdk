@@ -5,7 +5,7 @@ import { Refinable } from "../Refinable";
 import { TOKEN_TYPE } from "../nft/nft";
 import { createWallet } from "../providers";
 import { REFINABLE_NETWORK } from "../constants/network";
-import { erc721TokenAddress } from "../contracts";
+import { Chain } from "../interfaces/Network";
 
 const PRIVATE_KEY = "<YOUR PRIVATE KEY>";
 
@@ -13,9 +13,8 @@ type ParameterTuple = [string, number, string, string, number, number];
 
 async function main() {
   const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
-  const address = await wallet.getAddress();
 
-  const refinable = await Refinable.create(wallet, address, "API_KEY");
+  const refinable = await Refinable.create(wallet, "API_KEY");
 
   let lineNumber = 0;
   const rl = readline.createInterface({
@@ -39,15 +38,13 @@ async function main() {
   rl.on("close", async function () {
     for (const parameters of nfts) {
       const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-        chainId: 56,
-        contractAddress: erc721TokenAddress,
+        chainId: Chain.BscMainnet,
+        contractAddress: parameters[0],
         tokenId: parameters[1],
       });
 
       await nft.cancelSale();
-      console.log(
-        `${erc721TokenAddress}:${parameters[1]} - Canceled from sale`
-      );
+      console.log(`${parameters[0]}:${parameters[1]} - Canceled from sale`);
     }
   });
 }

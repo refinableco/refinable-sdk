@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Contract, ethers } from "ethers";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { transferProxyAddress } from "../contracts";
 import { Refinable } from "../Refinable";
 import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
@@ -27,22 +25,8 @@ export class ERC721NFT extends AbstractNFT {
     super(TOKEN_TYPE.ERC721, refinable, item);
   }
 
-  protected async approveIfNeeded(
-    operatorAddress: string
-  ): Promise<TransactionResponse | null> {
-    const isApproved = await this.isApproved();
-
-    if (!isApproved) {
-      const approvalResult = await this.approve(
-        operatorAddress,
-        this.item.tokenId
-      );
-
-      // Wait for confirmations
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-
-      return approvalResult;
-    }
+  approve(operatorAddress: string): Promise<TransactionResponse> {
+    return this.mintContract.setApprovalForAll(operatorAddress, true);
   }
 
   async putForSale(price: Price): Promise<string> {
@@ -56,7 +40,7 @@ export class ERC721NFT extends AbstractNFT {
       throw new Error("contract address is not set");
     }
 
-    await this.approveIfNeeded(transferProxyAddress);
+    await this.approveIfNeeded(this.transferProxyContract.addresss);
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,
@@ -84,19 +68,13 @@ export class ERC721NFT extends AbstractNFT {
     return result;
   }
 
-  async isApproved() {
-    const approvedSpender = await this.mintContract.getApproved(
-      this.item.tokenId
-    );
+  async isApproved(operatorAddress: string) {
     const isApprovedForAll = await this.mintContract.isApprovedForAll(
       this.refinable.accountAddress,
-      transferProxyAddress
+      operatorAddress
     );
 
-    return (
-      approvedSpender.toLowerCase() === transferProxyAddress.toLowerCase() ||
-      isApprovedForAll
-    );
+    return isApprovedForAll;
   }
 
   async mint(
@@ -184,7 +162,7 @@ export class ERC721NFT extends AbstractNFT {
     );
 
     // Wait for 1 confirmation
-    await result.wait(1);
+    await result.wait(this.refinable.options.waitConfirmations);
 
     await this.refinable.apiClient.request<
       FinishMintMutation,

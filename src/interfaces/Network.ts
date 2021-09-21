@@ -1,14 +1,14 @@
 export enum ChainType {
-  BSC = 'bsc',
-  POLYGON = 'polygon',
-  ETH = 'ethereum',
+  BSC = "bsc",
+  POLYGON = "polygon",
+  ETH = "ethereum",
 }
 
 export enum NetworkType {
-  MAINNET = 'mainnet',
-  TESTNET = 'testnet',
-  LOCAL = 'local',
-  UNKNOWN = 'unknown',
+  MAINNET = "mainnet",
+  TESTNET = "testnet",
+  LOCAL = "local",
+  UNKNOWN = "unknown",
 }
 
 export enum Chain {

@@ -9,6 +9,7 @@ import { TOKEN_TYPE } from "../nft/nft";
 import { createWallet } from "../providers";
 import { REFINABLE_NETWORK } from "../constants/network";
 import { PriceCurrency } from "../@types/graphql";
+import { Chain } from "../interfaces/Network";
 
 const PRIVATE_KEY = "<YOUR PRIVATE KEY>";
 
@@ -41,7 +42,7 @@ async function main() {
   rl.on("close", async function () {
     for (const parameters of nfts) {
       const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-        chainId: 56,
+        chainId: Chain.BscMainnet,
         contractAddress: parameters[0],
         tokenId: parameters[1],
       });

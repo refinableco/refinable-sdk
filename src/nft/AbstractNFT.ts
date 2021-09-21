@@ -7,10 +7,11 @@ import { TOKEN_TYPE } from "./nft";
 import { Price } from "../constants/currency";
 import { optionalParam } from "../utils";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { CreateItemInput, PriceCurrency } from "../@types/graphql";
+import { CreateItemInput, OfferType, PriceCurrency } from "../@types/graphql";
 import { ReadStream } from "fs";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { getERC20Address, getERC20Contract } from "../contracts";
+import { CREATE_OFFER } from "../graphql/sale";
 
 export interface PartialNFTItem {
   contractAddress: string;
@@ -46,7 +47,7 @@ export abstract class AbstractNFT {
       `${type}_SALE`,
       `${type}_SALE_NONCE_HOLDER`,
       "TRANSFER_PROXY",
-    ];
+    ] as ContractType[];
   }
 
   public async build(): Promise<this> {
@@ -106,9 +107,23 @@ export abstract class AbstractNFT {
     if (!this.item) throw new Error("Unable to do this action, item required");
   }
 
-  protected abstract approveIfNeeded(
+  protected async approveIfNeeded(
     operatorAddress: string
-  ): Promise<TransactionResponse | null>;
+  ): Promise<TransactionResponse | null> {
+    const isApproved = await this.isApproved(operatorAddress);
+
+    if (!isApproved) {
+      const approvalResult = await this.approve(operatorAddress);
+
+      // Wait for confirmations
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
+
+      return approvalResult;
+    }
+  }
+
+  abstract isApproved(operatorAddress?: string): Promise<boolean>;
+  abstract approve(operatorAddress?: string): Promise<TransactionResponse>;
 
   protected async getSaleParamsHash(
     price: Price,
@@ -169,14 +184,6 @@ export abstract class AbstractNFT {
   getPaymentToken(priceCurrency: PriceCurrency) {
     return getERC20Address(this.item.chainId, priceCurrency);
   }
-
-  protected approve(
-    address: string,
-    tokenId: number
-  ): Promise<TransactionResponse> {
-    return this.mintContract.approve(address, tokenId);
-  }
-
   abstract mint(
     nftValues: NftValues,
     royalty?: IRoyalty
@@ -188,11 +195,16 @@ export abstract class AbstractNFT {
     ownerEthAddress: string,
     recipientEthAddress: string
   ): Promise<TransactionResponse>;
-  async putForAuction(
-    price: Price,
-    auctionStartDate: Date,
-    auctionEndDate: Date
-  ): Promise<TransactionResponse> {
+
+  async putForAuction({
+    price,
+    auctionStartDate,
+    auctionEndDate,
+  }: {
+    price: Price;
+    auctionStartDate: Date;
+    auctionEndDate: Date;
+  }): Promise<string> {
     await this.approveIfNeeded(this.auctionContract.address);
 
     const startPrice = ethers.utils
@@ -204,24 +216,44 @@ export abstract class AbstractNFT {
 
     const paymentToken = this.getPaymentToken(price.currency);
 
-    return this.auctionContract.createAuction(
+    const blockchainAuctionResponse = await this.auctionContract.createAuction(
       this.item.contractAddress,
+      // TODO: Preparation for V2
+      ethers.constants.AddressZero, // _royaltyToken
+      // TODO: Preparation for V2
       this.item.tokenId, //tokenId, // uint256 tokenId
       paymentToken,
       startPrice,
       getUnixEpochTimeStampFromDate(auctionStartDate),
       getUnixEpochTimeStampFromDate(auctionEndDate)
     );
+
+    await blockchainAuctionResponse.wait(
+      this.refinable.options.waitConfirmations
+    );
+
+    const result = await this.refinable.apiClient.request(CREATE_OFFER, {
+      input: {
+        tokenId: this.item.tokenId,
+        contractAddress: this.item.contractAddress,
+        type: OfferType.Auction,
+        price,
+        supply: 1,
+        offerContractAddress: blockchainAuctionResponse.to,
+        transactionHash: blockchainAuctionResponse.hash,
+        startTime: auctionStartDate,
+        endTime: auctionEndDate,
+      },
+    });
+
+    return result;
   }
 
   cancelAuction(auctionId?: string): Promise<TransactionResponse> {
     return this.auctionContract.cancelAuction(auctionId);
   }
 
-  endAuction(
-    auctionContractAddress: string,
-    auctionId?: string
-  ): Promise<TransactionResponse> {
+  endAuction(auctionId?: string): Promise<TransactionResponse> {
     return this.auctionContract.endAuction(auctionId);
   }
 }

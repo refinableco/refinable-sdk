@@ -7,7 +7,7 @@
 ## TL;DR - Start on Testnet
 
 1. `yarn install`
-2. `NODE_ENV npx ts-node src/examples/mint/mint721.ts`
+2. `NODE_ENV npx esno src/examples/mint/mint721.ts`
 
 view your nft at http://app-testnet.refinable.com/
 

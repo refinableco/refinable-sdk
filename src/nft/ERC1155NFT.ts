@@ -27,6 +27,17 @@ export class ERC1155NFT extends AbstractNFT {
     super(TOKEN_TYPE.ERC1155, refinable, item);
   }
 
+  approve(operatorAddress: string): Promise<TransactionResponse> {
+    return this.mintContract.setApprovalForAll(operatorAddress, true);
+  }
+
+  isApproved(operatorAddress: string): Promise<boolean> {
+    return this.mintContract.isApprovedForAll(
+      this.refinable.accountAddress,
+      operatorAddress
+    );
+  }
+
   async mint(
     nftValues: NftValues,
     royalty?: IRoyalty
