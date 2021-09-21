@@ -5,10 +5,9 @@ import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
 import { TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
-import { GRAPHQL_URL } from "./constants";
 import { gql, GraphQLClient } from "graphql-request";
 
-interface NftRegistry {
+export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
   [TOKEN_TYPE.ERC1155]: ERC1155NFT;
 }
@@ -54,6 +53,7 @@ interface RefinableOptions {
 export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
+  private _apiKey: string;
 
   static async create(
     provider: ethers.Signer,
@@ -63,7 +63,11 @@ export class Refinable {
     const accountAddress = await provider.getAddress();
     const refinable = new Refinable(provider, accountAddress, options);
 
-    refinable.apiClient = new GraphQLClient(GRAPHQL_URL, {
+    const graphqlUrl =
+      process.env.GRAPHQL_URL ?? "https://api.refinable.com/graphql";
+
+    refinable._apiKey = apiToken;
+    refinable.apiClient = new GraphQLClient(graphqlUrl, {
       headers: { "X-API-KEY": apiToken },
     });
 
@@ -80,6 +84,10 @@ export class Refinable {
     this._options = {
       waitConfirmations,
     };
+  }
+
+  get apiKey() {
+    return this._apiKey;
   }
 
   get options() {

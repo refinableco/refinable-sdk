@@ -115,24 +115,75 @@ await nft.cancelSale();
 Transfering an item requires you to call the `transfer` method on the NFT object.
 
 **For 721 NFTs**:
+
 ```javascript
 await nft.transfer(<Owner Wallet Address>, <Recipient Wallet Address>);
 ```
 
-|Argument|Description|Type|
-|---|---|---|
-|Owner Wallet Address|The Wallet address that currently owns the NFT, 0x....|string|
-|Recipient Wallet Address|The Recipient wallet address that should receive the NFT, 0x...|string|
+| Argument                 | Description                                                     | Type   |
+| ------------------------ | --------------------------------------------------------------- | ------ |
+| Owner Wallet Address     | The Wallet address that currently owns the NFT, 0x....          | string |
+| Recipient Wallet Address | The Recipient wallet address that should receive the NFT, 0x... | string |
 
 **For 1155 Items**:
+
 ```javascript
 await nft.transfer(<Owner Wallet Address>, <Recipient Wallet Address>, <Amount>);
 ```
-|Argument|Description|Type|
-|---|---|---|
-|Owner Wallet Address|The Wallet address that currently owns the NFT, 0x....|string|
-|Recipient Wallet Address|The Recipient wallet address that should receive the NFT, 0x...|string|
-|Amount|The amount of editions of that nft you want to send|number|
+
+| Argument                 | Description                                                     | Type   |
+| ------------------------ | --------------------------------------------------------------- | ------ |
+| Owner Wallet Address     | The Wallet address that currently owns the NFT, 0x....          | string |
+| Recipient Wallet Address | The Recipient wallet address that should receive the NFT, 0x... | string |
+| Amount                   | The amount of editions of that nft you want to send             | number |
+
+### Listing for Auction
+
+```javascript
+const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
+  chainId: 97,
+  contractAddress: erc721TokenAddress,
+  tokenId: parameters[1],
+});
+
+await nft.putForAuction({
+  auctionStartDate: new Date(Date.now() + 300000),
+  auctionEndDate: new Date(Date.now() + 900000),
+  price: {
+    amount: 1,
+    currency: PriceCurrency.Bnb,
+  },
+});
+```
+
+| Argument           | Description                                          | Values        |
+| ------------------ | ---------------------------------------------------- | ------------- |
+| `auctionStartDate` | The date when the auction is supposed to start       | `Date`        |
+| `auctionEndDate`   | The date when the auction is supposed to end         | `Date`        |
+| `amount`           | The price that you want to list the NFT for sale for | `number`      |
+| `currency`         | The currency you want to use                         | `USDT`, `BNB` |
+
+### Cancelling an Auction
+
+Get the auction id and then cancel it.
+
+[Example](./src/examples/cancelAuction.ts)
+
+```javascript
+const auctionId = await nft.getAuctionId();
+await nft.cancelAuction(auctionId);
+```
+
+### Ending an auction
+
+Get the auction id and then end it.
+
+[Example](./src/examples/cancelAuction.ts)
+
+```javascript
+const auctionId = await nft.getAuctionId();
+await nft.endAuction(auctionId);
+```
 
 ## Supported Networks
 

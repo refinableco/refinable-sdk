@@ -13,7 +13,6 @@ import {
   FinishMintMutationVariables,
   CreateItemMutationVariables,
 } from "../@types/graphql";
-import { API_KEY } from "../constants";
 import { uploadFile } from "../graphql/utils";
 import { CREATE_OFFERS } from "../graphql/sale";
 
@@ -93,7 +92,7 @@ export class ERC721NFT extends AbstractNFT {
     // Upload image / video
     const { uploadFile: uploadedFileName } = await uploadFile(
       nftValues.file,
-      API_KEY as string
+      this.refinable.apiKey as string
     );
 
     if (!uploadedFileName) {

@@ -7,7 +7,6 @@ import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
 import { uploadFile } from "../graphql/utils";
-import { API_KEY } from "../constants";
 import {
   CreateItemMutation,
   CreateItemMutationVariables,
@@ -54,7 +53,7 @@ export class ERC1155NFT extends AbstractNFT {
     // Upload image / video
     const { uploadFile: uploadedFileName } = await uploadFile(
       nftValues.file,
-      API_KEY as string
+      this.refinable.apiKey
     );
 
     if (!uploadedFileName) {

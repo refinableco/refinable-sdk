@@ -219,7 +219,7 @@ export abstract class AbstractNFT {
     const blockchainAuctionResponse = await this.auctionContract.createAuction(
       this.item.contractAddress,
       // TODO: Preparation for V2
-      ethers.constants.AddressZero, // _royaltyToken
+      // ethers.constants.AddressZero, // _royaltyToken
       // TODO: Preparation for V2
       this.item.tokenId, //tokenId, // uint256 tokenId
       paymentToken,
@@ -251,6 +251,14 @@ export abstract class AbstractNFT {
 
   cancelAuction(auctionId?: string): Promise<TransactionResponse> {
     return this.auctionContract.cancelAuction(auctionId);
+  }
+
+  getAuctionId(): Promise<string> {
+    return this.auctionContract.getAuctionId(
+      this.mintContract.address,
+      this.item.tokenId,
+      this.refinable.accountAddress
+    );
   }
 
   endAuction(auctionId?: string): Promise<TransactionResponse> {
