@@ -18,6 +18,5 @@ export enum Chain {
   PolygonTestnet = 80001,
   PolygonMainnet = 137,
   Ethereum = 1,
-  EthereumRopsten = 3,
   EthereumRinkeby = 4,
 }

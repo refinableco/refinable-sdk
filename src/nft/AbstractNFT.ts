@@ -10,8 +10,12 @@ import { IRoyalty } from "./royaltyStrategies/Royalty";
 import { CreateItemInput, OfferType, PriceCurrency } from "../@types/graphql";
 import { ReadStream } from "fs";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
-import { getERC20Address, getERC20Contract } from "../contracts";
+import { getApproveContract } from "../contracts";
 import { CREATE_OFFER } from "../graphql/sale";
+import { IChainConfig } from "../interfaces/Config";
+import { chainMap } from "../chains";
+import { getSupportedCurrency } from "../utils/chain";
+import { GET_REFINABLE_CONTRACT } from "../graphql/contracts";
 
 export interface PartialNFTItem {
   contractAddress: string;
@@ -28,6 +32,7 @@ export abstract class AbstractNFT {
   protected _types: ContractType[] = [];
   protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
+  protected _chain: IChainConfig;
 
   protected saleContract: Contract;
   protected mintContract: Contract;
@@ -40,6 +45,10 @@ export abstract class AbstractNFT {
     protected refinable: Refinable,
     protected item: PartialNFTItem
   ) {
+    if (!chainMap[item.chainId]) {
+      throw new Error(`Chain ${item.chainId} is not supported`);
+    }
+
     this._item = item;
     this._types = [
       `${type}_TOKEN`,
@@ -48,10 +57,12 @@ export abstract class AbstractNFT {
       `${type}_SALE_NONCE_HOLDER`,
       "TRANSFER_PROXY",
     ] as ContractType[];
+    this._chain = chainMap[item.chainId];
   }
 
   public async build(): Promise<this> {
     const { refinableContracts } = await this.refinable.getContracts(
+      this.item.chainId,
       this._types
     );
 
@@ -131,7 +142,10 @@ export abstract class AbstractNFT {
     supply?: number
   ) {
     const value = ethers.utils.parseEther(price.amount.toString()).toString();
-    const paymentToken = getERC20Address(this.item.chainId, price.currency);
+    const paymentToken = getSupportedCurrency(
+      this._chain.supportedCurrencies,
+      price.currency
+    ).address;
 
     const nonceResult: BigNumber = await this.nonceContract.getNonce(
       this.item.contractAddress,
@@ -157,21 +171,43 @@ export abstract class AbstractNFT {
     return hash;
   }
 
+  protected isNativeCurrency(priceCurrency: PriceCurrency) {
+    const currency = getSupportedCurrency(
+      this._chain.supportedCurrencies,
+      priceCurrency
+    );
+
+    return currency && currency.native === true;
+  }
+
   protected async approveForTokenIfNeeded(
     price: Price,
     spenderAddress: string
   ): Promise<any> {
-    if (price.currency !== PriceCurrency.Bnb) {
-      const erc20Contract = getERC20Contract(this.item.chainId, price.currency);
+    const isNativeCurrency = this.isNativeCurrency(price.currency);
 
-      if (erc20Contract) {
-        const approvalResult: TransactionResponse = await erc20Contract
-          .connect(this.refinable.provider)
-          .approve(spenderAddress, toWei(price.amount.toString(), "ether"));
+    // When native currency, we do not need to approve
+    if (!isNativeCurrency) {
+      const contractAddress = getSupportedCurrency(
+        this._chain.supportedCurrencies,
+        price.currency
+      ).address;
+      const erc20Contract = getApproveContract(contractAddress, price.currency);
 
-        // Wait for 1 confirmation
-        await approvalResult.wait(this.refinable.options.waitConfirmations);
+      if (!erc20Contract) {
+        throw new Error(
+          `Unable to create ERC20 contract for ${price.currency}`
+        );
       }
+
+      const approvalResult: TransactionResponse =
+        await this.mintContract.approve(
+          spenderAddress,
+          toWei(price.amount.toString(), "ether")
+        );
+
+      // Wait for 1 confirmation
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
     }
 
     return Promise.resolve();
@@ -181,9 +217,6 @@ export abstract class AbstractNFT {
     return this.mintContract.setApprovalForAll(address, true);
   }
 
-  getPaymentToken(priceCurrency: PriceCurrency) {
-    return getERC20Address(this.item.chainId, priceCurrency);
-  }
   abstract mint(
     nftValues: NftValues,
     royalty?: IRoyalty
@@ -211,10 +244,10 @@ export abstract class AbstractNFT {
       .parseEther(price.amount.toString())
       .toString();
 
-    auctionStartDate = new Date(auctionStartDate);
-    auctionEndDate = new Date(auctionEndDate);
-
-    const paymentToken = this.getPaymentToken(price.currency);
+    const paymentToken = getSupportedCurrency(
+      this._chain.supportedCurrencies,
+      price.currency
+    ).address;
 
     const blockchainAuctionResponse = await this.auctionContract.createAuction(
       this.item.contractAddress,

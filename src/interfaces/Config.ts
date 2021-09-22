@@ -1,8 +1,9 @@
-import { ChainType, NetworkType } from './Network';
+import { ChainType, NetworkType } from "./Network";
 
 export class IChainConfig {
   name: string;
   displayName: string;
+  shortName: string;
   nodeUri: string[];
   networkId: number;
   // Internal network name to fetch address from

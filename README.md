@@ -7,7 +7,7 @@
 ## TL;DR - Start on Testnet
 
 1. `yarn install`
-2. `NODE_ENV npx esno src/examples/mint/mint721.ts`
+2. `NODE_ENV npx ts-node src/examples/mint/mint721.ts`
 
 view your nft at http://app-testnet.refinable.com/
 
@@ -165,7 +165,7 @@ await nft.putForAuction({
 
 ### Cancelling an Auction
 
-Get the auction id and then cancel it.
+Cancels an auction, without transfering the NFT.
 
 [Example](./src/examples/cancelAuction.ts)
 
@@ -176,7 +176,7 @@ await nft.cancelAuction(auctionId);
 
 ### Ending an auction
 
-Get the auction id and then end it.
+Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.
 
 [Example](./src/examples/cancelAuction.ts)
 
