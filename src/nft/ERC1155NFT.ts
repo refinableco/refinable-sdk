@@ -17,6 +17,7 @@ import {
 import { CREATE_ITEM, FINISH_MINT } from "../graphql/mint";
 import { soliditySha3 } from "web3-utils";
 import { CREATE_OFFERS } from "../graphql/sale";
+import { ethers } from "ethers";
 
 export class ERC1155NFT extends AbstractNFT {
   constructor(
@@ -181,6 +182,16 @@ export class ERC1155NFT extends AbstractNFT {
     return this.saleContract.cancel(
       this.item.contractAddress,
       this.item.tokenId //tokenId, // uint256 tokenId
+    );
+  }
+
+  transfer(ownerEthAddress: string, recipientEthAddress: string, amount = 1): Promise<TransactionResponse> {
+    return this.mintContract.safeTransferFrom(
+      ownerEthAddress,
+      recipientEthAddress,
+      this.item.tokenId,
+      amount,
+      ethers.constants.HashZero,
     );
   }
 }

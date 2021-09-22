@@ -166,4 +166,6 @@ export abstract class AbstractNFT {
   ): Promise<TransactionResponse>;
 
   abstract putForSale(price: Price): Promise<string>;
+
+  abstract transfer(ownerEthAddress: string, recipientEthAddress: string): Promise<TransactionResponse>;
 }
