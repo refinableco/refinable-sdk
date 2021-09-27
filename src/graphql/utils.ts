@@ -1,11 +1,13 @@
 import { ReadStream } from "fs";
 import { UPLOAD } from "./mint";
-import { GRAPHQL_URL } from "../constants";
 import { request } from "graphql-request";
 
 export const uploadFile = async (fileStream: ReadStream, apiKey: string) => {
+  const graphqlUrl =
+    process.env.GRAPHQL_URL ?? "https://api.refinable.com/graphql";
+
   const response = await request(
-    GRAPHQL_URL,
+    graphqlUrl,
     UPLOAD,
     {
       file: fileStream,

@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Contract, ethers } from "ethers";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { transferProxyAddress } from "../contracts";
 import { Refinable } from "../Refinable";
 import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
@@ -15,7 +13,6 @@ import {
   FinishMintMutationVariables,
   CreateItemMutationVariables,
 } from "../@types/graphql";
-import { API_KEY } from "../constants";
 import { uploadFile } from "../graphql/utils";
 import { CREATE_OFFERS } from "../graphql/sale";
 
@@ -25,6 +22,10 @@ export class ERC721NFT extends AbstractNFT {
     protected readonly item: PartialNFTItem
   ) {
     super(TOKEN_TYPE.ERC721, refinable, item);
+  }
+
+  approve(operatorAddress: string): Promise<TransactionResponse> {
+    return this.mintContract.setApprovalForAll(operatorAddress, true);
   }
 
   async putForSale(price: Price): Promise<string> {
@@ -38,17 +39,7 @@ export class ERC721NFT extends AbstractNFT {
       throw new Error("contract address is not set");
     }
 
-    const isApproved = await this.isApproved();
-
-    if (!isApproved) {
-      const approvalResult = await this.approve(
-        transferProxyAddress,
-        this.item.tokenId
-      );
-
-      // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-    }
+    await this.approveIfNeeded(this.transferProxyContract.addresss);
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,
@@ -76,19 +67,13 @@ export class ERC721NFT extends AbstractNFT {
     return result;
   }
 
-  async isApproved() {
-    const approvedSpender = await this.mintContract.getApproved(
-      this.item.tokenId
-    );
+  async isApproved(operatorAddress: string) {
     const isApprovedForAll = await this.mintContract.isApprovedForAll(
       this.refinable.accountAddress,
-      transferProxyAddress
+      operatorAddress
     );
 
-    return (
-      approvedSpender.toLowerCase() === transferProxyAddress.toLowerCase() ||
-      isApprovedForAll
-    );
+    return isApprovedForAll;
   }
 
   async mint(
@@ -107,7 +92,7 @@ export class ERC721NFT extends AbstractNFT {
     // Upload image / video
     const { uploadFile: uploadedFileName } = await uploadFile(
       nftValues.file,
-      API_KEY as string
+      this.refinable.apiKey as string
     );
 
     if (!uploadedFileName) {
@@ -176,7 +161,7 @@ export class ERC721NFT extends AbstractNFT {
     );
 
     // Wait for 1 confirmation
-    await result.wait(1);
+    await result.wait(this.refinable.options.waitConfirmations);
 
     await this.refinable.apiClient.request<
       FinishMintMutation,
@@ -208,12 +193,15 @@ export class ERC721NFT extends AbstractNFT {
     );
   }
 
-  transfer(ownerEthAddress: string, recipientEthAddress: string): Promise<TransactionResponse> {
+  transfer(
+    ownerEthAddress: string,
+    recipientEthAddress: string
+  ): Promise<TransactionResponse> {
     // the method is overloaded, generally this is the one we want to use
-    return this.mintContract['safeTransferFrom(address,address,uint256)'](
+    return this.mintContract["safeTransferFrom(address,address,uint256)"](
       ownerEthAddress,
       recipientEthAddress,
-      this.item.tokenId,
+      this.item.tokenId
     );
   }
 }

@@ -1,9 +1,6 @@
+import { PriceCurrency } from "../@types/graphql";
+
 export interface Price {
-    currency: REFINABLE_CURRENCY;
+    currency: PriceCurrency;
     amount: number;
 };
-  
-export enum REFINABLE_CURRENCY {
-    BNB = 'BNB',
-    USDT = 'USDT',
-}

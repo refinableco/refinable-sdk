@@ -5,10 +5,11 @@ import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
 import { TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
-import { GRAPHQL_URL } from "./constants";
-import { gql, GraphQLClient } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
+import { Chain } from "./interfaces/Network";
+import { GET_REFINABLE_CONTRACT } from "./graphql/contracts";
 
-interface NftRegistry {
+export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
   [TOKEN_TYPE.ERC1155]: ERC1155NFT;
 }
@@ -16,6 +17,8 @@ interface NftRegistry {
 export type ContractType =
   | "ERC721_TOKEN"
   | "ERC1155_TOKEN"
+  | "ERC721_AUCTION"
+  | "ERC1155_AUCTION"
   | "ERC721_SALE"
   | "ERC1155_SALE"
   | "ERC721_SALE_NONCE_HOLDER"
@@ -36,22 +39,13 @@ export type AllContractTypes =
   | "RefinableERC721WhiteListedToken"
   | "RefinableERC721WhiteListedTokenV2";
 
-const GET_REFINABLE_CONTRACT = gql`
-  query refinableContracts($input: GetRefinableContractsInput!) {
-    refinableContracts(input: $input) {
-      contractAddress
-      contractABI
-      type
-    }
-  }
-`;
-
 interface RefinableOptions {
   waitConfirmations: number;
 }
 export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
+  private _apiKey: string;
 
   static async create(
     provider: ethers.Signer,
@@ -61,7 +55,11 @@ export class Refinable {
     const accountAddress = await provider.getAddress();
     const refinable = new Refinable(provider, accountAddress, options);
 
-    refinable.apiClient = new GraphQLClient(GRAPHQL_URL, {
+    const graphqlUrl =
+      process.env.GRAPHQL_URL ?? "https://api.refinable.com/graphql";
+
+    refinable._apiKey = apiToken;
+    refinable.apiClient = new GraphQLClient(graphqlUrl, {
       headers: { "X-API-KEY": apiToken },
     });
 
@@ -78,6 +76,10 @@ export class Refinable {
     this._options = {
       waitConfirmations,
     };
+  }
+
+  get apiKey() {
+    return this._apiKey;
   }
 
   get options() {
@@ -133,9 +135,10 @@ export class Refinable {
 
     return nft.build() as Promise<NftRegistry[K]>;
   }
-  getContracts(types: ContractType[], chainId = process.env.CHAIN_ID) {
+
+  getContracts(chainId: Chain, types: ContractType[]) {
     return this.apiClient.request(GET_REFINABLE_CONTRACT, {
-      input: { types, chainId: parseInt(chainId, 10) },
+      input: { types, chainId: chainId },
     });
   }
 }
