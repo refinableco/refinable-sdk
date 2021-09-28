@@ -82,7 +82,7 @@ const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
 await nft.putForSale({
   amount: amount,
   supply: 1,
-  currency: REFINABLE_CURRENCY.BNB,
+  currency: PriceCurrency.BNB,
 });
 ```
 
@@ -157,6 +157,54 @@ await nft.burn(<Owner Wallet Address>, <Amount>);
 | -------------------- | ------------------------------------------------------ | ------ |
 | Owner Wallet Address | The Wallet address that currently owns the NFT, 0x.... | string |
 | Amount               | The amount of editions of that nft you want to burn    | number |
+
+### Listing for Auction
+
+```javascript
+const nft = await refinable.createNft(TOKEN_TYPE.ERC1155, {
+  chainId: 97,
+  contractAddress: erc721TokenAddress,
+  tokenId: parameters[1],
+});
+
+await nft.putForAuction({
+  auctionStartDate: new Date(Date.now() + 300000),
+  auctionEndDate: new Date(Date.now() + 900000),
+  price: {
+    amount: 1,
+    currency: PriceCurrency.Bnb,
+  },
+});
+```
+
+| Argument           | Description                                          | Values        |
+| ------------------ | ---------------------------------------------------- | ------------- |
+| `auctionStartDate` | The date when the auction is supposed to start       | `Date`        |
+| `auctionEndDate`   | The date when the auction is supposed to end         | `Date`        |
+| `amount`           | The price that you want to list the NFT for sale for | `number`      |
+| `currency`         | The currency you want to use                         | `USDT`, `BNB` |
+
+### Cancelling an Auction
+
+Cancels an auction, without transfering the NFT.
+
+[Example](./src/examples/cancelAuction.ts)
+
+```javascript
+const auctionId = await nft.getAuctionId();
+await nft.cancelAuction(auctionId);
+```
+
+### Ending an auction
+
+Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.
+
+[Example](./src/examples/cancelAuction.ts)
+
+```javascript
+const auctionId = await nft.getAuctionId();
+await nft.endAuction(auctionId);
+```
 
 ## Supported Networks
 

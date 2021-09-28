@@ -1,21 +1,9 @@
 import * as ethers from "ethers";
-import { REFINABLE_NETWORK } from "./constants/network";
-import { BSC_RPC, POLYGON_RPC } from "./constants/rpc";
+import { chainMap } from "./chains";
+import { Chain } from "./interfaces/Network";
 
-export const createWallet = (
-  privateKey: string,
-  network: REFINABLE_NETWORK
-) => {
-  switch (network) {
-    case REFINABLE_NETWORK.BSC:
-      // https://docs.binance.org/smart-chain/developer/rpc.html
-      return buildWallet(privateKey, BSC_RPC);
-    case REFINABLE_NETWORK.POLYGON:
-      // https://docs.matic.network/docs/develop/network-details/network/
-      return buildWallet(privateKey, POLYGON_RPC);
-    default:
-      return buildWallet(privateKey, BSC_RPC);
-  }
+export const createWallet = (privateKey: string, chain: Chain) => {
+  return buildWallet(privateKey, chainMap[chain].nodeUri[0]);
 };
 
 const buildWallet = (privateKey: string, rpcUrl: string): ethers.Wallet => {

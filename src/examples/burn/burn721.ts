@@ -1,36 +1,21 @@
 import dotenv from "dotenv";
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-
-import { Refinable } from "../../Refinable";
-import { TOKEN_TYPE } from "../../nft/nft";
-import { createWallet } from "../../providers";
-import { REFINABLE_NETWORK } from "../../constants/network";
 import * as fs from "fs";
 import * as path from "path";
-import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
+import { TOKEN_TYPE } from "../../nft/nft";
+import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
+import { setupNft } from "../shared";
 
 async function main() {
-  const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
-
-  const refinable = await Refinable.create(wallet, "API_KEY");
-
   const fileStream = fs.createReadStream(
     path.join(__dirname, "../mint/image.jpg")
   );
 
-  // SDK: Get contract address
-  const { refinableContracts } = await refinable.getContracts(["ERC721_TOKEN"]);
-
-  const { contractAddress } = refinableContracts[0] ?? {};
-
   try {
     // SDK: create an nft
-    const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-      chainId: 97,
-      contractAddress,
-    });
+    const nft = await setupNft(TOKEN_TYPE.ERC721);
 
     console.log("Minting >>>");
 
