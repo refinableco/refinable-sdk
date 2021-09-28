@@ -21,8 +21,6 @@ export async function setupNft<K extends keyof NftRegistry>(type: K) {
     "ERC721_TOKEN",
   ]);
 
-  console.log(refinableContracts);
-
   const { contractAddress } = refinableContracts[0] ?? {};
 
   // SDK: create an nft
