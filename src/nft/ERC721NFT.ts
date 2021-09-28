@@ -208,12 +208,19 @@ export class ERC721NFT extends AbstractNFT {
     );
   }
 
-  transfer(ownerEthAddress: string, recipientEthAddress: string): Promise<TransactionResponse> {
+  transfer(
+    ownerEthAddress: string,
+    recipientEthAddress: string
+  ): Promise<TransactionResponse> {
     // the method is overloaded, generally this is the one we want to use
-    return this.mintContract['safeTransferFrom(address,address,uint256)'](
+    return this.mintContract["safeTransferFrom(address,address,uint256)"](
       ownerEthAddress,
       recipientEthAddress,
-      this.item.tokenId,
+      this.item.tokenId
     );
+  }
+
+  burn(): Promise<TransactionResponse> {
+    return this.mintContract.burn(this.item.tokenId);
   }
 }
