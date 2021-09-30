@@ -11,9 +11,7 @@ import { setupNft } from "../shared";
 async function main() {
   const nft = await setupNft(TOKEN_TYPE.ERC721);
 
-  const fileStream = fs.createReadStream(
-    path.join(__dirname, "../mint/ image.jpg")
-  );
+  const fileStream = fs.createReadStream(path.join(__dirname, "./image.jpg"));
 
   console.log("Minting...");
 
