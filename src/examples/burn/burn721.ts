@@ -18,13 +18,12 @@ async function main() {
     const nft = await setupNft(TOKEN_TYPE.ERC721);
 
     console.log("Minting >>>");
-
     // SDK: mint nft
     await nft.mint(
       {
         file: fileStream,
         description: "some test description",
-        name: "the nft 721",
+        name: "The Test NFT",
       },
       new StandardRoyaltyStrategy([])
     );
@@ -36,7 +35,7 @@ async function main() {
 
     console.log("Burning successful");
   } catch (error) {
-    console.error(error.response);
+    console.error(error);
   }
 }
 
