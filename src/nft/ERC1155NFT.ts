@@ -202,13 +202,25 @@ export class ERC1155NFT extends AbstractNFT {
     );
   }
 
-  transfer(ownerEthAddress: string, recipientEthAddress: string, amount = 1): Promise<TransactionResponse> {
+  transfer(
+    ownerEthAddress: string,
+    recipientEthAddress: string,
+    amount = 1
+  ): Promise<TransactionResponse> {
     return this.mintContract.safeTransferFrom(
       ownerEthAddress,
       recipientEthAddress,
       this.item.tokenId,
       amount,
-      ethers.constants.HashZero,
+      ethers.constants.HashZero
+    );
+  }
+
+  burn(amount = 1): Promise<TransactionResponse> {
+    return this.mintContract.burn(
+      this.refinable.accountAddress,
+      this.item.tokenId,
+      amount
     );
   }
 }

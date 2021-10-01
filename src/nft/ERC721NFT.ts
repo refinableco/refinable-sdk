@@ -204,4 +204,8 @@ export class ERC721NFT extends AbstractNFT {
       this.item.tokenId
     );
   }
+
+  burn(): Promise<TransactionResponse> {
+    return this.mintContract.burn(this.item.tokenId);
+  }
 }

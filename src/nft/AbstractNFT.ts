@@ -15,7 +15,6 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
 import { chainMap } from "../chains";
 import { getSupportedCurrency } from "../utils/chain";
-import { GET_REFINABLE_CONTRACT } from "../graphql/contracts";
 
 export interface PartialNFTItem {
   contractAddress: string;

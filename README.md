@@ -137,6 +137,26 @@ await nft.transfer(<Owner Wallet Address>, <Recipient Wallet Address>, <Amount>)
 | Recipient Wallet Address | The Recipient wallet address that should receive the NFT, 0x... | string |
 | Amount                   | The amount of editions of that nft you want to send             | number |
 
+### Burning an item
+
+For burning an item you need to call `burn` method on NFT object.
+
+**For 721 NFTs**:
+
+```javascript
+await nft.burn();
+```
+
+**For 1155 Items**:
+
+```javascript
+await nft.burn(<Amount>);
+```
+
+| Argument | Description                                         | Type   |
+| -------- | --------------------------------------------------- | ------ |
+| Amount   | The amount of editions of that nft you want to burn | number |
+
 ### Listing for Auction
 
 ```javascript
