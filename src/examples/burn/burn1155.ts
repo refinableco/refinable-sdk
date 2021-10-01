@@ -41,7 +41,7 @@ async function main() {
     console.log("burning >>>");
 
     // SDK: burn item
-    await nft.burn(address, 5);
+    await nft.burn(5);
 
     console.log("burning successful!");
   } catch (error) {

@@ -150,13 +150,12 @@ await nft.burn();
 **For 1155 Items**:
 
 ```javascript
-await nft.burn(<Owner Wallet Address>, <Amount>);
+await nft.burn(<Amount>);
 ```
 
-| Argument             | Description                                            | Type   |
-| -------------------- | ------------------------------------------------------ | ------ |
-| Owner Wallet Address | The Wallet address that currently owns the NFT, 0x.... | string |
-| Amount               | The amount of editions of that nft you want to burn    | number |
+| Argument | Description                                         | Type   |
+| -------- | --------------------------------------------------- | ------ |
+| Amount   | The amount of editions of that nft you want to burn | number |
 
 ### Listing for Auction
 
