@@ -14,7 +14,7 @@ export const GET_USER_OFFER_ITEMS = gql`
         edges {
           cursor
           node {
-            ...GalleryItemWithOffer
+            ...getItemsWithOffer
           }
         }
         pageInfo {

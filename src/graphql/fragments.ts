@@ -1,7 +1,7 @@
 import { gql } from "graphql-request";
 
 export const ItemWithOfferFragment = gql`
-  fragment GalleryItemWithOffer on ItemWithOffer {
+  fragment getItemsWithOffer on ItemWithOffer {
     id
     item {
       id
