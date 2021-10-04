@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { GALLERY_ITEM_WITH_OFFER } from "./fragments";
+import { ItemWithOfferFragment } from "./fragments";
 
 export const GET_USER_OFFER_ITEMS = gql`
   query getUserOfferItems(
@@ -28,5 +28,5 @@ export const GET_USER_OFFER_ITEMS = gql`
     }
   }
 
-  ${GALLERY_ITEM_WITH_OFFER}
+  ${ItemWithOfferFragment}
 `;

@@ -5,7 +5,7 @@ async function main() {
   try {
     // SDK: create an nft
     const nft = await setupNft(TOKEN_TYPE.ERC721);
-    console.log("Geeting items for sale");
+    console.log("Getting items for sale");
     await nft.getItemsOnSale(5);
     console.log("items fetched ✅");
   } catch (error) {

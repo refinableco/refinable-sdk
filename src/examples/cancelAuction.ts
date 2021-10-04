@@ -8,7 +8,7 @@ async function main() {
   const nft = await setupNft(TOKEN_TYPE.ERC721);
   nft.setItem({
     ...nft.getItem(),
-    tokenId: 320,
+    tokenId: "320",
   });
 
   const auctionId = await nft.getAuctionId();
