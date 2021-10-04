@@ -7,7 +7,12 @@ import { TOKEN_TYPE } from "./nft";
 import { Price } from "../constants/currency";
 import { optionalParam } from "../utils";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { CreateItemInput, OfferType, PriceCurrency } from "../@types/graphql";
+import {
+  CreateItemInput,
+  PriceCurrency,
+  GetUserOfferItemsQuery,
+  GetUserOfferItemsQueryVariables,
+} from "../@types/graphql";
 import { ReadStream } from "fs";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { getApproveContract } from "../contracts";
@@ -15,11 +20,12 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
 import { chainMap } from "../chains";
 import { getSupportedCurrency } from "../utils/chain";
+import { GET_USER_OFFER_ITEMS } from "../graphql/items";
 
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
-  tokenId?: number;
+  tokenId?: string;
 }
 
 export interface NftValues
@@ -27,6 +33,10 @@ export interface NftValues
   file: ReadStream;
 }
 
+export enum OfferType {
+  Sale = "SALE",
+  Auction = "AUCTION",
+}
 export abstract class AbstractNFT {
   protected _types: ContractType[] = [];
   protected _initialized: boolean = false;
@@ -295,5 +305,19 @@ export abstract class AbstractNFT {
 
   endAuction(auctionId?: string): Promise<TransactionResponse> {
     return this.auctionContract.endAuction(auctionId);
+  }
+
+  async getItemsOnSale(paging = 30): Promise<{}> {
+    const queryResponse = await this.refinable.apiClient.request<
+      GetUserOfferItemsQuery,
+      GetUserOfferItemsQueryVariables
+    >(GET_USER_OFFER_ITEMS, {
+      ethAddress: this.refinable.accountAddress,
+      filter: { type: OfferType.Sale },
+      paging: {
+        first: paging,
+      },
+    });
+    return queryResponse?.user?.itemsOnOffer;
   }
 }
