@@ -8,6 +8,11 @@ import * as ethers from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { Chain } from "./interfaces/Network";
 import { GET_REFINABLE_CONTRACT } from "./graphql/contracts";
+import {
+  GetUserOfferItemsQuery,
+  GetUserOfferItemsQueryVariables,
+} from "./@types/graphql";
+import { GET_USER_OFFER_ITEMS } from "./graphql/items";
 
 export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
@@ -41,6 +46,11 @@ export type AllContractTypes =
 
 interface RefinableOptions {
   waitConfirmations: number;
+}
+
+enum OfferType {
+  Sale = "SALE",
+  Auction = "AUCTION",
 }
 export class Refinable {
   private _apiClient?: GraphQLClient;
@@ -140,5 +150,19 @@ export class Refinable {
     return this.apiClient.request(GET_REFINABLE_CONTRACT, {
       input: { types, chainId: chainId },
     });
+  }
+
+  async getItemsOnSale(paging = 30): Promise<{}> {
+    const queryResponse = await this.apiClient.request<
+      GetUserOfferItemsQuery,
+      GetUserOfferItemsQueryVariables
+    >(GET_USER_OFFER_ITEMS, {
+      ethAddress: this.accountAddress,
+      filter: { type: OfferType.Sale },
+      paging: {
+        first: paging,
+      },
+    });
+    return queryResponse?.user?.itemsOnOffer;
   }
 }

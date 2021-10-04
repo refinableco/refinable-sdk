@@ -7,7 +7,7 @@ import { TOKEN_TYPE } from "./nft";
 import { Price } from "../constants/currency";
 import { optionalParam } from "../utils";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { CreateItemInput, OfferType, PriceCurrency } from "../@types/graphql";
+import { CreateItemInput, PriceCurrency } from "../@types/graphql";
 import { ReadStream } from "fs";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { getApproveContract } from "../contracts";
@@ -19,7 +19,7 @@ import { getSupportedCurrency } from "../utils/chain";
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
-  tokenId?: number;
+  tokenId?: string;
 }
 
 export interface NftValues
@@ -27,6 +27,10 @@ export interface NftValues
   file: ReadStream;
 }
 
+export enum OfferType {
+  Sale = "SALE",
+  Auction = "AUCTION",
+}
 export abstract class AbstractNFT {
   protected _types: ContractType[] = [];
   protected _initialized: boolean = false;

@@ -205,6 +205,20 @@ const auctionId = await nft.getAuctionId();
 await nft.endAuction(auctionId);
 ```
 
+### Getting items for sale
+
+Get all items for-sale of a user
+
+[Example](./src/examples/item/itemsOnSale.ts)
+
+```javascript
+await nft.getItemsOnSale(<paging number>);
+```
+
+| Argument | Description                                 | Values                 |
+| -------- | ------------------------------------------- | ---------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
+
 ## Supported Networks
 
 Refinable currently supports the following networks:
