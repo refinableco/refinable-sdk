@@ -173,7 +173,7 @@ export class Refinable {
         first: paging,
       },
     });
-    return (queryResponse?.user?.itemsOnOffer as ItemsWithOffersResponse) ?? [];
+    return queryResponse?.user?.itemsOnOffer ?? [];
   }
 
   async getItemsOnAuction(
