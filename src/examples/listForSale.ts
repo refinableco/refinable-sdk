@@ -3,22 +3,19 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 import * as readline from "readline";
 import * as fs from "fs";
+import * as path from "path";
 
-import { Refinable } from "../Refinable";
-import { TOKEN_TYPE } from "../nft/nft";
-import { createWallet } from "../providers";
-import { REFINABLE_NETWORK } from "../constants/network";
 import { PriceCurrency } from "../@types/graphql";
-import { Chain } from "../interfaces/Network";
+import { setupNft } from "./shared";
+import { TOKEN_TYPE } from "../nft/nft";
+import { StandardRoyaltyStrategy } from "../nft/royaltyStrategies/StandardRoyaltyStrategy";
 
-const PRIVATE_KEY = "<YOUR PRIVATE KEY>";
-
-type ParameterTuple = [string, number, string, string, number, number];
+type ParameterTuple = [string, string, string, string, number, number];
 
 async function main() {
-  const wallet = createWallet(PRIVATE_KEY, REFINABLE_NETWORK.BSC);
-
-  const refinable = await Refinable.create(wallet, "API_KEY");
+  const fileStream = fs.createReadStream(
+    path.join(__dirname, "./mint/image.jpg")
+  );
 
   let lineNumber = 0;
   const rl = readline.createInterface({
@@ -41,18 +38,21 @@ async function main() {
   // like this we can process them sync, otherwise blockchain will say we're doing too many txs
   rl.on("close", async function () {
     for (const parameters of nfts) {
-      const nft = await refinable.createNft(TOKEN_TYPE.ERC721, {
-        chainId: Chain.BscMainnet,
-        contractAddress: parameters[0],
-        tokenId: parameters[1],
-      });
+      const nft = await setupNft(TOKEN_TYPE.ERC721);
 
+      await nft.mint(
+        {
+          file: fileStream,
+          description: "some test description",
+        },
+        new StandardRoyaltyStrategy([])
+      );
       await nft.putForSale({
         amount: parameters[4],
         currency: parameters[3] as PriceCurrency,
       });
       console.log(
-        `${parameters[0]}:${parameters[1]} - Put ${parameters[5]} for sale for ${parameters[4]} ${parameters[3]}`
+        `{Put ${parameters[5]} items for sale for ${parameters[4]} ${parameters[3]}`
       );
     }
   });

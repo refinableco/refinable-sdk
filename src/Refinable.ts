@@ -158,7 +158,7 @@ export class Refinable {
     });
   }
 
-  async getItemsOnSale(paging = 30): Promise<{}> {
+  async getItemsOnSale(paging = 30): Promise<any> {
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
@@ -189,7 +189,7 @@ export class Refinable {
   async getItems(
     paging = 30,
     filter: UserItemFilterType = UserItemFilterType.Owned
-  ): Promise<{}> {
+  ): Promise<any> {
     const queryResponse = await this.apiClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
