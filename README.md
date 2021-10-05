@@ -212,7 +212,21 @@ Get all items for-sale of a user
 [Example](./src/examples/item/itemsOnSale.ts)
 
 ```javascript
-await nft.getItemsOnSale(<paging number>);
+await refinable.getItemsOnSale(<paging number>);
+```
+
+| Argument | Description                                 | Values                 |
+| -------- | ------------------------------------------- | ---------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
+
+### Getting items on auction
+
+Get all items on auction of a user
+
+[Example](./src/examples/item/itemsOnAuction.ts)
+
+```javascript
+await refinable.getItemsOnAuction(<paging number>);
 ```
 
 | Argument | Description                                 | Values                 |
