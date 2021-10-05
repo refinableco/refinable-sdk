@@ -219,6 +219,21 @@ await nft.getItemsOnSale(<paging number>);
 | -------- | ------------------------------------------- | ---------------------- |
 | `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
 
+### Getting items for a user
+
+Get all items(created/owned) by a user
+
+[Example](./src/examples/item/getItems.ts)
+
+```javascript
+await refinable.getItems(<paging number>, <filter string>)
+```
+
+| Argument | Description                                 | Values                           |
+| -------- | ------------------------------------------- | -------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30) `           |
+| `filter` | Filter you want to apply on items           | `CREATED/OWNED (default=OWNED) ` |
+
 ## Supported Networks
 
 Refinable currently supports the following networks:

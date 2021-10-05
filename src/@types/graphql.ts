@@ -707,6 +707,7 @@ export type Query = {
   collection?: Maybe<Collection>;
   offer?: Maybe<Offer>;
   itemsOnOffer: ItemsWithOffersResponse;
+  auction?: Maybe<Auction>;
   user?: Maybe<User>;
   /** @deprecated User consent is beeing given directly on the frontend */
   userConsent: UserConsent;
@@ -749,6 +750,10 @@ export type QueryItemsOnOfferArgs = {
   sort?: Maybe<SortInput>;
   filter?: Maybe<ItemsFilterInput>;
   paging: PagingInput;
+};
+
+export type QueryAuctionArgs = {
+  id?: Maybe<Scalars["ID"]>;
 };
 
 export type QueryUserArgs = {
@@ -1029,7 +1034,28 @@ export type RefinableContractsQuery = {
   }>;
 };
 
-export type ItemCardInfoFragment = {
+export type ItemSaleInfoFragment = {
+  __typename?: "Offer";
+  id: string;
+  createdAt?: Maybe<any>;
+  type?: Maybe<string>;
+  supply: number;
+  price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+  auction?: Maybe<{
+    __typename?: "Auction";
+    id: string;
+    startPrice?: Maybe<number>;
+    startTime?: Maybe<any>;
+    endTime?: Maybe<any>;
+    highestBid?: Maybe<{
+      __typename?: "Bid";
+      transactionHash: string;
+      bidAmount: number;
+    }>;
+  }>;
+};
+
+export type ItemInfoFragment = {
   __typename?: "Item";
   id: string;
   tokenId: string;
@@ -1067,28 +1093,7 @@ export type ItemCardInfoFragment = {
   >;
 };
 
-export type CardSaleInfoFragment = {
-  __typename?: "Offer";
-  id: string;
-  createdAt?: Maybe<any>;
-  type?: Maybe<string>;
-  supply: number;
-  price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-  auction?: Maybe<{
-    __typename?: "Auction";
-    id: string;
-    startPrice?: Maybe<number>;
-    startTime?: Maybe<any>;
-    endTime?: Maybe<any>;
-    highestBid?: Maybe<{
-      __typename?: "Bid";
-      transactionHash: string;
-      bidAmount: number;
-    }>;
-  }>;
-};
-
-export type GalleryItemWithOfferFragment = {
+export type GetItemsWithOfferFragment = {
   __typename?: "ItemWithOffer";
   id: string;
   item: {
@@ -1148,6 +1153,65 @@ export type GalleryItemWithOfferFragment = {
       }>;
     }>;
   }>;
+};
+
+export type UserItemsFragment = {
+  __typename?: "Item";
+  userSupply: number;
+  id: string;
+  tokenId: string;
+  contractAddress: string;
+  supply: number;
+  name: string;
+  description?: Maybe<string>;
+  chainId: number;
+  nextEditionForSale?: Maybe<{
+    __typename?: "Offer";
+    id: string;
+    createdAt?: Maybe<any>;
+    type?: Maybe<string>;
+    supply: number;
+    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+    auction?: Maybe<{
+      __typename?: "Auction";
+      id: string;
+      startPrice?: Maybe<number>;
+      startTime?: Maybe<any>;
+      endTime?: Maybe<any>;
+      highestBid?: Maybe<{
+        __typename?: "Bid";
+        transactionHash: string;
+        bidAmount: number;
+      }>;
+    }>;
+  }>;
+  creator: {
+    __typename?: "User";
+    id: string;
+    ethAddress?: Maybe<string>;
+    name?: Maybe<string>;
+    profileImage?: Maybe<string>;
+    verified?: Maybe<boolean>;
+  };
+  collection?: Maybe<{
+    __typename?: "Collection";
+    slug: string;
+    name: string;
+    iconUrl: string;
+    verified: boolean;
+  }>;
+  properties: {
+    __typename?: "Properties";
+    fileType: FileType;
+    imagePreview?: Maybe<string>;
+    fileUrl?: Maybe<string>;
+    originalFileUrl?: Maybe<string>;
+    thumbnailUrl?: Maybe<string>;
+    originalThumbnailUrl?: Maybe<string>;
+  };
+  transcodings?: Maybe<
+    Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
+  >;
 };
 
 export type GetUserOfferItemsQueryVariables = Exact<{
@@ -1242,6 +1306,103 @@ export type GetUserOfferItemsQuery = {
       >;
       pageInfo?: Maybe<{
         __typename?: "ItemWithOfferPageInfo";
+        startCursor?: Maybe<string>;
+        endCursor?: Maybe<string>;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+      }>;
+    };
+  }>;
+};
+
+export type GetUserItemsQueryVariables = Exact<{
+  ethAddress: Scalars["String"];
+  filter?: Maybe<UserItemFilterInput>;
+  paging: PagingInput;
+}>;
+
+export type GetUserItemsQuery = {
+  __typename?: "Query";
+  user?: Maybe<{
+    __typename?: "User";
+    id: string;
+    items: {
+      __typename?: "ItemsResponse";
+      totalCount?: Maybe<number>;
+      edges?: Maybe<
+        Array<{
+          __typename?: "ItemEdge";
+          cursor: string;
+          node: {
+            __typename?: "Item";
+            userSupply: number;
+            id: string;
+            tokenId: string;
+            contractAddress: string;
+            supply: number;
+            name: string;
+            description?: Maybe<string>;
+            chainId: number;
+            nextEditionForSale?: Maybe<{
+              __typename?: "Offer";
+              id: string;
+              createdAt?: Maybe<any>;
+              type?: Maybe<string>;
+              supply: number;
+              price: {
+                __typename?: "Price";
+                amount: number;
+                currency: PriceCurrency;
+              };
+              auction?: Maybe<{
+                __typename?: "Auction";
+                id: string;
+                startPrice?: Maybe<number>;
+                startTime?: Maybe<any>;
+                endTime?: Maybe<any>;
+                highestBid?: Maybe<{
+                  __typename?: "Bid";
+                  transactionHash: string;
+                  bidAmount: number;
+                }>;
+              }>;
+            }>;
+            creator: {
+              __typename?: "User";
+              id: string;
+              ethAddress?: Maybe<string>;
+              name?: Maybe<string>;
+              profileImage?: Maybe<string>;
+              verified?: Maybe<boolean>;
+            };
+            collection?: Maybe<{
+              __typename?: "Collection";
+              slug: string;
+              name: string;
+              iconUrl: string;
+              verified: boolean;
+            }>;
+            properties: {
+              __typename?: "Properties";
+              fileType: FileType;
+              imagePreview?: Maybe<string>;
+              fileUrl?: Maybe<string>;
+              originalFileUrl?: Maybe<string>;
+              thumbnailUrl?: Maybe<string>;
+              originalThumbnailUrl?: Maybe<string>;
+            };
+            transcodings?: Maybe<
+              Array<{
+                __typename?: "Transcoding";
+                url: string;
+                mimeType: string;
+              }>
+            >;
+          };
+        }>
+      >;
+      pageInfo?: Maybe<{
+        __typename?: "ItemPageInfo";
         startCursor?: Maybe<string>;
         endCursor?: Maybe<string>;
         hasNextPage: boolean;

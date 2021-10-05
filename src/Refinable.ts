@@ -11,8 +11,10 @@ import { GET_REFINABLE_CONTRACT } from "./graphql/contracts";
 import {
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
+  GetUserItemsQuery,
+  GetUserItemsQueryVariables,
 } from "./@types/graphql";
-import { GET_USER_OFFER_ITEMS } from "./graphql/items";
+import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 
 export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
@@ -51,6 +53,10 @@ interface RefinableOptions {
 enum OfferType {
   Sale = "SALE",
   Auction = "AUCTION",
+}
+enum UserItemFilterType {
+  Created = "CREATED",
+  Owned = "OWNED",
 }
 export class Refinable {
   private _apiClient?: GraphQLClient;
@@ -164,5 +170,24 @@ export class Refinable {
       },
     });
     return queryResponse?.user?.itemsOnOffer;
+  }
+
+  async getItems(paging = 30, filter = "OWNED"): Promise<{}> {
+    const type =
+      filter === UserItemFilterType.Created
+        ? UserItemFilterType.Created
+        : UserItemFilterType.Owned;
+
+    const queryResponse = await this.apiClient.request<
+      GetUserItemsQuery,
+      GetUserItemsQueryVariables
+    >(GET_USER_ITEMS, {
+      ethAddress: this.accountAddress,
+      filter: { type },
+      paging: {
+        first: paging,
+      },
+    });
+    return queryResponse?.user?.items;
   }
 }
