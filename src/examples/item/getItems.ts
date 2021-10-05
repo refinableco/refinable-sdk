@@ -3,7 +3,7 @@ import { Chain } from "../../interfaces/Network";
 import { createWallet } from "../../providers";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-import { Refinable } from "../../Refinable";
+import { Refinable, UserItemFilterType } from "../../Refinable";
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 const API_KEY = process.env.API_KEY as string;
 
@@ -15,7 +15,7 @@ async function main() {
       waitConfirmations: 1,
     });
     console.log("Getting created items by a user!");
-    await refinable.getItems(5, "CREATED");
+    await refinable.getItems(5, UserItemFilterType.Created);
     console.log("Created items are fetched ✅");
 
     console.log("Getting all items of a user!");

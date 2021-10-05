@@ -54,7 +54,7 @@ enum OfferType {
   Sale = "SALE",
   Auction = "AUCTION",
 }
-enum UserItemFilterType {
+export enum UserItemFilterType {
   Created = "CREATED",
   Owned = "OWNED",
 }
@@ -186,18 +186,16 @@ export class Refinable {
     return queryResponse?.user?.itemsOnOffer;
   }
 
-  async getItems(paging = 30, filter = "OWNED"): Promise<{}> {
-    const type =
-      filter === UserItemFilterType.Created
-        ? UserItemFilterType.Created
-        : UserItemFilterType.Owned;
-
+  async getItems(
+    paging = 30,
+    filter: UserItemFilterType = UserItemFilterType.Owned
+  ): Promise<{}> {
     const queryResponse = await this.apiClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
     >(GET_USER_ITEMS, {
       ethAddress: this.accountAddress,
-      filter: { type },
+      filter: { type: filter },
       paging: {
         first: paging,
       },
