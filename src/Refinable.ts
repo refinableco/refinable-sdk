@@ -11,8 +11,12 @@ import { GET_REFINABLE_CONTRACT } from "./graphql/contracts";
 import {
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
+  GetUserItemsQuery,
+  GetUserItemsQueryVariables,
+  ItemsWithOffersResponse,
+  ItemsResponse,
 } from "./@types/graphql";
-import { GET_USER_OFFER_ITEMS } from "./graphql/items";
+import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 
 export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
@@ -51,6 +55,10 @@ interface RefinableOptions {
 enum OfferType {
   Sale = "SALE",
   Auction = "AUCTION",
+}
+export enum UserItemFilterType {
+  Created = "CREATED",
+  Owned = "OWNED",
 }
 export class Refinable {
   private _apiClient?: GraphQLClient;
@@ -152,7 +160,9 @@ export class Refinable {
     });
   }
 
-  async getItemsOnSale(paging = 30): Promise<{}> {
+  async getItemsOnSale(
+    paging = 30
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
@@ -163,10 +173,12 @@ export class Refinable {
         first: paging,
       },
     });
-    return queryResponse?.user?.itemsOnOffer;
+    return queryResponse?.user?.itemsOnOffer ?? [];
   }
 
-  async getItemsOnAuction(paging = 30): Promise<any> {
+  async getItemsOnAuction(
+    paging = 30
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
@@ -177,6 +189,23 @@ export class Refinable {
         first: paging,
       },
     });
-    return queryResponse?.user?.itemsOnOffer;
+    return queryResponse?.user?.itemsOnOffer ?? [];
+  }
+
+  async getItems(
+    paging = 30,
+    filter: UserItemFilterType = UserItemFilterType.Owned
+  ): Promise<GetUserItemsQuery["user"]["items"] | []> {
+    const queryResponse = await this.apiClient.request<
+      GetUserItemsQuery,
+      GetUserItemsQueryVariables
+    >(GET_USER_ITEMS, {
+      ethAddress: this.accountAddress,
+      filter: { type: filter },
+      paging: {
+        first: paging,
+      },
+    });
+    return queryResponse?.user?.items ?? [];
   }
 }

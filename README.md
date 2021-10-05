@@ -233,6 +233,26 @@ await refinable.getItemsOnAuction(<paging number>);
 | -------- | ------------------------------------------- | ---------------------- |
 | `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
 
+### Getting items for a user
+
+Get all items(created/owned) by a user
+
+[Example](./src/examples/item/getItems.ts)
+
+```typescript
+await refinable.getItems(<paging>, <filter>)
+
+enum UserItemFilterType {
+  Created = "CREATED",
+  Owned = "OWNED",
+}
+```
+
+| Argument | Description                                 | Values                                                   |
+| -------- | ------------------------------------------- | -------------------------------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30) `                                   |
+| `filter` | Filter you want to apply on items           | `UserItemFilterType (default=UserItemFilterType.Owned) ` |
+
 ## Supported Networks
 
 Refinable currently supports the following networks:

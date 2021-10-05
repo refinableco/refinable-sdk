@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { ItemWithOfferFragment } from "./fragments";
+import { ItemWithOfferFragment, UserItemsFragment } from "./fragments";
 
 export const GET_USER_OFFER_ITEMS = gql`
   query getUserOfferItems(
@@ -29,4 +29,32 @@ export const GET_USER_OFFER_ITEMS = gql`
   }
 
   ${ItemWithOfferFragment}
+`;
+
+export const GET_USER_ITEMS = gql`
+  query getUserItems(
+    $ethAddress: String!
+    $filter: UserItemFilterInput
+    $paging: PagingInput!
+  ) {
+    user(ethAddress: $ethAddress) {
+      id
+      items(filter: $filter, paging: $paging) {
+        edges {
+          cursor
+          node {
+            ...userItems
+          }
+        }
+        pageInfo {
+          startCursor
+          endCursor
+          hasNextPage
+          hasPreviousPage
+        }
+        totalCount
+      }
+    }
+  }
+  ${UserItemsFragment}
 `;
