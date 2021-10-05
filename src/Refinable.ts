@@ -13,6 +13,8 @@ import {
   GetUserOfferItemsQueryVariables,
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
+  ItemsWithOffersResponse,
+  ItemsResponse,
 } from "./@types/graphql";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 
@@ -158,7 +160,9 @@ export class Refinable {
     });
   }
 
-  async getItemsOnSale(paging = 30): Promise<any> {
+  async getItemsOnSale(
+    paging = 30
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
@@ -169,10 +173,12 @@ export class Refinable {
         first: paging,
       },
     });
-    return queryResponse?.user?.itemsOnOffer;
+    return (queryResponse?.user?.itemsOnOffer as ItemsWithOffersResponse) ?? [];
   }
 
-  async getItemsOnAuction(paging = 30): Promise<any> {
+  async getItemsOnAuction(
+    paging = 30
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
@@ -183,13 +189,13 @@ export class Refinable {
         first: paging,
       },
     });
-    return queryResponse?.user?.itemsOnOffer;
+    return queryResponse?.user?.itemsOnOffer ?? [];
   }
 
   async getItems(
     paging = 30,
     filter: UserItemFilterType = UserItemFilterType.Owned
-  ): Promise<any> {
+  ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const queryResponse = await this.apiClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
@@ -200,6 +206,6 @@ export class Refinable {
         first: paging,
       },
     });
-    return queryResponse?.user?.items;
+    return queryResponse?.user?.items ?? [];
   }
 }
