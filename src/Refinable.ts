@@ -165,4 +165,18 @@ export class Refinable {
     });
     return queryResponse?.user?.itemsOnOffer;
   }
+
+  async getItemsOnAuction(paging = 30): Promise<any> {
+    const queryResponse = await this.apiClient.request<
+      GetUserOfferItemsQuery,
+      GetUserOfferItemsQueryVariables
+    >(GET_USER_OFFER_ITEMS, {
+      ethAddress: this.accountAddress,
+      filter: { type: OfferType.Auction },
+      paging: {
+        first: paging,
+      },
+    });
+    return queryResponse?.user?.itemsOnOffer;
+  }
 }
