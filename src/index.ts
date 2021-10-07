@@ -4,6 +4,7 @@ import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
 import { RoyaltySettingsInput } from "./nft/royaltyStrategies/Royalty";
 import { CreateItemInput } from "./@types/graphql";
+import { IRoyalty } from "./nft/royaltyStrategies/Royalty";
 
 export {
   Refinable,
@@ -13,4 +14,5 @@ export {
   ERC721NFT,
   CreateItemInput,
   RoyaltySettingsInput,
+  IRoyalty,
 };
