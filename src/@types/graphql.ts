@@ -91,7 +91,7 @@ export type AuthUser = {
 
 export type AuthUserItemsArgs = {
   sort?: Maybe<SortInput>;
-  filter?: Maybe<UserItemFilterInput>;
+  filter: UserItemFilterInput;
   paging: PagingInput;
 };
 
@@ -338,6 +338,7 @@ export type Item = {
   supply: Scalars["Float"];
   chainId: Scalars["Float"];
   reason?: Maybe<Scalars["String"]>;
+  similarItems: Array<ItemWithOffer>;
   userSupply: Scalars["Int"];
   availableUserSupply: Scalars["Int"];
   editionsForSale: Array<Offer>;
@@ -347,6 +348,10 @@ export type Item = {
   transcodings?: Maybe<Array<Transcoding>>;
   collection?: Maybe<Collection>;
   attributes?: Maybe<Array<ItemAttribute>>;
+};
+
+export type ItemSimilarItemsArgs = {
+  limit: Scalars["Int"];
 };
 
 export type ItemUserSupplyArgs = {
@@ -559,8 +564,9 @@ export type Mutation = {
   createItem: CreateItemOutput;
   importItem: CreateItemOutput;
   hideItem: Item;
-  importCollection: Scalars["Boolean"];
   finishMint: FinishMintOutput;
+  importCollection: Scalars["Boolean"];
+  importCollectionFromMoralis: Scalars["Boolean"];
   createPurchase: Purchase;
   createOfferForItems: Offer;
   placeAuctionBid: Scalars["Boolean"];
@@ -584,12 +590,16 @@ export type MutationHideItemArgs = {
   input: HideItemInput;
 };
 
+export type MutationFinishMintArgs = {
+  input: FinishMintInput;
+};
+
 export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
 };
 
-export type MutationFinishMintArgs = {
-  input: FinishMintInput;
+export type MutationImportCollectionFromMoralisArgs = {
+  input: ImportCollectionInput;
 };
 
 export type MutationCreatePurchaseArgs = {
@@ -977,7 +987,7 @@ export type User = {
 
 export type UserItemsArgs = {
   sort?: Maybe<SortInput>;
-  filter?: Maybe<UserItemFilterInput>;
+  filter: UserItemFilterInput;
   paging: PagingInput;
 };
 
@@ -1317,7 +1327,7 @@ export type GetUserOfferItemsQuery = {
 
 export type GetUserItemsQueryVariables = Exact<{
   ethAddress: Scalars["String"];
-  filter?: Maybe<UserItemFilterInput>;
+  filter: UserItemFilterInput;
   paging: PagingInput;
 }>;
 
