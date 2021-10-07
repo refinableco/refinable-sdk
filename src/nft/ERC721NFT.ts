@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Refinable } from "../Refinable";
-import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
+import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
 import { Price } from "../constants/currency";
 import { soliditySha3 } from "web3-utils";
@@ -12,6 +12,7 @@ import {
   FinishMintMutation,
   FinishMintMutationVariables,
   CreateItemMutationVariables,
+  CreateItemInput,
 } from "../@types/graphql";
 import { uploadFile } from "../graphql/utils";
 import { CREATE_OFFERS } from "../graphql/sale";
@@ -77,7 +78,7 @@ export class ERC721NFT extends AbstractNFT {
   }
 
   async mint(
-    nftValues: Omit<NftValues, "supply">,
+    nftValues: Omit<CreateItemInput, "supply" | "contractAddress" | "type">,
     royalty?: IRoyalty
   ): Promise<TransactionResponse> {
     if (!this._initialized) {
@@ -88,16 +89,6 @@ export class ERC721NFT extends AbstractNFT {
 
     // get royalty settings
     const royaltySettings = royalty ? royalty.serialize() : null;
-
-    // Upload image / video
-    const { uploadFile: uploadedFileName } = await uploadFile(
-      nftValues.file,
-      this.refinable.apiKey as string
-    );
-
-    if (!uploadedFileName) {
-      throw new Error("Couldn't upload image for NFT");
-    }
 
     // API Call
     const { createItem } = await this.refinable.apiClient.request<
@@ -112,7 +103,7 @@ export class ERC721NFT extends AbstractNFT {
         royaltySettings,
         tags: nftValues.tags,
         airdropAddresses: nftValues.airdropAddresses,
-        file: uploadedFileName as string,
+        file: nftValues.file,
         type: TOKEN_TYPE.ERC721,
         contractAddress: this.item.contractAddress,
         chainId: this.item.chainId,

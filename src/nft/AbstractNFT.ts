@@ -15,16 +15,12 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
 import { chainMap } from "../chains";
 import { getSupportedCurrency } from "../utils/chain";
+import { uploadFile } from "../graphql/utils";
 
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
   tokenId?: string;
-}
-
-export interface NftValues
-  extends Omit<CreateItemInput, "file" | "contractAddress" | "type"> {
-  file: ReadStream;
 }
 
 export enum OfferType {
@@ -119,6 +115,20 @@ export abstract class AbstractNFT {
 
   verifyItem() {
     if (!this.item) throw new Error("Unable to do this action, item required");
+  }
+
+  // Upload image / video
+  public async uploadFile(file: ReadStream): Promise<string> {
+    const { uploadFile: uploadedFileName } = await uploadFile(
+      file,
+      this.refinable.apiKey as string
+    );
+
+    if (!uploadedFileName) {
+      throw new Error("Couldn't upload image for NFT");
+    }
+
+    return uploadedFileName;
   }
 
   protected async approveIfNeeded(
@@ -221,7 +231,7 @@ export abstract class AbstractNFT {
   }
 
   abstract mint(
-    nftValues: NftValues,
+    nftValues: CreateItemInput,
     royalty?: IRoyalty
   ): Promise<TransactionResponse>;
 

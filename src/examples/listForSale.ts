@@ -40,9 +40,10 @@ async function main() {
     for (const parameters of nfts) {
       const nft = await setupNft(TOKEN_TYPE.ERC721);
 
+      const file = await nft.uploadFile(fileStream);
       await nft.mint(
         {
-          file: fileStream,
+          file,
           description: "some test description",
         },
         new StandardRoyaltyStrategy([])

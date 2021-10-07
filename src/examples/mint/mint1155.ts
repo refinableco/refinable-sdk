@@ -15,10 +15,13 @@ async function main() {
     path.join(__dirname, "image.jpg")
   );
 
+  console.log("Minting...");
+  const file = await nft.uploadFile(fileStream);
+
   // SDK: mint nft
   await nft.mint(
     {
-      file: fileStream,
+      file,
       description: "some test description",
       name: "The Test NFT",
       supply: 5,

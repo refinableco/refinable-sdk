@@ -17,9 +17,10 @@ async function main() {
 
   // SDK: mint nft
   console.log("...minting");
+  const file = await nft.uploadFile(fileStream);
   await nft.mint(
     {
-      file: fileStream,
+      file,
       description: "some test description",
       name: "The Auction Test NFT721",
     },

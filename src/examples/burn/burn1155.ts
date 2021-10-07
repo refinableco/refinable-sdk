@@ -26,11 +26,12 @@ async function main() {
     const nft = await setupNft(TOKEN_TYPE.ERC1155);
 
     console.log("minting >>>");
+    const file = await nft.uploadFile(fileStream);
 
     // SDK: mint nft
     await nft.mint(
       {
-        file: fileStream,
+        file,
         description: "some test description",
         name: "The Test NFT",
         supply: 5,

@@ -14,11 +14,12 @@ async function main() {
   const fileStream = fs.createReadStream(path.join(__dirname, "./image.jpg"));
 
   console.log("Minting...");
+  const file = await nft.uploadFile(fileStream);
 
   // SDK: mint nft
   await nft.mint(
     {
-      file: fileStream,
+      file,
       description: "some test description",
       name: "The Test NFT",
     },

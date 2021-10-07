@@ -3,11 +3,12 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 
 import { Price } from "../constants/currency";
 import { Refinable } from "../Refinable";
-import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
+import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { TOKEN_TYPE } from "./nft";
 import { IRoyalty } from "./royaltyStrategies/Royalty";
 import { uploadFile } from "../graphql/utils";
 import {
+  CreateItemInput,
   CreateItemMutation,
   CreateItemMutationVariables,
   FinishMintMutation,
@@ -38,7 +39,7 @@ export class ERC1155NFT extends AbstractNFT {
   }
 
   async mint(
-    nftValues: NftValues,
+    nftValues: Omit<CreateItemInput, "contractAddress" | "type">,
     royalty?: IRoyalty
   ): Promise<TransactionResponse> {
     if (!this._initialized) {
@@ -49,16 +50,6 @@ export class ERC1155NFT extends AbstractNFT {
 
     // get royalty settings
     const royaltySettings = royalty ? royalty.serialize() : null;
-
-    // Upload image / video
-    const { uploadFile: uploadedFileName } = await uploadFile(
-      nftValues.file,
-      this.refinable.apiKey
-    );
-
-    if (!uploadedFileName) {
-      throw new Error("Couldn't upload image for NFT");
-    }
 
     // API Call
     const { createItem } = await this.refinable.apiClient.request<
@@ -73,7 +64,7 @@ export class ERC1155NFT extends AbstractNFT {
         royaltySettings,
         tags: nftValues.tags,
         airdropAddresses: nftValues.airdropAddresses,
-        file: uploadedFileName as string,
+        file: nftValues.file,
         type: TOKEN_TYPE.ERC1155,
         contractAddress: this.item.contractAddress,
         chainId: this.item.chainId,
@@ -84,7 +75,8 @@ export class ERC1155NFT extends AbstractNFT {
       throw new Error("Couldn't create data object for NFT");
     }
 
-    let { signature, item } = createItem;
+    let { signature } = createItem;
+    const { item } = createItem;
 
     // update nft
     this.setItem(item);
@@ -97,7 +89,7 @@ export class ERC1155NFT extends AbstractNFT {
         this.refinable.accountAddress
       );
 
-      signature = await this.refinable.personalSign(approveMintSha3 as string);
+      signature = await this.refinable.personalSign(approveMintSha3);
     }
 
     const mintArgs = [
