@@ -15,11 +15,16 @@ async function main() {
       waitConfirmations: 1,
     });
     console.log("Getting created items by a user!");
-    await refinable.getItems(5, UserItemFilterType.Created);
-    console.log("Created items are fetched ✅");
+    const res = await refinable.getItems(10, UserItemFilterType.Created);
+    let pivot = res["pageInfo"]["endCursor"];
+    console.log("item fetched ✅");
+
+    console.log("fetching next 10 items...");
+    let c = await refinable.getItems(10, UserItemFilterType.Created, pivot);
+    console.log("items are fetched ✅");
 
     console.log("Getting all items of a user!");
-    await refinable.getItems(5);
+    let b = await refinable.getItems(5);
     console.log("All items are fetched ✅");
   } catch (error) {
     console.error(error);

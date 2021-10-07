@@ -240,7 +240,7 @@ Get all items(created/owned) by a user
 [Example](./src/examples/item/getItems.ts)
 
 ```typescript
-await refinable.getItems(<paging>, <filter>)
+await refinable.getItems(<paging>, <filter>, <after>)
 
 enum UserItemFilterType {
   Created = "CREATED",
@@ -251,6 +251,7 @@ enum UserItemFilterType {
 | Argument | Description                                 | Values                                                   |
 | -------- | ------------------------------------------- | -------------------------------------------------------- |
 | `paging` | Number of items you want to fetch at a time | `Number (default=30) `                                   |
+| `after`  | Cursor we want to fetch after (endCursor)   | `String (Optional) `                                     |
 | `filter` | Filter you want to apply on items           | `UserItemFilterType (default=UserItemFilterType.Owned) ` |
 
 ## Supported Networks

@@ -16,7 +16,7 @@ async function main() {
     });
 
     console.log("Getting items on auction");
-    const res = await refinable.getItemsOnAuction(5);
+    await refinable.getItemsOnAuction(5);
     console.log("Items fetched ✅");
   } catch (error) {
     console.error(error);
