@@ -14,17 +14,17 @@ async function main() {
     const refinable = await Refinable.create(wallet, API_KEY, {
       waitConfirmations: 1,
     });
-    console.log("Getting created items by a user!");
+    console.log("Getting created items by a user...");
     const res = await refinable.getItems(10, UserItemFilterType.Created);
-    let pivot = res["pageInfo"]["endCursor"];
     console.log("item fetched ✅");
 
     console.log("fetching next 10 items...");
-    let c = await refinable.getItems(10, UserItemFilterType.Created, pivot);
+    let pivot = res["pageInfo"]["endCursor"];
+    await refinable.getItems(10, UserItemFilterType.Created, pivot);
     console.log("items are fetched ✅");
 
-    console.log("Getting all items of a user!");
-    let b = await refinable.getItems(5);
+    console.log("Getting all items of a user...");
+    await refinable.getItems(5);
     console.log("All items are fetched ✅");
   } catch (error) {
     console.error(error);

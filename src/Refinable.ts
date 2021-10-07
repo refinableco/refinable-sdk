@@ -15,6 +15,7 @@ import {
   GetUserItemsQueryVariables,
 } from "./@types/graphql";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
+import { limit } from "./utils/limitItems";
 
 export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
@@ -195,6 +196,7 @@ export class Refinable {
     filter: UserItemFilterType = UserItemFilterType.Owned,
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
+    const itemsPerPage = limit(paging);
     const queryResponse = await this.apiClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
@@ -202,7 +204,7 @@ export class Refinable {
       ethAddress: this.accountAddress,
       filter: { type: filter },
       paging: {
-        first: paging,
+        first: itemsPerPage,
         after: after,
       },
     });
