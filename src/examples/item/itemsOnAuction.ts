@@ -17,12 +17,10 @@ async function main() {
     console.log("fetching items...");
     const res = await refinable.getItemsOnAuction(5);
     console.log("item fetched ✅");
-    console.log(res);
 
     console.log("fetching next 5 items...");
     let pivot = res["pageInfo"]["endCursor"];
-    let a = await refinable.getItemsOnAuction(5, pivot);
-    console.log(a);
+    await refinable.getItemsOnAuction(5, pivot);
     console.log("items are fetched ✅");
   } catch (error) {
     console.error(error);
