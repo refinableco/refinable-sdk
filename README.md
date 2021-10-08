@@ -212,7 +212,7 @@ Get all items for-sale of a user
 [Example](./src/examples/item/itemsOnSale.ts)
 
 ```javascript
-await refinable.getItemsOnSale(<paging number> <after string>);
+await refinable.getItemsOnSale(<paging number> ,<after string>);
 ```
 
 | Argument | Description                                 | Values                            |
@@ -227,7 +227,7 @@ Get all items on auction of a user
 [Example](./src/examples/item/itemsOnAuction.ts)
 
 ```javascript
-await refinable.getItemsOnAuction(<paging number> <after string>);
+await refinable.getItemsOnAuction(<paging number>, <after string>);
 ```
 
 | Argument | Description                                 | Values                            |
