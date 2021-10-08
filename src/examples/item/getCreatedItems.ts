@@ -19,8 +19,8 @@ async function main() {
     console.log("item fetched ✅");
 
     console.log("fetching next 5 items...");
-    let pivot = res["pageInfo"]["endCursor"];
-    await refinable.getCreatedItems(5, pivot);
+    let lastCursor = res["pageInfo"]["endCursor"];
+    await refinable.getCreatedItems(5, lastCursor);
     console.log("items are fetched ✅");
   } catch (error) {
     console.error(error);

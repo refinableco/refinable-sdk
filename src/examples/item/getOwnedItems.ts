@@ -19,8 +19,8 @@ async function main() {
     console.log("item fetched ✅");
 
     console.log("fetching next 10 items...");
-    let pivot = res["pageInfo"]["endCursor"];
-    await refinable.getOwnedItems(10, pivot);
+    let lastCursor = res["pageInfo"]["endCursor"];
+    await refinable.getOwnedItems(10, lastCursor);
     console.log("items are fetched ✅");
   } catch (error) {
     console.error(error);

@@ -183,23 +183,14 @@ export class Refinable {
     paging = 30,
     after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    return await this.getItemsWithOffer(paging, after, OfferType.Sale);
+    return this.getItemsWithOffer(paging, after, OfferType.Sale);
   }
 
   async getItemsOnAuction(
-    paging = 30
+    paging = 30,
+    after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    const queryResponse = await this.apiClient.request<
-      GetUserOfferItemsQuery,
-      GetUserOfferItemsQueryVariables
-    >(GET_USER_OFFER_ITEMS, {
-      ethAddress: this.accountAddress,
-      filter: { type: OfferType.Auction },
-      paging: {
-        first: paging,
-      },
-    });
-    return queryResponse?.user?.itemsOnOffer ?? [];
+    return this.getItemsWithOffer(paging, after, OfferType.Auction);
   }
 
   private async getItems(
@@ -227,7 +218,7 @@ export class Refinable {
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const filter = UserItemFilterType.Created;
-    return await this.getItems(paging, filter, after);
+    return this.getItems(paging, filter, after);
   }
 
   async getOwnedItems(
@@ -235,6 +226,6 @@ export class Refinable {
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const filter = UserItemFilterType.Owned;
-    return await this.getItems(paging, filter, after);
+    return this.getItems(paging, filter, after);
   }
 }
