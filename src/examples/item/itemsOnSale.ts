@@ -15,7 +15,7 @@ async function main() {
       waitConfirmations: 1,
     });
     console.log("fetching items...");
-    const res = await refinable.getItemsOnSale(10);
+    const res = await refinable.getItemsOnSale(5);
     console.log("item fetched ✅");
 
     console.log("fetching next 10 items...");
