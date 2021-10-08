@@ -250,8 +250,8 @@ enum UserItemFilterType {
 
 | Argument | Description                                 | Values                                                   |
 | -------- | ------------------------------------------- | -------------------------------------------------------- |
-| `paging` | Number of items you want to fetch at a time | `Number (default=30) `                                   |
-| `after`  | Cursor we want to fetch after (endCursor)   | `String (Optional) `                                     |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30 & max=100) `                         |
+| `after`  | Cursor you want to fetch after (endCursor)  | `String (Optional) `                                     |
 | `filter` | Filter you want to apply on items           | `UserItemFilterType (default=UserItemFilterType.Owned) ` |
 
 ## Supported Networks
