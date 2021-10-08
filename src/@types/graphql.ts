@@ -1317,7 +1317,7 @@ export type GetUserOfferItemsQuery = {
 
 export type GetUserItemsQueryVariables = Exact<{
   ethAddress: Scalars["String"];
-  filter?: Maybe<UserItemFilterInput>;
+  filter: UserItemFilterInput;
   paging: PagingInput;
 }>;
 
