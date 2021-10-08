@@ -190,7 +190,7 @@ export class Refinable {
     paging = 30,
     after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    return await this.getItemsWithOffer(paging, after, OfferType.Auction);
+    return this.getItemsWithOffer(paging, after, OfferType.Auction);
   }
 
   private async getItems(
