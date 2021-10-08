@@ -14,10 +14,16 @@ async function main() {
     const refinable = await Refinable.create(wallet, API_KEY, {
       waitConfirmations: 1,
     });
+    console.log("fetching items...");
+    const res = await refinable.getItemsOnAuction(5);
+    console.log("item fetched ✅");
+    console.log(res);
 
-    console.log("Getting items on auction");
-    await refinable.getItemsOnAuction(5);
-    console.log("Items fetched ✅");
+    console.log("fetching next 5 items...");
+    let pivot = res["pageInfo"]["endCursor"];
+    let a = await refinable.getItemsOnAuction(5, pivot);
+    console.log(a);
+    console.log("items are fetched ✅");
   } catch (error) {
     console.error(error);
   }
