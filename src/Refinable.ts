@@ -159,20 +159,31 @@ export class Refinable {
     });
   }
 
-  async getItemsOnSale(
-    paging = 30
+  private async getItemsWithOffer(
+    paging = 30,
+    after?: string,
+    type?: OfferType
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
+    const itemsPerPage = limit(paging);
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
     >(GET_USER_OFFER_ITEMS, {
       ethAddress: this.accountAddress,
-      filter: { type: OfferType.Sale },
+      filter: { type },
       paging: {
-        first: paging,
+        first: itemsPerPage,
+        after: after,
       },
     });
     return queryResponse?.user?.itemsOnOffer ?? [];
+  }
+
+  async getItemsOnSale(
+    paging = 30,
+    after?: string
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
+    return await this.getItemsWithOffer(paging, after, OfferType.Sale);
   }
 
   async getItemsOnAuction(

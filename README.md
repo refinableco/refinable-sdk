@@ -212,12 +212,13 @@ Get all items for-sale of a user
 [Example](./src/examples/item/itemsOnSale.ts)
 
 ```javascript
-await refinable.getItemsOnSale(<paging number>);
+await refinable.getItemsOnSale(<paging number> <after string>);
 ```
 
-| Argument | Description                                 | Values                 |
-| -------- | ------------------------------------------- | ---------------------- |
-| `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
+| Argument | Description                                 | Values                            |
+| -------- | ------------------------------------------- | --------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30 & max=100 ) ` |
+| `after`  | Cursor you want to fetch after (endCursor)  | `String (Optional)`               |
 
 ### Getting items on auction
 
