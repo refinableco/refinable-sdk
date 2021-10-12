@@ -1,155 +1,32 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-
+import { ethers } from "ethers";
+import { OfferType, TokenType } from "../@types/graphql";
 import { Price } from "../constants/currency";
+import { CREATE_OFFERS } from "../graphql/sale";
 import { Refinable } from "../Refinable";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
-import { TOKEN_TYPE } from "./nft";
-import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { uploadFile } from "../graphql/utils";
-import {
-  CreateItemInput,
-  CreateItemMutation,
-  CreateItemMutationVariables,
-  FinishMintMutation,
-  FinishMintMutationVariables,
-} from "../@types/graphql";
-import { CREATE_ITEM, FINISH_MINT } from "../graphql/mint";
-import { soliditySha3 } from "web3-utils";
-import { CREATE_OFFERS } from "../graphql/sale";
-import { ethers } from "ethers";
 
 export class ERC1155NFT extends AbstractNFT {
-  constructor(
-    protected readonly refinable: Refinable,
-    protected readonly item: PartialNFTItem
-  ) {
-    super(TOKEN_TYPE.ERC1155, refinable, item);
+  constructor(refinable: Refinable, item: PartialNFTItem) {
+    super(TokenType.Erc1155, refinable, item);
   }
 
   approve(operatorAddress: string): Promise<TransactionResponse> {
-    return this.mintContract.setApprovalForAll(operatorAddress, true);
+    return this.nftTokenContract.setApprovalForAll(operatorAddress, true);
   }
 
   isApproved(operatorAddress: string): Promise<boolean> {
-    return this.mintContract.isApprovedForAll(
+    return this.nftTokenContract.isApprovedForAll(
       this.refinable.accountAddress,
       operatorAddress
     );
   }
 
-  async mint(
-    nftValues: Omit<CreateItemInput, "contractAddress" | "type">,
-    royalty?: IRoyalty
-  ): Promise<TransactionResponse> {
-    if (!this._initialized) {
-      throw Error("SDK_NOT_INITIALIZED");
-    }
-
-    this.verifyItem();
-
-    // get royalty settings
-    const royaltySettings = royalty ? royalty.serialize() : null;
-
-    // API Call
-    const { createItem } = await this.refinable.apiClient.request<
-      CreateItemMutation,
-      CreateItemMutationVariables
-    >(CREATE_ITEM, {
-      input: {
-        description: nftValues.description,
-        marketingDescription: nftValues.marketingDescription,
-        name: nftValues.name,
-        supply: nftValues.supply,
-        royaltySettings,
-        tags: nftValues.tags,
-        airdropAddresses: nftValues.airdropAddresses,
-        file: nftValues.file,
-        type: TOKEN_TYPE.ERC1155,
-        contractAddress: this.item.contractAddress,
-        chainId: this.item.chainId,
-      },
-    });
-
-    if (!createItem) {
-      throw new Error("Couldn't create data object for NFT");
-    }
-
-    let { signature } = createItem;
-    const { item } = createItem;
-
-    // update nft
-    this.setItem(item);
-
-    // Blockchain part
-    if (!signature) {
-      const approveMintSha3 = soliditySha3(
-        this.item.contractAddress,
-        item.tokenId,
-        this.refinable.accountAddress
-      );
-
-      signature = await this.refinable.personalSign(approveMintSha3);
-    }
-
-    const mintArgs = [
-      item.tokenId,
-      signature,
-      royaltySettings?.shares
-        ? royaltySettings.shares.map((share) => [share.recipient, share.value])
-        : [],
-      item.supply.toString(),
-      item.properties.ipfsDocument,
-    ];
-
-    // TODO: When V2 is deployed
-    // if (royaltySettings) {
-    //   mintArgs.push(
-    //     royaltySettings.royaltyBps,
-    //     royaltySettings.royaltyStrategy
-    //   );
-    // }
-
-    const result: TransactionResponse = await this.mintContract.mint(
-      ...mintArgs
-    );
-
-    // Wait for 1 confirmation
-    await result.wait(this.refinable.options.waitConfirmations);
-
-    await this.refinable.apiClient.request<
-      FinishMintMutation,
-      FinishMintMutationVariables
-    >(FINISH_MINT, {
-      input: {
-        tokenId: item.tokenId,
-        contractAddress: item.contractAddress,
-        transactionHash: result.hash,
-      },
-    });
-
-    return result;
-  }
-
-  protected async approveIfNeeded(): Promise<TransactionResponse | null> {
-    const isApproved = await this.isApprovedForAll();
-
-    if (!isApproved) {
-      const approvalResult = await this.approveForAll(
-        this.transferProxyContract.address as string
-      );
-
-      // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-
-      return approvalResult;
-    }
-  }
-
   async putForSale(price: Price, supply = 1): Promise<string> {
     this.verifyItem();
 
-    await this.approveIfNeeded();
+    await this.approveIfNeeded(this.transferProxyContract.address);
 
     const saleParamHash = await this.getSaleParamsHash(
       price,
@@ -165,7 +42,7 @@ export class ERC1155NFT extends AbstractNFT {
       input: {
         tokenId: this.item.tokenId,
         signature: signedHash,
-        type: "SALE",
+        type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
           currency: price.currency,
@@ -176,13 +53,6 @@ export class ERC1155NFT extends AbstractNFT {
     });
 
     return result;
-  }
-
-  async isApprovedForAll() {
-    return this.mintContract.isApprovedForAll(
-      this.refinable.accountAddress,
-      this.transferProxyContract.address
-    );
   }
 
   cancelSale(): Promise<TransactionResponse> {
@@ -199,7 +69,7 @@ export class ERC1155NFT extends AbstractNFT {
     recipientEthAddress: string,
     amount = 1
   ): Promise<TransactionResponse> {
-    return this.mintContract.safeTransferFrom(
+    return this.nftTokenContract.safeTransferFrom(
       ownerEthAddress,
       recipientEthAddress,
       this.item.tokenId,
@@ -209,7 +79,7 @@ export class ERC1155NFT extends AbstractNFT {
   }
 
   burn(amount = 1): Promise<TransactionResponse> {
-    return this.mintContract.burn(
+    return this.nftTokenContract.burn(
       this.refinable.accountAddress,
       this.item.tokenId,
       amount

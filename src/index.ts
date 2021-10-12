@@ -1,17 +1,23 @@
-import { Refinable, NftRegistry } from "./Refinable";
-import { TOKEN_TYPE } from "./nft/nft";
+import { CreateItemInput, PriceCurrency, TokenType } from "./@types/graphql";
+import { Chain } from "./interfaces/Network";
+import { AbstractNFT } from "./nft/AbstractNFT";
+import { NFTBuilder } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
-import { RoyaltySettingsInput } from "./nft/royaltyStrategies/Royalty";
-import { CreateItemInput } from "./@types/graphql";
-import { IRoyalty } from "./nft/royaltyStrategies/Royalty";
-import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
 import { ProfitDistributionStrategy } from "./nft/royaltyStrategies/ProfitDistributionStrategy";
+import {
+  IRoyalty,
+  RoyaltySettingsInput,
+} from "./nft/royaltyStrategies/Royalty";
+import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
+import { NftMap, Refinable } from "./Refinable";
 
 export {
+  AbstractNFT,
   Refinable,
-  NftRegistry,
-  TOKEN_TYPE,
+  NftMap,
+  Chain,
+  TokenType,
   ERC1155NFT,
   ERC721NFT,
   CreateItemInput,
@@ -19,4 +25,6 @@ export {
   IRoyalty,
   StandardRoyaltyStrategy,
   ProfitDistributionStrategy,
+  NFTBuilder,
+  PriceCurrency
 };

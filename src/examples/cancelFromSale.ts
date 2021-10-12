@@ -1,12 +1,13 @@
-import * as readline from "readline";
 import * as fs from "fs";
+import * as readline from "readline";
+import { Chain, TokenType } from "..";
+import { createRefinableClient } from "./shared";
 
-import { TOKEN_TYPE } from "../nft/nft";
-import { setupNft } from "./shared";
-
-type ParameterTuple = [string, number, string, string, number, number];
+type ParameterTuple = [string, string, string, string, number, number];
 
 async function main() {
+  const refinable = await createRefinableClient(Chain.BscTestnet);
+
   let lineNumber = 0;
   const rl = readline.createInterface({
     input: fs.createReadStream("./public/listForSale.csv"),
@@ -28,7 +29,13 @@ async function main() {
   // like this we can process them sync, otherwise blockchain will say we're doing too many txs
   rl.on("close", async function () {
     for (const parameters of nfts) {
-      const nft = await setupNft(TOKEN_TYPE.ERC721);
+      // Use and parse existing NFTs to cancel for sale
+      const nft = await refinable.createNft({
+        type: parameters[2] as TokenType,
+        chainId: Chain.BscTestnet,
+        contractAddress: parameters[0],
+        tokenId: parameters[1],
+      });
 
       await nft.cancelSale();
       console.log(`${parameters[0]}:${parameters[1]} - Canceled from sale`);

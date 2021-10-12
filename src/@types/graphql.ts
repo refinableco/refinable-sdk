@@ -125,6 +125,7 @@ export type Collection = {
   name: Scalars["String"];
   iconUrl: Scalars["String"];
   default: Scalars["Boolean"];
+  verified: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
   tokens: Array<Token>;
@@ -134,7 +135,7 @@ export type Collection = {
   website?: Maybe<Scalars["String"]>;
   bannerUrl?: Maybe<Scalars["String"]>;
   instagram?: Maybe<Scalars["String"]>;
-  verified: Scalars["Boolean"];
+  statistics: CollectionStatistics;
   items: ItemsWithOffersResponse;
 };
 
@@ -148,6 +149,16 @@ export type CollectionItemFilterInput = {
   type?: Maybe<ItemWithOfferFilterType>;
 };
 
+export type CollectionStatistics = {
+  __typename?: "CollectionStatistics";
+  itemCount: Scalars["Float"];
+  ownerCount: Scalars["Float"];
+  floorPrice: Scalars["Float"];
+  ceilPrice: Scalars["Float"];
+  avgSellPrice: Scalars["Float"];
+  avgVolumeTraded: Scalars["Float"];
+};
+
 export enum ContentType {
   VerifiedContent = "VERIFIED_CONTENT",
   CommunityContent = "COMMUNITY_CONTENT",
@@ -158,7 +169,14 @@ export type ContractOutput = {
   contractAddress: Scalars["String"];
   contractABI: Scalars["String"];
   type: Scalars["String"];
+  chainId: Scalars["Int"];
+  tags: Array<ContractTags>;
 };
+
+export enum ContractTags {
+  V2Royalties = "V2_ROYALTIES",
+  V3RoyaltiesPrimary = "V3_ROYALTIES_PRIMARY",
+}
 
 export enum ContractTypes {
   Erc721Token = "ERC721_TOKEN",
@@ -187,7 +205,7 @@ export type CreateItemInput = {
   file: Scalars["String"];
   type: Scalars["String"];
   supply: Scalars["Float"];
-  chainId?: Maybe<Scalars["Float"]>;
+  chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
   royaltySettings?: Maybe<RoyaltySettingsInput>;
   tags?: Maybe<Array<TagInput>>;
@@ -566,7 +584,7 @@ export type Mutation = {
   hideItem: Item;
   finishMint: FinishMintOutput;
   importCollection: Scalars["Boolean"];
-  importCollectionFromMoralis: Scalars["Boolean"];
+  importCollectionFromTransfers: Scalars["Boolean"];
   createPurchase: Purchase;
   createOfferForItems: Offer;
   placeAuctionBid: Scalars["Boolean"];
@@ -598,7 +616,7 @@ export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
 };
 
-export type MutationImportCollectionFromMoralisArgs = {
+export type MutationImportCollectionFromTransfersArgs = {
   input: ImportCollectionInput;
 };
 
@@ -921,6 +939,8 @@ export type Token = {
   type: TokenType;
   contractAddress: Scalars["String"];
   chainId: Scalars["Int"];
+  contractABI: Scalars["String"];
+  tags: Array<ContractTags>;
 };
 
 export enum TokenType {
@@ -1041,6 +1061,27 @@ export type RefinableContractsQuery = {
     contractAddress: string;
     contractABI: string;
     type: string;
+    tags: Array<ContractTags>;
+  }>;
+};
+
+export type GetMintableCollectionsQueryVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type GetMintableCollectionsQuery = {
+  __typename?: "Query";
+  mintableCollections: Array<{
+    __typename?: "Collection";
+    default: boolean;
+    tokens: Array<{
+      __typename?: "Token";
+      contractAddress: string;
+      contractABI: string;
+      type: TokenType;
+      chainId: number;
+      tags: Array<ContractTags>;
+    }>;
   }>;
 };
 
@@ -1473,6 +1514,7 @@ export type FinishMintMutation = {
       id: string;
       tokenId: string;
       contractAddress: string;
+      chainId: number;
       supply: number;
       type: TokenType;
       properties: {
