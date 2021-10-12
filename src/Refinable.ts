@@ -13,10 +13,9 @@ import {
   GetUserOfferItemsQueryVariables,
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
-  ItemsWithOffersResponse,
-  ItemsResponse,
 } from "./@types/graphql";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
+import { limit } from "./utils/limitItems";
 
 export interface NftRegistry {
   [TOKEN_TYPE.ERC721]: ERC721NFT;
@@ -160,42 +159,46 @@ export class Refinable {
     });
   }
 
-  async getItemsOnSale(
-    paging = 30
+  private async getItemsWithOffer(
+    paging = 30,
+    after?: string,
+    type?: OfferType
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
+    const itemsPerPage = limit(paging);
     const queryResponse = await this.apiClient.request<
       GetUserOfferItemsQuery,
       GetUserOfferItemsQueryVariables
     >(GET_USER_OFFER_ITEMS, {
       ethAddress: this.accountAddress,
-      filter: { type: OfferType.Sale },
+      filter: { type },
       paging: {
-        first: paging,
+        first: itemsPerPage,
+        after: after,
       },
     });
     return queryResponse?.user?.itemsOnOffer ?? [];
+  }
+
+  async getItemsOnSale(
+    paging = 30,
+    after?: string
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
+    return this.getItemsWithOffer(paging, after, OfferType.Sale);
   }
 
   async getItemsOnAuction(
-    paging = 30
+    paging = 30,
+    after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    const queryResponse = await this.apiClient.request<
-      GetUserOfferItemsQuery,
-      GetUserOfferItemsQueryVariables
-    >(GET_USER_OFFER_ITEMS, {
-      ethAddress: this.accountAddress,
-      filter: { type: OfferType.Auction },
-      paging: {
-        first: paging,
-      },
-    });
-    return queryResponse?.user?.itemsOnOffer ?? [];
+    return this.getItemsWithOffer(paging, after, OfferType.Auction);
   }
 
-  async getItems(
+  private async getItems(
     paging = 30,
-    filter: UserItemFilterType = UserItemFilterType.Owned
+    filter: UserItemFilterType,
+    after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
+    const itemsPerPage = limit(paging);
     const queryResponse = await this.apiClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
@@ -203,9 +206,26 @@ export class Refinable {
       ethAddress: this.accountAddress,
       filter: { type: filter },
       paging: {
-        first: paging,
+        first: itemsPerPage,
+        after: after,
       },
     });
     return queryResponse?.user?.items ?? [];
+  }
+
+  async getCreatedItems(
+    paging = 30,
+    after?: string
+  ): Promise<GetUserItemsQuery["user"]["items"] | []> {
+    const filter = UserItemFilterType.Created;
+    return this.getItems(paging, filter, after);
+  }
+
+  async getOwnedItems(
+    paging = 30,
+    after?: string
+  ): Promise<GetUserItemsQuery["user"]["items"] | []> {
+    const filter = UserItemFilterType.Owned;
+    return this.getItems(paging, filter, after);
   }
 }

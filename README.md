@@ -212,12 +212,13 @@ Get all items for-sale of a user
 [Example](./src/examples/item/itemsOnSale.ts)
 
 ```javascript
-await refinable.getItemsOnSale(<paging number>);
+await refinable.getItemsOnSale(<paging number> ,<after string>);
 ```
 
-| Argument | Description                                 | Values                 |
-| -------- | ------------------------------------------- | ---------------------- |
-| `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
+| Argument | Description                                 | Values                            |
+| -------- | ------------------------------------------- | --------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30 & max=100 ) ` |
+| `after`  | Cursor you want to fetch after (endCursor)  | `String (Optional)`               |
 
 ### Getting items on auction
 
@@ -226,32 +227,44 @@ Get all items on auction of a user
 [Example](./src/examples/item/itemsOnAuction.ts)
 
 ```javascript
-await refinable.getItemsOnAuction(<paging number>);
+await refinable.getItemsOnAuction(<paging number>, <after string>);
 ```
 
-| Argument | Description                                 | Values                 |
-| -------- | ------------------------------------------- | ---------------------- |
-| `paging` | Number of items you want to fetch at a time | `Number (default=30) ` |
+| Argument | Description                                 | Values                            |
+| -------- | ------------------------------------------- | --------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30 & max=100 ) ` |
+| `after`  | Cursor you want to fetch after (endCursor)  | `String (Optional)`               |
 
-### Getting items for a user
+### Getting owned items for a user
 
-Get all items(created/owned) by a user
+Get all owned items by a user
 
-[Example](./src/examples/item/getItems.ts)
+[Example](./src/examples/item/getOwnedItems.ts)
 
 ```typescript
-await refinable.getItems(<paging>, <filter>)
-
-enum UserItemFilterType {
-  Created = "CREATED",
-  Owned = "OWNED",
-}
+await refinable.getOwnedItems(<paging>,<after>)
 ```
 
-| Argument | Description                                 | Values                                                   |
-| -------- | ------------------------------------------- | -------------------------------------------------------- |
-| `paging` | Number of items you want to fetch at a time | `Number (default=30) `                                   |
-| `filter` | Filter you want to apply on items           | `UserItemFilterType (default=UserItemFilterType.Owned) ` |
+| Argument | Description                                 | Values                           |
+| -------- | ------------------------------------------- | -------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30 & max=100) ` |
+| `after`  | Cursor you want to fetch after (endCursor)  | `String (Optional) `             |
+
+### Getting created items by a user
+
+Get all items created by a user
+
+[Example](./src/examples/item/getCreatedItems.ts)
+
+```typescript
+await refinable.getCreatedItems(<paging>,<after>)
+
+```
+
+| Argument | Description                                 | Values                           |
+| -------- | ------------------------------------------- | -------------------------------- |
+| `paging` | Number of items you want to fetch at a time | `Number (default=30 & max=100) ` |
+| `after`  | Cursor you want to fetch after (endCursor)  | `String (Optional) `             |
 
 ## Supported Networks
 

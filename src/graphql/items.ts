@@ -34,7 +34,7 @@ export const GET_USER_OFFER_ITEMS = gql`
 export const GET_USER_ITEMS = gql`
   query getUserItems(
     $ethAddress: String!
-    $filter: UserItemFilterInput
+    $filter: UserItemFilterInput!
     $paging: PagingInput!
   ) {
     user(ethAddress: $ethAddress) {
