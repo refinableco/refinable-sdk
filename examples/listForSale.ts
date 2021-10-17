@@ -1,7 +1,9 @@
+import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
-import { Chain, TokenType } from "..";
+import { Chain, TokenType, PriceCurrency } from "../src";
 import { createRefinableClient } from "./shared";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 type ParameterTuple = [string, string, string, string, number, number];
 
@@ -29,16 +31,21 @@ async function main() {
   // like this we can process them sync, otherwise blockchain will say we're doing too many txs
   rl.on("close", async function () {
     for (const parameters of nfts) {
-      // Use and parse existing NFTs to cancel for sale
-      const nft = await refinable.createNft({
+      // Use and parse existing NFTs to put for sale
+      const nft = refinable.createNft({
         type: parameters[2] as TokenType,
         chainId: Chain.BscTestnet,
         contractAddress: parameters[0],
         tokenId: parameters[1],
       });
 
-      await nft.cancelSale();
-      console.log(`${parameters[0]}:${parameters[1]} - Canceled from sale`);
+      await nft.putForSale({
+        amount: parameters[4],
+        currency: parameters[3] as PriceCurrency,
+      });
+      console.log(
+        `{Put ${parameters[5]} items for sale for ${parameters[4]} ${parameters[3]}`
+      );
     }
   });
 }

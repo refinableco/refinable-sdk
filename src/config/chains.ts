@@ -1,5 +1,5 @@
-import { IChainConfig } from "./interfaces/Config";
-import { Chain, ChainType, NetworkType } from "./interfaces/Network";
+import { IChainConfig } from "../interfaces/Config";
+import { Chain, ChainType, NetworkType } from "../interfaces/Network";
 
 const chainConfigBase: IChainConfig = {
   name: "unknown",

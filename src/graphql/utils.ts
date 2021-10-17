@@ -1,21 +1,21 @@
-import { ReadStream } from "fs";
 import { UPLOAD } from "./mint";
-import { request } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
+import { Stream } from "form-data";
+import {
+  UploadFileMutation,
+  UploadFileMutationVariables,
+} from "../@types/graphql";
 
-export const uploadFile = async (fileStream: ReadStream, apiKey: string) => {
-  const graphqlUrl =
-    process.env.GRAPHQL_URL ?? "https://api.refinable.com/graphql";
-
-  const response = await request(
-    graphqlUrl,
-    UPLOAD,
-    {
-      file: fileStream,
-    },
-    {
-      "X-API-KEY": apiKey,
-    }
-  );
+export const uploadFile = async (
+  apiClient: GraphQLClient,
+  fileStream: Stream
+) => {
+  const response = await apiClient.request<
+    UploadFileMutation,
+    UploadFileMutationVariables
+  >(UPLOAD, {
+    file: fileStream,
+  });
 
   return response;
 };

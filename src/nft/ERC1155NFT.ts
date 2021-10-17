@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
-import { OfferType, TokenType } from "../@types/graphql";
-import { Price } from "../constants/currency";
-import { CREATE_OFFERS } from "../graphql/sale";
+import {
+  CreateOfferForEditionsMutation,
+  CreateOfferForEditionsMutationVariables,
+  OfferType,
+  Price,
+  TokenType,
+} from "../@types/graphql";
+import { CREATE_OFFER } from "../graphql/sale";
+import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
+import { optionalParam } from "../utils/utils";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 
 export class ERC1155NFT extends AbstractNFT {
@@ -12,18 +19,83 @@ export class ERC1155NFT extends AbstractNFT {
     super(TokenType.Erc1155, refinable, item);
   }
 
-  approve(operatorAddress: string): Promise<TransactionResponse> {
-    return this.nftTokenContract.setApprovalForAll(operatorAddress, true);
+  async approve(operatorAddress: string): Promise<TransactionResponse> {
+    const nftTokenContract = await this.getTokenContract();
+
+    return nftTokenContract.setApprovalForAll(operatorAddress, true);
   }
 
-  isApproved(operatorAddress: string): Promise<boolean> {
-    return this.nftTokenContract.isApprovedForAll(
+  async isApproved(operatorAddress: string): Promise<boolean> {
+    const nftTokenContract = await this.getTokenContract();
+
+    return nftTokenContract.isApprovedForAll(
       this.refinable.accountAddress,
       operatorAddress
     );
   }
 
-  async putForSale(price: Price, supply = 1): Promise<string> {
+  async buy(
+    signature: string,
+    pricePerCopy: Price,
+    ownerEthAddress: string,
+    royaltyContractAddress?: string,
+    supply = 1,
+    amount = 1
+  ): Promise<TransactionResponse> {
+    this.verifyItem();
+    await this.isValidRoyaltyContract(royaltyContractAddress);
+
+    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+      pricePerCopy,
+      this.saleContract.address,
+      amount
+    );
+
+    await this.approveForTokenIfNeeded(
+      priceWithServiceFee,
+      this.saleContract.address
+    );
+
+    const supplyForSale = await this.getSupplyOnSale(
+      pricePerCopy, // We have to take the price without service fee, since the sale signature was made that way
+      supply,
+      signature,
+      ownerEthAddress
+    );
+
+    const paymentToken = this.getPaymentToken(pricePerCopy.currency);
+    const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
+
+    const result = await this.saleContract.buy(
+      // address _token
+      this.item.contractAddress,
+      // address _royaltyToken
+      royaltyContractAddress ?? ethers.constants.AddressZero,
+      // uint256 _tokenId
+      this.item.tokenId,
+      // address _payToken
+      paymentToken,
+      // address payable _owner
+      ownerEthAddress,
+      // uint256 _selling
+      supplyForSale,
+      // uint256 _buying
+      amount,
+      // bytes memory _signature
+      signature,
+
+      // If currency is Native, send msg.value
+      ...optionalParam(isNativeCurrency, {
+        value: ethers.utils
+          .parseEther(priceWithServiceFee.amount.toString())
+          .toString(),
+      })
+    );
+
+    return result;
+  }
+
+  async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
     this.verifyItem();
 
     await this.approveIfNeeded(this.transferProxyContract.address);
@@ -38,7 +110,10 @@ export class ERC1155NFT extends AbstractNFT {
       saleParamHash as string
     );
 
-    const result = await this.refinable.apiClient.request(CREATE_OFFERS, {
+    const result = await this.refinable.apiClient.request<
+      CreateOfferForEditionsMutation,
+      CreateOfferForEditionsMutationVariables
+    >(CREATE_OFFER, {
       input: {
         tokenId: this.item.tokenId,
         signature: signedHash,
@@ -52,24 +127,20 @@ export class ERC1155NFT extends AbstractNFT {
       },
     });
 
-    return result;
-  }
-
-  cancelSale(): Promise<TransactionResponse> {
-    this.verifyItem();
-
-    return this.saleContract.cancel(
-      this.item.contractAddress,
-      this.item.tokenId //tokenId, // uint256 tokenId
+    return this.refinable.createOffer<OfferType.Sale>(
+      { ...result.createOfferForItems, type: OfferType.Sale },
+      this
     );
   }
 
-  transfer(
+  async transfer(
     ownerEthAddress: string,
     recipientEthAddress: string,
     amount = 1
   ): Promise<TransactionResponse> {
-    return this.nftTokenContract.safeTransferFrom(
+    const nftTokenContract = await this.getTokenContract();
+
+    return nftTokenContract.safeTransferFrom(
       ownerEthAddress,
       recipientEthAddress,
       this.item.tokenId,
@@ -78,11 +149,38 @@ export class ERC1155NFT extends AbstractNFT {
     );
   }
 
-  burn(amount = 1): Promise<TransactionResponse> {
-    return this.nftTokenContract.burn(
-      this.refinable.accountAddress,
-      this.item.tokenId,
-      amount
+  async burn(
+    amount: number,
+    ownerEthAddress?: string
+  ): Promise<TransactionResponse> {
+    const nftTokenContract = await this.getTokenContract();
+
+    return nftTokenContract.burn(ownerEthAddress, this.item.tokenId, amount);
+  }
+
+  /**
+   * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
+   */
+  private async getSupplyOnSale(
+    price: Price,
+    offerSupply: number,
+    offerSignature: string,
+    ownerEthAddress: string
+  ) {
+    const saleParamsWithOfferSupply = await this.getSaleParamsHash(
+      price,
+      ownerEthAddress,
+      offerSupply
     );
+
+    const address = ethers.utils.verifyMessage(
+      // For some reason we need to remove 0x and parse it as buffer for it to work
+      Buffer.from(saleParamsWithOfferSupply.slice(2), "hex"),
+      offerSignature
+    );
+
+    return address.toLowerCase() === ownerEthAddress.toLowerCase()
+      ? offerSupply
+      : this.item.totalSupply;
   }
 }

@@ -16,6 +16,7 @@ export const CREATE_ITEM = gql`
         contractAddress
         chainId
         supply
+        totalSupply
         type
         properties {
           fileType
@@ -38,6 +39,7 @@ export const FINISH_MINT = gql`
         contractAddress
         chainId
         supply
+        totalSupply
         type
         properties {
           fileType

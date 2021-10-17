@@ -4,10 +4,12 @@ export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = {
   [K in keyof T]: T[K];
 };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
-  { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
-  { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -24,42 +26,42 @@ export type Scalars = {
 };
 
 export enum AssetType {
-  Item = "ITEM",
-  User = "USER",
   Collection = "COLLECTION",
+  Item = "ITEM",
   Tag = "TAG",
+  User = "USER",
 }
 
 export type Auction = {
   __typename?: "Auction";
-  bids: Array<Bid>;
-  startTime?: Maybe<Scalars["DateTime"]>;
-  endTime?: Maybe<Scalars["DateTime"]>;
-  tokenId?: Maybe<Scalars["String"]>;
-  startPrice?: Maybe<Scalars["Float"]>;
-  transactionHash?: Maybe<Scalars["String"]>;
-  transaction?: Maybe<Transaction>;
-  auctionId?: Maybe<Scalars["String"]>;
-  verified?: Maybe<Scalars["Boolean"]>;
-  id: Scalars["ID"];
-  verifiedAt?: Maybe<Scalars["DateTime"]>;
-  highestBid?: Maybe<Bid>;
-  owner: User;
   auctionContractAddress?: Maybe<Scalars["String"]>;
+  auctionId?: Maybe<Scalars["String"]>;
+  bids: Array<Bid>;
+  endTime?: Maybe<Scalars["DateTime"]>;
+  highestBid?: Maybe<Bid>;
+  id: Scalars["ID"];
+  owner: User;
+  startPrice?: Maybe<Scalars["Float"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
+  tokenId?: Maybe<Scalars["String"]>;
+  transaction?: Maybe<Transaction>;
+  transactionHash?: Maybe<Scalars["String"]>;
+  verified?: Maybe<Scalars["Boolean"]>;
+  verifiedAt?: Maybe<Scalars["DateTime"]>;
 };
 
 export type AuctionPlaceBidInput = {
-  transactionHash: Scalars["String"];
-  bidAmount: Scalars["Float"];
   auctionId: Scalars["String"];
+  bidAmount: Scalars["Float"];
+  transactionHash: Scalars["String"];
 };
 
 export enum AuctionType {
-  OnGoing = "ON_GOING",
-  Upcoming = "UPCOMING",
   Closed = "CLOSED",
   ClosingSoon = "CLOSING_SOON",
+  OnGoing = "ON_GOING",
   OpenTopBids = "OPEN_TOP_BIDS",
+  Upcoming = "UPCOMING",
 }
 
 export type Auth = {
@@ -71,78 +73,78 @@ export type Auth = {
 
 export type AuthUser = {
   __typename?: "AuthUser";
-  id: Scalars["String"];
-  name?: Maybe<Scalars["String"]>;
   description?: Maybe<Scalars["String"]>;
+  email: Scalars["String"];
   ethAddress?: Maybe<Scalars["String"]>;
-  twitter?: Maybe<Scalars["String"]>;
-  instagram?: Maybe<Scalars["String"]>;
-  website?: Maybe<Scalars["String"]>;
-  profileImage?: Maybe<Scalars["String"]>;
-  profileBanner?: Maybe<Scalars["String"]>;
-  verified?: Maybe<Scalars["Boolean"]>;
   fineHolderBenefits?: Maybe<FineHolderBenefits>;
-  receivedComRewards: Scalars["Float"];
-  roles?: Maybe<Array<UserRoles>>;
+  id: Scalars["String"];
+  instagram?: Maybe<Scalars["String"]>;
   items: ItemsResponse;
   itemsOnOffer: ItemsWithOffersResponse;
-  email: Scalars["String"];
+  name?: Maybe<Scalars["String"]>;
+  profileBanner?: Maybe<Scalars["String"]>;
+  profileImage?: Maybe<Scalars["String"]>;
+  receivedComRewards: Scalars["Float"];
+  roles?: Maybe<Array<UserRoles>>;
+  twitter?: Maybe<Scalars["String"]>;
+  verified?: Maybe<Scalars["Boolean"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type AuthUserItemsArgs = {
-  sort?: Maybe<SortInput>;
   filter: UserItemFilterInput;
   paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type AuthUserItemsOnOfferArgs = {
-  sort?: Maybe<SortInput>;
   filter?: Maybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type Bid = {
   __typename?: "Bid";
   bidAmount: Scalars["Float"];
   bidTime: Scalars["DateTime"];
+  bidder?: Maybe<User>;
+  transactionHash: Scalars["String"];
   verified?: Maybe<Scalars["Boolean"]>;
   verifiedAt?: Maybe<Scalars["DateTime"]>;
-  transactionHash: Scalars["String"];
-  bidder?: Maybe<User>;
 };
 
 export type Brand = {
   __typename?: "Brand";
-  id: Scalars["String"];
-  name: Scalars["String"];
   description: Scalars["String"];
   fileUrl: Scalars["String"];
+  id: Scalars["String"];
   link: Scalars["String"];
+  name: Scalars["String"];
 };
 
 export type Collection = {
   __typename?: "Collection";
-  name: Scalars["String"];
-  iconUrl: Scalars["String"];
-  default: Scalars["Boolean"];
-  verified: Scalars["Boolean"];
-  description?: Maybe<Scalars["String"]>;
-  slug: Scalars["String"];
-  tokens: Array<Token>;
-  telegram?: Maybe<Scalars["String"]>;
-  twitter?: Maybe<Scalars["String"]>;
-  discord?: Maybe<Scalars["String"]>;
-  website?: Maybe<Scalars["String"]>;
   bannerUrl?: Maybe<Scalars["String"]>;
+  default: Scalars["Boolean"];
+  description?: Maybe<Scalars["String"]>;
+  discord?: Maybe<Scalars["String"]>;
+  iconUrl: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
-  statistics: CollectionStatistics;
   items: ItemsWithOffersResponse;
+  name: Scalars["String"];
+  slug: Scalars["String"];
+  statistics: CollectionStatistics;
+  telegram?: Maybe<Scalars["String"]>;
+  tokens: Array<Token>;
+  twitter?: Maybe<Scalars["String"]>;
+  verified: Scalars["Boolean"];
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type CollectionItemsArgs = {
-  sort?: Maybe<SortInput>;
   filter?: Maybe<CollectionItemFilterInput>;
   paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type CollectionItemFilterInput = {
@@ -151,44 +153,56 @@ export type CollectionItemFilterInput = {
 
 export type CollectionStatistics = {
   __typename?: "CollectionStatistics";
-  itemCount: Scalars["Float"];
-  ownerCount: Scalars["Float"];
-  floorPrice: Scalars["Float"];
-  ceilPrice: Scalars["Float"];
   avgSellPrice: Scalars["Float"];
   avgVolumeTraded: Scalars["Float"];
+  ceilPrice: Scalars["Float"];
+  floorPrice: Scalars["Float"];
+  itemCount: Scalars["Float"];
+  ownerCount: Scalars["Float"];
 };
 
 export enum ContentType {
-  VerifiedContent = "VERIFIED_CONTENT",
   CommunityContent = "COMMUNITY_CONTENT",
+  VerifiedContent = "VERIFIED_CONTENT",
 }
 
 export type ContractOutput = {
   __typename?: "ContractOutput";
-  contractAddress: Scalars["String"];
-  contractABI: Scalars["String"];
-  type: Scalars["String"];
   chainId: Scalars["Int"];
+  contractABI: Scalars["String"];
+  contractAddress: Scalars["String"];
   tags: Array<ContractTags>;
+  type: Scalars["String"];
 };
 
 export enum ContractTags {
-  V2Royalties = "V2_ROYALTIES",
-  V3RoyaltiesPrimary = "V3_ROYALTIES_PRIMARY",
+  AirdropV1_0_0 = "AIRDROP_v1_0_0",
+  AuctionV1_0_0 = "AUCTION_v1_0_0",
+  AuctionV2_0_0 = "AUCTION_v2_0_0",
+  AuctionV3_0_0 = "AUCTION_v3_0_0",
+  AuctionV3_1_0 = "AUCTION_v3_1_0",
+  SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
+  SaleV1_0_0 = "SALE_v1_0_0",
+  SaleV2_0_0 = "SALE_v2_0_0",
+  SaleV3_0_0 = "SALE_v3_0_0",
+  TokenV1_0_0 = "TOKEN_v1_0_0",
+  TokenV2_0_0 = "TOKEN_v2_0_0",
+  TokenV3_0_0 = "TOKEN_v3_0_0",
+  TransferProxyV1_0_0 = "TRANSFER_PROXY_v1_0_0",
 }
 
 export enum ContractTypes {
-  Erc721Token = "ERC721_TOKEN",
-  Erc1155Token = "ERC1155_TOKEN",
-  Erc721Sale = "ERC721_SALE",
-  Erc1155Sale = "ERC1155_SALE",
+  Erc721Airdrop = "ERC721_AIRDROP",
   Erc721Auction = "ERC721_AUCTION",
-  Erc1155Auction = "ERC1155_AUCTION",
+  Erc721Sale = "ERC721_SALE",
   Erc721SaleNonceHolder = "ERC721_SALE_NONCE_HOLDER",
-  Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
-  Erc1155Airdrop = "ERC1155_AIRDROP",
+  Erc721Token = "ERC721_TOKEN",
   Erc721WhitelistedToken = "ERC721_WHITELISTED_TOKEN",
+  Erc1155Airdrop = "ERC1155_AIRDROP",
+  Erc1155Auction = "ERC1155_AUCTION",
+  Erc1155Sale = "ERC1155_SALE",
+  Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
+  Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
   TransferProxy = "TRANSFER_PROXY",
 }
@@ -198,18 +212,18 @@ export type CreateEventInput = {
 };
 
 export type CreateItemInput = {
-  description?: Maybe<Scalars["String"]>;
-  marketingDescription?: Maybe<Scalars["String"]>;
-  name?: Maybe<Scalars["String"]>;
-  thumbnail?: Maybe<Scalars["String"]>;
-  file: Scalars["String"];
-  type: Scalars["String"];
-  supply: Scalars["Float"];
+  airdropAddresses?: Maybe<Array<Scalars["String"]>>;
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
+  description?: Maybe<Scalars["String"]>;
+  file: Scalars["String"];
+  marketingDescription?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   royaltySettings?: Maybe<RoyaltySettingsInput>;
+  supply: Scalars["Float"];
   tags?: Maybe<Array<TagInput>>;
-  airdropAddresses?: Maybe<Array<Scalars["String"]>>;
+  thumbnail?: Maybe<Scalars["String"]>;
+  type: Scalars["String"];
 };
 
 export type CreateItemOutput = {
@@ -219,28 +233,28 @@ export type CreateItemOutput = {
 };
 
 export type CreateOffersInput = {
-  tokenId: Scalars["String"];
-  signature?: Maybe<Scalars["String"]>;
-  transactionHash?: Maybe<Scalars["String"]>;
-  type: Scalars["String"];
   contractAddress: Scalars["String"];
-  price?: Maybe<PriceInput>;
-  supply: Scalars["Float"];
-  startTime?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
   offerContractAddress?: Maybe<Scalars["String"]>;
+  price?: Maybe<PriceInput>;
+  signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
+  supply: Scalars["Float"];
+  tokenId: Scalars["String"];
+  transactionHash?: Maybe<Scalars["String"]>;
+  type: Scalars["String"];
 };
 
 export type CreatePurchaseInput = {
-  transactionHash: Scalars["String"];
-  offerId: Scalars["String"];
   amount: Scalars["Int"];
+  offerId: Scalars["String"];
+  transactionHash: Scalars["String"];
 };
 
 export type EventInput = {
-  type: EventType;
-  assetType: AssetType;
   assetId: Scalars["ID"];
+  assetType: AssetType;
+  type: EventType;
 };
 
 export enum EventType {
@@ -254,19 +268,19 @@ export enum FileType {
 
 export type FineHolderBenefits = {
   __typename?: "FineHolderBenefits";
-  userBenefitLevel?: Maybe<Scalars["String"]>;
-  mintAllowance?: Maybe<Scalars["Float"]>;
-  taggingLimit?: Maybe<Scalars["Float"]>;
-  rarityLimit?: Maybe<Scalars["Float"]>;
-  royaltyLimit?: Maybe<Scalars["Float"]>;
   auctionAllowance?: Maybe<Scalars["Float"]>;
   avgFineTokenBalance?: Maybe<Scalars["Float"]>;
+  mintAllowance?: Maybe<Scalars["Float"]>;
+  rarityLimit?: Maybe<Scalars["Float"]>;
+  royaltyLimit?: Maybe<Scalars["Float"]>;
+  taggingLimit?: Maybe<Scalars["Float"]>;
+  userBenefitLevel?: Maybe<Scalars["String"]>;
 };
 
 export type FinishMintInput = {
-  transactionHash: Scalars["String"];
-  tokenId: Scalars["String"];
   contractAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+  transactionHash: Scalars["String"];
 };
 
 export type FinishMintOutput = {
@@ -274,15 +288,21 @@ export type FinishMintOutput = {
   item: Item;
 };
 
-export type GetRefinableContractsInput = {
-  types: Array<ContractTypes>;
+export type GetRefinableContractInput = {
   chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+};
+
+export type GetRefinableContractsInput = {
+  chainId?: Maybe<Scalars["Float"]>;
+  tags?: Maybe<Array<ContractTags>>;
+  types?: Maybe<Array<ContractTypes>>;
 };
 
 export type GetUploadUrlOutput = {
   __typename?: "GetUploadUrlOutput";
-  url: Scalars["String"];
   fields: Scalars["JSON"];
+  url: Scalars["String"];
 };
 
 export type HideItemInput = {
@@ -304,68 +324,81 @@ export type HottestTagsFilterInput = {
 };
 
 export type ImportCollectionInput = {
-  contractAddress: Scalars["String"];
-  userId: Scalars["String"];
-  name: Scalars["String"];
-  slug: Scalars["String"];
   chainId?: Maybe<Scalars["Float"]>;
   contractABI: Scalars["String"];
-  metadataUrlTemplate?: Maybe<Scalars["String"]>;
-  iconUrl: Scalars["String"];
+  contractAddress: Scalars["String"];
   description: Scalars["String"];
+  iconUrl: Scalars["String"];
+  metadataUrlTemplate?: Maybe<Scalars["String"]>;
+  name: Scalars["String"];
+  slug: Scalars["String"];
   type: TokenType;
+  userId: Scalars["String"];
 };
 
 export type ImportItemInput = {
-  contractAddress: Scalars["String"];
-  tokenId: Scalars["String"];
-  chainId: Scalars["Int"];
   apiUrl: Scalars["String"];
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
   tags?: Maybe<Array<TagInput>>;
+  tokenId: Scalars["String"];
 };
 
 export type ImportItemPreview = {
   __typename?: "ImportItemPreview";
-  name: Scalars["String"];
+  apiUrl?: Maybe<Scalars["String"]>;
+  apiUrlFound?: Maybe<Scalars["Boolean"]>;
   description: Scalars["String"];
   file: Scalars["String"];
-  apiUrlFound?: Maybe<Scalars["Boolean"]>;
-  apiUrl?: Maybe<Scalars["String"]>;
+  name: Scalars["String"];
 };
 
 export type ImportItemPreviewInput = {
+  apiUrl: Scalars["String"];
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
-  apiUrl: Scalars["String"];
 };
 
 export type Item = {
   __typename?: "Item";
-  id: Scalars["String"];
-  tokenId: Scalars["String"];
-  createdAt: Scalars["DateTime"];
-  properties: Properties;
-  transactionHash: Scalars["String"];
-  contractAddress: Scalars["String"];
-  owners: Array<ItemOwner>;
-  type: TokenType;
-  name: Scalars["String"];
-  description?: Maybe<Scalars["String"]>;
-  marketingDescription?: Maybe<Scalars["String"]>;
-  tags: Array<Tag>;
-  supply: Scalars["Float"];
+  attributes?: Maybe<Array<ItemAttribute>>;
+  availableUserSupply: Scalars["Int"];
   chainId: Scalars["Float"];
+  collection?: Maybe<Collection>;
+  contractAddress: Scalars["String"];
+  createdAt: Scalars["DateTime"];
+  creator: User;
+  description?: Maybe<Scalars["String"]>;
+  editionsForSale: Array<Offer>;
+  history: ItemHistoryResponse;
+  id: Scalars["String"];
+  marketingDescription?: Maybe<Scalars["String"]>;
+  name: Scalars["String"];
+  nextEditionForSale?: Maybe<Offer>;
+  owners: Array<ItemOwner>;
+  properties: Properties;
   reason?: Maybe<Scalars["String"]>;
   similarItems: Array<ItemWithOffer>;
-  userSupply: Scalars["Int"];
-  availableUserSupply: Scalars["Int"];
-  editionsForSale: Array<Offer>;
-  nextEditionForSale?: Maybe<Offer>;
-  creator: User;
-  history: ItemHistoryResponse;
+  supply: Scalars["Float"];
+  tags: Array<Tag>;
+  tokenId: Scalars["String"];
+  totalSupply: Scalars["Int"];
+  transactionHash: Scalars["String"];
   transcodings?: Maybe<Array<Transcoding>>;
-  collection?: Maybe<Collection>;
-  attributes?: Maybe<Array<ItemAttribute>>;
+  type: TokenType;
+  userSupply: Scalars["Int"];
+};
+
+export type ItemAvailableUserSupplyArgs = {
+  ethAddress?: Maybe<Scalars["String"]>;
+};
+
+export type ItemHistoryArgs = {
+  paging: PagingInput;
+};
+
+export type ItemNextEditionForSaleArgs = {
+  ethAddress?: Maybe<Scalars["String"]>;
 };
 
 export type ItemSimilarItemsArgs = {
@@ -376,23 +409,11 @@ export type ItemUserSupplyArgs = {
   ethAddress?: Maybe<Scalars["String"]>;
 };
 
-export type ItemAvailableUserSupplyArgs = {
-  ethAddress?: Maybe<Scalars["String"]>;
-};
-
-export type ItemNextEditionForSaleArgs = {
-  ethAddress?: Maybe<Scalars["String"]>;
-};
-
-export type ItemHistoryArgs = {
-  paging: PagingInput;
-};
-
 export type ItemAttribute = {
   __typename?: "ItemAttribute";
-  value: Scalars["String"];
-  traitType?: Maybe<Scalars["String"]>;
   displayType?: Maybe<Scalars["String"]>;
+  traitType?: Maybe<Scalars["String"]>;
+  value: Scalars["String"];
 };
 
 export type ItemEdge = {
@@ -403,14 +424,14 @@ export type ItemEdge = {
 
 export type ItemHistory = {
   __typename?: "ItemHistory";
-  id: Scalars["String"];
   createdAt?: Maybe<Scalars["DateTime"]>;
-  type?: Maybe<ItemHistoryType>;
-  from?: Maybe<User>;
-  to?: Maybe<User>;
-  transactionHash?: Maybe<Scalars["String"]>;
   /** @deprecated As we are supporting multiple chains, the frontend will have the correct explorerUri */
   externalTxUrl?: Maybe<Scalars["String"]>;
+  from?: Maybe<User>;
+  id: Scalars["String"];
+  to?: Maybe<User>;
+  transactionHash?: Maybe<Scalars["String"]>;
+  type?: Maybe<ItemHistoryType>;
 };
 
 export type ItemHistoryEdge = {
@@ -421,10 +442,10 @@ export type ItemHistoryEdge = {
 
 export type ItemHistoryPageInfo = {
   __typename?: "ItemHistoryPageInfo";
-  startCursor?: Maybe<Scalars["String"]>;
   endCursor?: Maybe<Scalars["String"]>;
-  hasPreviousPage: Scalars["Boolean"];
   hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export type ItemHistoryResponse = {
@@ -435,52 +456,52 @@ export type ItemHistoryResponse = {
 };
 
 export enum ItemHistoryType {
-  Minted = "MINTED",
-  SaleCreated = "SALE_CREATED",
-  Purchase = "PURCHASE",
-  Transfer = "TRANSFER",
-  AuctionCreated = "AUCTION_CREATED",
+  Airdrop = "AIRDROP",
   AuctionCancelled = "AUCTION_CANCELLED",
   AuctionClosed = "AUCTION_CLOSED",
-  Airdrop = "AIRDROP",
+  AuctionCreated = "AUCTION_CREATED",
   Burn = "BURN",
+  Minted = "MINTED",
+  Purchase = "PURCHASE",
   SaleClosed = "SALE_CLOSED",
+  SaleCreated = "SALE_CREATED",
+  Transfer = "TRANSFER",
 }
 
 export type ItemMinted = {
   __typename?: "ItemMinted";
-  tokenId: Scalars["String"];
-  transactionHash: Scalars["String"];
   contractAddress: Scalars["String"];
   ethAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+  transactionHash: Scalars["String"];
 };
 
 export type ItemOwner = {
   __typename?: "ItemOwner";
   ethAddress: Scalars["String"];
-  supply: Scalars["Float"];
   name?: Maybe<Scalars["String"]>;
   profileImage?: Maybe<Scalars["String"]>;
+  supply: Scalars["Float"];
   verified?: Maybe<Scalars["Boolean"]>;
 };
 
 export type ItemPageInfo = {
   __typename?: "ItemPageInfo";
-  startCursor?: Maybe<Scalars["String"]>;
   endCursor?: Maybe<Scalars["String"]>;
-  hasPreviousPage: Scalars["Boolean"];
   hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export type ItemReport = {
   __typename?: "ItemReport";
-  id: Scalars["String"];
-  reason: ItemReportReason;
   comment?: Maybe<Scalars["String"]>;
+  handledBy?: Maybe<User>;
+  id: Scalars["String"];
+  item?: Maybe<Item>;
+  reason: ItemReportReason;
   reportedAt: Scalars["DateTime"];
   reporter?: Maybe<User>;
-  handledBy?: Maybe<User>;
-  item?: Maybe<Item>;
 };
 
 export type ItemReportEdge = {
@@ -495,23 +516,23 @@ export type ItemReportFilterInput = {
 };
 
 export type ItemReportInput = {
+  comment?: Maybe<Scalars["String"]>;
   itemId: Scalars["String"];
   reason: ItemReportReason;
-  comment?: Maybe<Scalars["String"]>;
 };
 
 export type ItemReportPageInfo = {
   __typename?: "ItemReportPageInfo";
-  startCursor?: Maybe<Scalars["String"]>;
   endCursor?: Maybe<Scalars["String"]>;
-  hasPreviousPage: Scalars["Boolean"];
   hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export enum ItemReportReason {
+  CopyrightViolation = "COPYRIGHT_VIOLATION",
   NoReason = "NO_REASON",
   Nsfw = "NSFW",
-  CopyrightViolation = "COPYRIGHT_VIOLATION",
 }
 
 export type ItemReportResponse = {
@@ -523,13 +544,13 @@ export type ItemReportResponse = {
 
 export type ItemWithOffer = {
   __typename?: "ItemWithOffer";
-  id: Scalars["String"];
-  item: Item;
-  cheapestEditionForSale?: Maybe<Offer>;
-  editionsForSale: Array<Offer>;
-  nextEditionForSale?: Maybe<Offer>;
   /** @deprecated Not used */
   availableSupply?: Maybe<Scalars["Int"]>;
+  cheapestEditionForSale?: Maybe<Offer>;
+  editionsForSale: Array<Offer>;
+  id: Scalars["String"];
+  item: Item;
+  nextEditionForSale?: Maybe<Offer>;
 };
 
 export type ItemWithOfferEdge = {
@@ -544,18 +565,18 @@ export enum ItemWithOfferFilterType {
 
 export type ItemWithOfferPageInfo = {
   __typename?: "ItemWithOfferPageInfo";
-  startCursor?: Maybe<Scalars["String"]>;
   endCursor?: Maybe<Scalars["String"]>;
-  hasPreviousPage: Scalars["Boolean"];
   hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export type ItemsFilterInput = {
-  collection?: Maybe<Scalars["String"]>;
-  tagName?: Maybe<Scalars["String"]>;
   auctionType?: Maybe<AuctionType>;
   chainIds?: Maybe<Array<Scalars["String"]>>;
+  collection?: Maybe<Scalars["String"]>;
   contentType?: Maybe<ContentType>;
+  tagName?: Maybe<Scalars["String"]>;
 };
 
 export type ItemsResponse = {
@@ -579,37 +600,49 @@ export type LoginInput = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
-  importItem: CreateItemOutput;
-  hideItem: Item;
+  createOfferForItems: Offer;
+  createPurchase: Purchase;
+  dismissReport: ItemReport;
   finishMint: FinishMintOutput;
+  hideItem: Item;
   importCollection: Scalars["Boolean"];
   importCollectionFromTransfers: Scalars["Boolean"];
-  createPurchase: Purchase;
-  createOfferForItems: Offer;
+  importItem: CreateItemOutput;
+  login: Auth;
   placeAuctionBid: Scalars["Boolean"];
+  reportItem: ItemReport;
   updateUser: User;
   uploadFile: Scalars["String"];
-  createEvent: Scalars["Boolean"];
-  login: Auth;
-  reportItem: ItemReport;
-  dismissReport: ItemReport;
+};
+
+export type MutationCreateEventArgs = {
+  input: CreateEventInput;
 };
 
 export type MutationCreateItemArgs = {
   input: CreateItemInput;
 };
 
-export type MutationImportItemArgs = {
-  input: ImportItemInput;
+export type MutationCreateOfferForItemsArgs = {
+  input: CreateOffersInput;
 };
 
-export type MutationHideItemArgs = {
-  input: HideItemInput;
+export type MutationCreatePurchaseArgs = {
+  input: CreatePurchaseInput;
+};
+
+export type MutationDismissReportArgs = {
+  input: Scalars["String"];
 };
 
 export type MutationFinishMintArgs = {
   input: FinishMintInput;
+};
+
+export type MutationHideItemArgs = {
+  input: HideItemInput;
 };
 
 export type MutationImportCollectionArgs = {
@@ -620,16 +653,20 @@ export type MutationImportCollectionFromTransfersArgs = {
   input: ImportCollectionInput;
 };
 
-export type MutationCreatePurchaseArgs = {
-  input: CreatePurchaseInput;
+export type MutationImportItemArgs = {
+  input: ImportItemInput;
 };
 
-export type MutationCreateOfferForItemsArgs = {
-  input: CreateOffersInput;
+export type MutationLoginArgs = {
+  data: LoginInput;
 };
 
 export type MutationPlaceAuctionBidArgs = {
   input: AuctionPlaceBidInput;
+};
+
+export type MutationReportItemArgs = {
+  input: ItemReportInput;
 };
 
 export type MutationUpdateUserArgs = {
@@ -640,47 +677,31 @@ export type MutationUploadFileArgs = {
   file: Scalars["Upload"];
 };
 
-export type MutationCreateEventArgs = {
-  input: CreateEventInput;
-};
-
-export type MutationLoginArgs = {
-  data: LoginInput;
-};
-
-export type MutationReportItemArgs = {
-  input: ItemReportInput;
-};
-
-export type MutationDismissReportArgs = {
-  input: Scalars["String"];
-};
-
 export type Offer = {
   __typename?: "Offer";
-  id: Scalars["String"];
   active: Scalars["Boolean"];
-  price: Price;
-  type?: Maybe<Scalars["String"]>;
-  signature?: Maybe<Scalars["String"]>;
+  auction?: Maybe<Auction>;
   createdAt?: Maybe<Scalars["DateTime"]>;
-  unlistedAt?: Maybe<Scalars["DateTime"]>;
+  id: Scalars["String"];
+  price: Price;
+  signature?: Maybe<Scalars["String"]>;
   supply: Scalars["Int"];
   totalSupply: Scalars["Int"];
-  auction?: Maybe<Auction>;
+  type: OfferType;
+  unlistedAt?: Maybe<Scalars["DateTime"]>;
   user: User;
 };
 
 export enum OfferType {
-  Sale = "SALE",
   Auction = "AUCTION",
+  Sale = "SALE",
 }
 
 export type PagingInput = {
-  /** Paginate before opaque cursor */
-  before?: Maybe<Scalars["String"]>;
   /** Paginate after opaque cursor */
   after?: Maybe<Scalars["String"]>;
+  /** Paginate before opaque cursor */
+  before?: Maybe<Scalars["String"]>;
   /** Paginate first */
   first?: Maybe<Scalars["Float"]>;
   /** Paginate last */
@@ -689,17 +710,17 @@ export type PagingInput = {
 
 export type Price = {
   __typename?: "Price";
-  currency: PriceCurrency;
   amount: Scalars["Float"];
+  currency: PriceCurrency;
 };
 
 export enum PriceCurrency {
   Bnb = "BNB",
-  Usdt = "USDT",
-  Matic = "MATIC",
-  Weth = "WETH",
   Busd = "BUSD",
   Eth = "ETH",
+  Matic = "MATIC",
+  Usdt = "USDT",
+  Weth = "WETH",
 }
 
 export type PriceInput = {
@@ -709,15 +730,15 @@ export type PriceInput = {
 
 export type Properties = {
   __typename?: "Properties";
-  fileType: FileType;
   fileKey?: Maybe<Scalars["String"]>;
-  imagePreview?: Maybe<Scalars["String"]>;
+  fileType: FileType;
   fileUrl?: Maybe<Scalars["String"]>;
-  originalFileUrl?: Maybe<Scalars["String"]>;
-  thumbnailUrl?: Maybe<Scalars["String"]>;
-  originalThumbnailUrl?: Maybe<Scalars["String"]>;
+  imagePreview?: Maybe<Scalars["String"]>;
   ipfsDocument?: Maybe<Scalars["String"]>;
   ipfsUrl?: Maybe<Scalars["String"]>;
+  originalFileUrl?: Maybe<Scalars["String"]>;
+  originalThumbnailUrl?: Maybe<Scalars["String"]>;
+  thumbnailUrl?: Maybe<Scalars["String"]>;
 };
 
 export type Purchase = {
@@ -727,65 +748,39 @@ export type Purchase = {
 
 export type Query = {
   __typename?: "Query";
-  refinableContracts: Array<ContractOutput>;
+  auction?: Maybe<Auction>;
+  brands: Array<Brand>;
+  collection?: Maybe<Collection>;
+  collections: Array<Collection>;
+  getUploadUrl: GetUploadUrlOutput;
+  hotItems: HotItemsResponse;
+  hottestTags: Array<Tag>;
   importPreview: ImportItemPreview;
   item?: Maybe<Item>;
-  collections: Array<Collection>;
-  mintableCollections: Array<Collection>;
-  collection?: Maybe<Collection>;
-  offer?: Maybe<Offer>;
   itemsOnOffer: ItemsWithOffersResponse;
-  auction?: Maybe<Auction>;
-  user?: Maybe<User>;
-  /** @deprecated User consent is beeing given directly on the frontend */
-  userConsent: UserConsent;
   me: User;
-  getUploadUrl: GetUploadUrlOutput;
-  hottestTags: Array<Tag>;
+  mintableCollections: Array<Collection>;
+  offer?: Maybe<Offer>;
+  refinableContract?: Maybe<ContractOutput>;
+  refinableContracts: Array<ContractOutput>;
+  reports: ItemReportResponse;
+  search: SearchResponse;
   searchTag: Array<Tag>;
   /** @deprecated tag creation limit is not supported anymore */
   tagCreationUserSuspended: TagSuspensionOutput;
-  hotItems: HotItemsResponse;
   topUsers: Array<TopUser>;
+  user?: Maybe<User>;
+  /** @deprecated User consent is beeing given directly on the frontend */
+  userConsent: UserConsent;
   verificationToken: Scalars["Int"];
-  search: SearchResponse;
-  brands: Array<Brand>;
-  reports: ItemReportResponse;
-};
-
-export type QueryRefinableContractsArgs = {
-  input: GetRefinableContractsInput;
-};
-
-export type QueryImportPreviewArgs = {
-  input: ImportItemPreviewInput;
-};
-
-export type QueryItemArgs = {
-  tokenId: Scalars["String"];
-  contractAddress: Scalars["String"];
-};
-
-export type QueryCollectionArgs = {
-  slug: Scalars["String"];
-};
-
-export type QueryOfferArgs = {
-  id?: Maybe<Scalars["ID"]>;
-};
-
-export type QueryItemsOnOfferArgs = {
-  sort?: Maybe<SortInput>;
-  filter?: Maybe<ItemsFilterInput>;
-  paging: PagingInput;
 };
 
 export type QueryAuctionArgs = {
   id?: Maybe<Scalars["ID"]>;
 };
 
-export type QueryUserArgs = {
-  ethAddress: Scalars["String"];
+export type QueryCollectionArgs = {
+  slug: Scalars["String"];
 };
 
 export type QueryGetUploadUrlArgs = {
@@ -794,26 +789,46 @@ export type QueryGetUploadUrlArgs = {
   type: UploadType;
 };
 
-export type QueryHottestTagsArgs = {
-  filter: HottestTagsFilterInput;
-};
-
-export type QuerySearchTagArgs = {
-  limit?: Maybe<Scalars["Int"]>;
-  query: Scalars["String"];
-};
-
 export type QueryHotItemsArgs = {
   limit?: Maybe<Scalars["Int"]>;
   type: AssetType;
 };
 
-export type QueryTopUsersArgs = {
-  limit?: Maybe<Scalars["Int"]>;
+export type QueryHottestTagsArgs = {
+  filter: HottestTagsFilterInput;
 };
 
-export type QueryVerificationTokenArgs = {
-  data: VerificationTokenInput;
+export type QueryImportPreviewArgs = {
+  input: ImportItemPreviewInput;
+};
+
+export type QueryItemArgs = {
+  contractAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+};
+
+export type QueryItemsOnOfferArgs = {
+  filter?: Maybe<ItemsFilterInput>;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
+};
+
+export type QueryOfferArgs = {
+  id?: Maybe<Scalars["ID"]>;
+};
+
+export type QueryRefinableContractArgs = {
+  input: GetRefinableContractInput;
+};
+
+export type QueryRefinableContractsArgs = {
+  input: GetRefinableContractsInput;
+};
+
+export type QueryReportsArgs = {
+  filter?: Maybe<ItemReportFilterInput>;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type QuerySearchArgs = {
@@ -822,26 +837,37 @@ export type QuerySearchArgs = {
   type: AssetType;
 };
 
-export type QueryReportsArgs = {
-  sort?: Maybe<SortInput>;
-  filter?: Maybe<ItemReportFilterInput>;
-  paging: PagingInput;
+export type QuerySearchTagArgs = {
+  limit?: Maybe<Scalars["Int"]>;
+  query: Scalars["String"];
+};
+
+export type QueryTopUsersArgs = {
+  limit?: Maybe<Scalars["Int"]>;
+};
+
+export type QueryUserArgs = {
+  ethAddress: Scalars["String"];
+};
+
+export type QueryVerificationTokenArgs = {
+  data: VerificationTokenInput;
 };
 
 export type RoyaltiesInput = {
-  value: Scalars["Int"];
   recipient: Scalars["String"];
+  value: Scalars["Int"];
 };
 
 export type RoyaltySettingsInput = {
-  shares?: Maybe<Array<RoyaltiesInput>>;
-  royaltyStrategy: RoyaltyStrategy;
   royaltyBps?: Maybe<Scalars["Float"]>;
+  royaltyStrategy: RoyaltyStrategy;
+  shares?: Maybe<Array<RoyaltiesInput>>;
 };
 
 export enum RoyaltyStrategy {
-  StandardRoyaltyStrategy = "STANDARD_ROYALTY_STRATEGY",
   ProfitDistributionStrategy = "PROFIT_DISTRIBUTION_STRATEGY",
+  StandardRoyaltyStrategy = "STANDARD_ROYALTY_STRATEGY",
 }
 
 export type SearchResponse = {
@@ -849,7 +875,7 @@ export type SearchResponse = {
   result: Array<SearchResult>;
 };
 
-export type SearchResult = ItemWithOffer | User | Tag | Collection;
+export type SearchResult = Collection | ItemWithOffer | Tag | User;
 
 export type SortInput = {
   field: Scalars["String"];
@@ -863,25 +889,37 @@ export enum SortOrder {
 
 export type Subscription = {
   __typename?: "Subscription";
-  itemMinted: ItemMinted;
+  auctionCancelled: Offer;
+  auctionEnded: Offer;
+  bidPlaced: Offer;
   itemBurned: Item;
+  itemMinted: ItemMinted;
   itemPurchased: Item;
   offerUpdated?: Maybe<Offer>;
-  bidPlaced: Offer;
-  auctionEnded: Offer;
-  auctionCancelled: Offer;
   saleCancelled: Offer;
 };
 
-export type SubscriptionItemMintedArgs = {
-  tokenId: Scalars["String"];
-  ethAddress: Scalars["String"];
-  contractAddress: Scalars["String"];
+export type SubscriptionAuctionCancelledArgs = {
+  offerId: Scalars["ID"];
+};
+
+export type SubscriptionAuctionEndedArgs = {
+  offerId: Scalars["ID"];
+};
+
+export type SubscriptionBidPlacedArgs = {
+  offerId: Scalars["ID"];
 };
 
 export type SubscriptionItemBurnedArgs = {
-  tokenId: Scalars["String"];
   contractAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+};
+
+export type SubscriptionItemMintedArgs = {
+  contractAddress: Scalars["String"];
+  ethAddress: Scalars["String"];
+  tokenId: Scalars["String"];
 };
 
 export type SubscriptionItemPurchasedArgs = {
@@ -893,26 +931,14 @@ export type SubscriptionOfferUpdatedArgs = {
   offerId: Scalars["ID"];
 };
 
-export type SubscriptionBidPlacedArgs = {
-  offerId: Scalars["ID"];
-};
-
-export type SubscriptionAuctionEndedArgs = {
-  offerId: Scalars["ID"];
-};
-
-export type SubscriptionAuctionCancelledArgs = {
-  offerId: Scalars["ID"];
-};
-
 export type SubscriptionSaleCancelledArgs = {
   offerId: Scalars["ID"];
 };
 
 export enum Taginterval {
   Day = "DAY",
-  Week = "WEEK",
   Month = "MONTH",
+  Week = "WEEK",
   Year = "YEAR",
 }
 
@@ -936,11 +962,11 @@ export type TagSuspensionOutput = {
 
 export type Token = {
   __typename?: "Token";
-  type: TokenType;
-  contractAddress: Scalars["String"];
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
+  contractAddress: Scalars["String"];
   tags: Array<ContractTags>;
+  type: TokenType;
 };
 
 export enum TokenType {
@@ -950,81 +976,81 @@ export enum TokenType {
 
 export type TopUser = {
   __typename?: "TopUser";
-  user: User;
   avgMonthlyVolume: Scalars["Float"];
   totalMonthlyVolume: Scalars["Float"];
+  user: User;
 };
 
 export type Transaction = {
   __typename?: "Transaction";
-  from: Scalars["String"];
-  to: Scalars["String"];
   blockNumber: Scalars["Float"];
+  from: Scalars["String"];
   hash: Scalars["String"];
+  to: Scalars["String"];
 };
 
 export type Transcoding = {
   __typename?: "Transcoding";
-  url: Scalars["String"];
   mimeType: Scalars["String"];
+  url: Scalars["String"];
 };
 
 export type UpdateUserInput = {
-  email?: Maybe<Scalars["String"]>;
-  twitter?: Maybe<Scalars["String"]>;
-  instagram?: Maybe<Scalars["String"]>;
-  website?: Maybe<Scalars["String"]>;
   description?: Maybe<Scalars["String"]>;
+  email?: Maybe<Scalars["String"]>;
+  instagram?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
-  profileImage?: Maybe<Scalars["String"]>;
   profileBanner?: Maybe<Scalars["String"]>;
+  profileImage?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export enum UploadType {
   Nft = "NFT",
-  UserImage = "USER_IMAGE",
   UserHeader = "USER_HEADER",
+  UserImage = "USER_IMAGE",
 }
 
 export type User = {
   __typename?: "User";
-  id: Scalars["String"];
-  name?: Maybe<Scalars["String"]>;
   description?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
-  twitter?: Maybe<Scalars["String"]>;
-  instagram?: Maybe<Scalars["String"]>;
-  website?: Maybe<Scalars["String"]>;
-  profileImage?: Maybe<Scalars["String"]>;
-  profileBanner?: Maybe<Scalars["String"]>;
-  verified?: Maybe<Scalars["Boolean"]>;
   fineHolderBenefits?: Maybe<FineHolderBenefits>;
-  receivedComRewards: Scalars["Float"];
-  roles?: Maybe<Array<UserRoles>>;
+  id: Scalars["String"];
+  instagram?: Maybe<Scalars["String"]>;
   items: ItemsResponse;
   itemsOnOffer: ItemsWithOffersResponse;
+  name?: Maybe<Scalars["String"]>;
+  profileBanner?: Maybe<Scalars["String"]>;
+  profileImage?: Maybe<Scalars["String"]>;
+  receivedComRewards: Scalars["Float"];
+  roles?: Maybe<Array<UserRoles>>;
+  twitter?: Maybe<Scalars["String"]>;
+  verified?: Maybe<Scalars["Boolean"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type UserItemsArgs = {
-  sort?: Maybe<SortInput>;
   filter: UserItemFilterInput;
   paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type UserItemsOnOfferArgs = {
-  sort?: Maybe<SortInput>;
   filter?: Maybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type UserConsent = {
   __typename?: "UserConsent";
   /** @deprecated Deprecated, only used in frontend */
-  acceptedTos?: Maybe<Scalars["Boolean"]>;
+  acceptedOlderThan18?: Maybe<Scalars["Boolean"]>;
   /** @deprecated Deprecated, only used in frontend */
   acceptedPrivacyPolicy?: Maybe<Scalars["Boolean"]>;
   /** @deprecated Deprecated, only used in frontend */
-  acceptedOlderThan18?: Maybe<Scalars["Boolean"]>;
+  acceptedTos?: Maybe<Scalars["Boolean"]>;
 };
 
 export type UserItemFilterInput = {
@@ -1041,13 +1067,41 @@ export type UserItemOnOfferFilterInput = {
 };
 
 export enum UserRoles {
-  User = "USER",
-  Moderator = "MODERATOR",
   Admin = "ADMIN",
+  Moderator = "MODERATOR",
+  User = "USER",
 }
 
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
+};
+
+export type PlaceAuctionBidMutationVariables = Exact<{
+  input: AuctionPlaceBidInput;
+}>;
+
+export type PlaceAuctionBidMutation = {
+  __typename?: "Mutation";
+  placeAuctionBid: boolean;
+};
+
+export type RefinableContractQueryVariables = Exact<{
+  input: GetRefinableContractInput;
+}>;
+
+export type RefinableContractQuery = {
+  __typename?: "Query";
+  refinableContract?:
+    | {
+        __typename?: "ContractOutput";
+        contractAddress: string;
+        contractABI: string;
+        type: string;
+        tags: Array<ContractTags>;
+        chainId: number;
+      }
+    | null
+    | undefined;
 };
 
 export type RefinableContractsQueryVariables = Exact<{
@@ -1062,6 +1116,7 @@ export type RefinableContractsQuery = {
     contractABI: string;
     type: string;
     tags: Array<ContractTags>;
+    chainId: number;
   }>;
 };
 
@@ -1088,22 +1143,24 @@ export type GetMintableCollectionsQuery = {
 export type ItemSaleInfoFragment = {
   __typename?: "Offer";
   id: string;
-  createdAt?: Maybe<any>;
-  type?: Maybe<string>;
+  createdAt?: any | null | undefined;
+  type: OfferType;
   supply: number;
   price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-  auction?: Maybe<{
-    __typename?: "Auction";
-    id: string;
-    startPrice?: Maybe<number>;
-    startTime?: Maybe<any>;
-    endTime?: Maybe<any>;
-    highestBid?: Maybe<{
-      __typename?: "Bid";
-      transactionHash: string;
-      bidAmount: number;
-    }>;
-  }>;
+  auction?:
+    | {
+        __typename?: "Auction";
+        id: string;
+        startPrice?: number | null | undefined;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        highestBid?:
+          | { __typename?: "Bid"; transactionHash: string; bidAmount: number }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
 };
 
 export type ItemInfoFragment = {
@@ -1112,36 +1169,41 @@ export type ItemInfoFragment = {
   tokenId: string;
   contractAddress: string;
   supply: number;
+  totalSupply: number;
   name: string;
-  description?: Maybe<string>;
+  description?: string | null | undefined;
   chainId: number;
   creator: {
     __typename?: "User";
     id: string;
-    ethAddress?: Maybe<string>;
-    name?: Maybe<string>;
-    profileImage?: Maybe<string>;
-    verified?: Maybe<boolean>;
+    ethAddress?: string | null | undefined;
+    name?: string | null | undefined;
+    profileImage?: string | null | undefined;
+    verified?: boolean | null | undefined;
   };
-  collection?: Maybe<{
-    __typename?: "Collection";
-    slug: string;
-    name: string;
-    iconUrl: string;
-    verified: boolean;
-  }>;
+  collection?:
+    | {
+        __typename?: "Collection";
+        slug: string;
+        name: string;
+        iconUrl: string;
+        verified: boolean;
+      }
+    | null
+    | undefined;
   properties: {
     __typename?: "Properties";
     fileType: FileType;
-    imagePreview?: Maybe<string>;
-    fileUrl?: Maybe<string>;
-    originalFileUrl?: Maybe<string>;
-    thumbnailUrl?: Maybe<string>;
-    originalThumbnailUrl?: Maybe<string>;
+    imagePreview?: string | null | undefined;
+    fileUrl?: string | null | undefined;
+    originalFileUrl?: string | null | undefined;
+    thumbnailUrl?: string | null | undefined;
+    originalThumbnailUrl?: string | null | undefined;
   };
-  transcodings?: Maybe<
-    Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
-  >;
+  transcodings?:
+    | Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
+    | null
+    | undefined;
 };
 
 export type GetItemsWithOfferFragment = {
@@ -1153,57 +1215,75 @@ export type GetItemsWithOfferFragment = {
     tokenId: string;
     contractAddress: string;
     supply: number;
+    totalSupply: number;
     name: string;
-    description?: Maybe<string>;
+    description?: string | null | undefined;
     chainId: number;
     creator: {
       __typename?: "User";
       id: string;
-      ethAddress?: Maybe<string>;
-      name?: Maybe<string>;
-      profileImage?: Maybe<string>;
-      verified?: Maybe<boolean>;
+      ethAddress?: string | null | undefined;
+      name?: string | null | undefined;
+      profileImage?: string | null | undefined;
+      verified?: boolean | null | undefined;
     };
-    collection?: Maybe<{
-      __typename?: "Collection";
-      slug: string;
-      name: string;
-      iconUrl: string;
-      verified: boolean;
-    }>;
+    collection?:
+      | {
+          __typename?: "Collection";
+          slug: string;
+          name: string;
+          iconUrl: string;
+          verified: boolean;
+        }
+      | null
+      | undefined;
     properties: {
       __typename?: "Properties";
       fileType: FileType;
-      imagePreview?: Maybe<string>;
-      fileUrl?: Maybe<string>;
-      originalFileUrl?: Maybe<string>;
-      thumbnailUrl?: Maybe<string>;
-      originalThumbnailUrl?: Maybe<string>;
+      imagePreview?: string | null | undefined;
+      fileUrl?: string | null | undefined;
+      originalFileUrl?: string | null | undefined;
+      thumbnailUrl?: string | null | undefined;
+      originalThumbnailUrl?: string | null | undefined;
     };
-    transcodings?: Maybe<
-      Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
-    >;
+    transcodings?:
+      | Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
+      | null
+      | undefined;
   };
-  nextEditionForSale?: Maybe<{
-    __typename?: "Offer";
-    id: string;
-    createdAt?: Maybe<any>;
-    type?: Maybe<string>;
-    supply: number;
-    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-    auction?: Maybe<{
-      __typename?: "Auction";
-      id: string;
-      startPrice?: Maybe<number>;
-      startTime?: Maybe<any>;
-      endTime?: Maybe<any>;
-      highestBid?: Maybe<{
-        __typename?: "Bid";
-        transactionHash: string;
-        bidAmount: number;
-      }>;
-    }>;
-  }>;
+  nextEditionForSale?:
+    | {
+        __typename?: "Offer";
+        id: string;
+        createdAt?: any | null | undefined;
+        type: OfferType;
+        supply: number;
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              startPrice?: number | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
 };
 
 export type UserItemsFragment = {
@@ -1213,56 +1293,182 @@ export type UserItemsFragment = {
   tokenId: string;
   contractAddress: string;
   supply: number;
+  totalSupply: number;
   name: string;
-  description?: Maybe<string>;
+  description?: string | null | undefined;
   chainId: number;
-  nextEditionForSale?: Maybe<{
-    __typename?: "Offer";
-    id: string;
-    createdAt?: Maybe<any>;
-    type?: Maybe<string>;
-    supply: number;
-    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-    auction?: Maybe<{
-      __typename?: "Auction";
-      id: string;
-      startPrice?: Maybe<number>;
-      startTime?: Maybe<any>;
-      endTime?: Maybe<any>;
-      highestBid?: Maybe<{
-        __typename?: "Bid";
-        transactionHash: string;
-        bidAmount: number;
-      }>;
-    }>;
-  }>;
+  nextEditionForSale?:
+    | {
+        __typename?: "Offer";
+        id: string;
+        createdAt?: any | null | undefined;
+        type: OfferType;
+        supply: number;
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              startPrice?: number | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
   creator: {
     __typename?: "User";
     id: string;
-    ethAddress?: Maybe<string>;
-    name?: Maybe<string>;
-    profileImage?: Maybe<string>;
-    verified?: Maybe<boolean>;
+    ethAddress?: string | null | undefined;
+    name?: string | null | undefined;
+    profileImage?: string | null | undefined;
+    verified?: boolean | null | undefined;
   };
-  collection?: Maybe<{
-    __typename?: "Collection";
-    slug: string;
-    name: string;
-    iconUrl: string;
-    verified: boolean;
-  }>;
+  collection?:
+    | {
+        __typename?: "Collection";
+        slug: string;
+        name: string;
+        iconUrl: string;
+        verified: boolean;
+      }
+    | null
+    | undefined;
   properties: {
     __typename?: "Properties";
     fileType: FileType;
-    imagePreview?: Maybe<string>;
-    fileUrl?: Maybe<string>;
-    originalFileUrl?: Maybe<string>;
-    thumbnailUrl?: Maybe<string>;
-    originalThumbnailUrl?: Maybe<string>;
+    imagePreview?: string | null | undefined;
+    fileUrl?: string | null | undefined;
+    originalFileUrl?: string | null | undefined;
+    thumbnailUrl?: string | null | undefined;
+    originalThumbnailUrl?: string | null | undefined;
   };
-  transcodings?: Maybe<
-    Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
-  >;
+  transcodings?:
+    | Array<{ __typename?: "Transcoding"; url: string; mimeType: string }>
+    | null
+    | undefined;
+};
+
+export type AuctionFragment = {
+  __typename?: "Auction";
+  id: string;
+  auctionId?: string | null | undefined;
+  auctionContractAddress?: string | null | undefined;
+  startTime?: any | null | undefined;
+  endTime?: any | null | undefined;
+  startPrice?: number | null | undefined;
+  bids: Array<{
+    __typename?: "Bid";
+    transactionHash: string;
+    bidAmount: number;
+    bidTime: any;
+    bidder?:
+      | {
+          __typename?: "User";
+          ethAddress?: string | null | undefined;
+          description?: string | null | undefined;
+          name?: string | null | undefined;
+          profileImage?: string | null | undefined;
+        }
+      | null
+      | undefined;
+  }>;
+  highestBid?:
+    | {
+        __typename?: "Bid";
+        transactionHash: string;
+        bidAmount: number;
+        bidTime: any;
+        bidder?:
+          | {
+              __typename?: "User";
+              ethAddress?: string | null | undefined;
+              description?: string | null | undefined;
+              name?: string | null | undefined;
+              profileImage?: string | null | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
+};
+
+export type OfferFragment = {
+  __typename?: "Offer";
+  id: string;
+  type: OfferType;
+  active: boolean;
+  supply: number;
+  totalSupply: number;
+  signature?: string | null | undefined;
+  user: {
+    __typename?: "User";
+    id: string;
+    ethAddress?: string | null | undefined;
+  };
+  price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+  auction?:
+    | {
+        __typename?: "Auction";
+        id: string;
+        auctionId?: string | null | undefined;
+        auctionContractAddress?: string | null | undefined;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        startPrice?: number | null | undefined;
+        bids: Array<{
+          __typename?: "Bid";
+          transactionHash: string;
+          bidAmount: number;
+          bidTime: any;
+          bidder?:
+            | {
+                __typename?: "User";
+                ethAddress?: string | null | undefined;
+                description?: string | null | undefined;
+                name?: string | null | undefined;
+                profileImage?: string | null | undefined;
+              }
+            | null
+            | undefined;
+        }>;
+        highestBid?:
+          | {
+              __typename?: "Bid";
+              transactionHash: string;
+              bidAmount: number;
+              bidTime: any;
+              bidder?:
+                | {
+                    __typename?: "User";
+                    ethAddress?: string | null | undefined;
+                    description?: string | null | undefined;
+                    name?: string | null | undefined;
+                    profileImage?: string | null | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
 };
 
 export type GetUserOfferItemsQueryVariables = Exact<{
@@ -1274,96 +1480,117 @@ export type GetUserOfferItemsQueryVariables = Exact<{
 
 export type GetUserOfferItemsQuery = {
   __typename?: "Query";
-  user?: Maybe<{
-    __typename?: "User";
-    id: string;
-    itemsOnOffer: {
-      __typename?: "ItemsWithOffersResponse";
-      totalCount?: Maybe<number>;
-      edges?: Maybe<
-        Array<{
-          __typename?: "ItemWithOfferEdge";
-          cursor: string;
-          node: {
-            __typename?: "ItemWithOffer";
-            id: string;
-            item: {
-              __typename?: "Item";
-              id: string;
-              tokenId: string;
-              contractAddress: string;
-              supply: number;
-              name: string;
-              description?: Maybe<string>;
-              chainId: number;
-              creator: {
-                __typename?: "User";
-                id: string;
-                ethAddress?: Maybe<string>;
-                name?: Maybe<string>;
-                profileImage?: Maybe<string>;
-                verified?: Maybe<boolean>;
-              };
-              collection?: Maybe<{
-                __typename?: "Collection";
-                slug: string;
-                name: string;
-                iconUrl: string;
-                verified: boolean;
-              }>;
-              properties: {
-                __typename?: "Properties";
-                fileType: FileType;
-                imagePreview?: Maybe<string>;
-                fileUrl?: Maybe<string>;
-                originalFileUrl?: Maybe<string>;
-                thumbnailUrl?: Maybe<string>;
-                originalThumbnailUrl?: Maybe<string>;
-              };
-              transcodings?: Maybe<
-                Array<{
-                  __typename?: "Transcoding";
-                  url: string;
-                  mimeType: string;
-                }>
-              >;
-            };
-            nextEditionForSale?: Maybe<{
-              __typename?: "Offer";
-              id: string;
-              createdAt?: Maybe<any>;
-              type?: Maybe<string>;
-              supply: number;
-              price: {
-                __typename?: "Price";
-                amount: number;
-                currency: PriceCurrency;
-              };
-              auction?: Maybe<{
-                __typename?: "Auction";
-                id: string;
-                startPrice?: Maybe<number>;
-                startTime?: Maybe<any>;
-                endTime?: Maybe<any>;
-                highestBid?: Maybe<{
-                  __typename?: "Bid";
-                  transactionHash: string;
-                  bidAmount: number;
-                }>;
-              }>;
-            }>;
-          };
-        }>
-      >;
-      pageInfo?: Maybe<{
-        __typename?: "ItemWithOfferPageInfo";
-        startCursor?: Maybe<string>;
-        endCursor?: Maybe<string>;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-      }>;
-    };
-  }>;
+  user?:
+    | {
+        __typename?: "User";
+        id: string;
+        itemsOnOffer: {
+          __typename?: "ItemsWithOffersResponse";
+          totalCount?: number | null | undefined;
+          edges?:
+            | Array<{
+                __typename?: "ItemWithOfferEdge";
+                cursor: string;
+                node: {
+                  __typename?: "ItemWithOffer";
+                  id: string;
+                  item: {
+                    __typename?: "Item";
+                    id: string;
+                    tokenId: string;
+                    contractAddress: string;
+                    supply: number;
+                    totalSupply: number;
+                    name: string;
+                    description?: string | null | undefined;
+                    chainId: number;
+                    creator: {
+                      __typename?: "User";
+                      id: string;
+                      ethAddress?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                      verified?: boolean | null | undefined;
+                    };
+                    collection?:
+                      | {
+                          __typename?: "Collection";
+                          slug: string;
+                          name: string;
+                          iconUrl: string;
+                          verified: boolean;
+                        }
+                      | null
+                      | undefined;
+                    properties: {
+                      __typename?: "Properties";
+                      fileType: FileType;
+                      imagePreview?: string | null | undefined;
+                      fileUrl?: string | null | undefined;
+                      originalFileUrl?: string | null | undefined;
+                      thumbnailUrl?: string | null | undefined;
+                      originalThumbnailUrl?: string | null | undefined;
+                    };
+                    transcodings?:
+                      | Array<{
+                          __typename?: "Transcoding";
+                          url: string;
+                          mimeType: string;
+                        }>
+                      | null
+                      | undefined;
+                  };
+                  nextEditionForSale?:
+                    | {
+                        __typename?: "Offer";
+                        id: string;
+                        createdAt?: any | null | undefined;
+                        type: OfferType;
+                        supply: number;
+                        price: {
+                          __typename?: "Price";
+                          amount: number;
+                          currency: PriceCurrency;
+                        };
+                        auction?:
+                          | {
+                              __typename?: "Auction";
+                              id: string;
+                              startPrice?: number | null | undefined;
+                              startTime?: any | null | undefined;
+                              endTime?: any | null | undefined;
+                              highestBid?:
+                                | {
+                                    __typename?: "Bid";
+                                    transactionHash: string;
+                                    bidAmount: number;
+                                  }
+                                | null
+                                | undefined;
+                            }
+                          | null
+                          | undefined;
+                      }
+                    | null
+                    | undefined;
+                };
+              }>
+            | null
+            | undefined;
+          pageInfo?:
+            | {
+                __typename?: "ItemWithOfferPageInfo";
+                startCursor?: string | null | undefined;
+                endCursor?: string | null | undefined;
+                hasNextPage: boolean;
+                hasPreviousPage: boolean;
+              }
+            | null
+            | undefined;
+        };
+      }
+    | null
+    | undefined;
 };
 
 export type GetUserItemsQueryVariables = Exact<{
@@ -1374,93 +1601,114 @@ export type GetUserItemsQueryVariables = Exact<{
 
 export type GetUserItemsQuery = {
   __typename?: "Query";
-  user?: Maybe<{
-    __typename?: "User";
-    id: string;
-    items: {
-      __typename?: "ItemsResponse";
-      totalCount?: Maybe<number>;
-      edges?: Maybe<
-        Array<{
-          __typename?: "ItemEdge";
-          cursor: string;
-          node: {
-            __typename?: "Item";
-            userSupply: number;
-            id: string;
-            tokenId: string;
-            contractAddress: string;
-            supply: number;
-            name: string;
-            description?: Maybe<string>;
-            chainId: number;
-            nextEditionForSale?: Maybe<{
-              __typename?: "Offer";
-              id: string;
-              createdAt?: Maybe<any>;
-              type?: Maybe<string>;
-              supply: number;
-              price: {
-                __typename?: "Price";
-                amount: number;
-                currency: PriceCurrency;
-              };
-              auction?: Maybe<{
-                __typename?: "Auction";
-                id: string;
-                startPrice?: Maybe<number>;
-                startTime?: Maybe<any>;
-                endTime?: Maybe<any>;
-                highestBid?: Maybe<{
-                  __typename?: "Bid";
-                  transactionHash: string;
-                  bidAmount: number;
-                }>;
-              }>;
-            }>;
-            creator: {
-              __typename?: "User";
-              id: string;
-              ethAddress?: Maybe<string>;
-              name?: Maybe<string>;
-              profileImage?: Maybe<string>;
-              verified?: Maybe<boolean>;
-            };
-            collection?: Maybe<{
-              __typename?: "Collection";
-              slug: string;
-              name: string;
-              iconUrl: string;
-              verified: boolean;
-            }>;
-            properties: {
-              __typename?: "Properties";
-              fileType: FileType;
-              imagePreview?: Maybe<string>;
-              fileUrl?: Maybe<string>;
-              originalFileUrl?: Maybe<string>;
-              thumbnailUrl?: Maybe<string>;
-              originalThumbnailUrl?: Maybe<string>;
-            };
-            transcodings?: Maybe<
-              Array<{
-                __typename?: "Transcoding";
-                url: string;
-                mimeType: string;
+  user?:
+    | {
+        __typename?: "User";
+        id: string;
+        items: {
+          __typename?: "ItemsResponse";
+          totalCount?: number | null | undefined;
+          edges?:
+            | Array<{
+                __typename?: "ItemEdge";
+                cursor: string;
+                node: {
+                  __typename?: "Item";
+                  userSupply: number;
+                  id: string;
+                  tokenId: string;
+                  contractAddress: string;
+                  supply: number;
+                  totalSupply: number;
+                  name: string;
+                  description?: string | null | undefined;
+                  chainId: number;
+                  nextEditionForSale?:
+                    | {
+                        __typename?: "Offer";
+                        id: string;
+                        createdAt?: any | null | undefined;
+                        type: OfferType;
+                        supply: number;
+                        price: {
+                          __typename?: "Price";
+                          amount: number;
+                          currency: PriceCurrency;
+                        };
+                        auction?:
+                          | {
+                              __typename?: "Auction";
+                              id: string;
+                              startPrice?: number | null | undefined;
+                              startTime?: any | null | undefined;
+                              endTime?: any | null | undefined;
+                              highestBid?:
+                                | {
+                                    __typename?: "Bid";
+                                    transactionHash: string;
+                                    bidAmount: number;
+                                  }
+                                | null
+                                | undefined;
+                            }
+                          | null
+                          | undefined;
+                      }
+                    | null
+                    | undefined;
+                  creator: {
+                    __typename?: "User";
+                    id: string;
+                    ethAddress?: string | null | undefined;
+                    name?: string | null | undefined;
+                    profileImage?: string | null | undefined;
+                    verified?: boolean | null | undefined;
+                  };
+                  collection?:
+                    | {
+                        __typename?: "Collection";
+                        slug: string;
+                        name: string;
+                        iconUrl: string;
+                        verified: boolean;
+                      }
+                    | null
+                    | undefined;
+                  properties: {
+                    __typename?: "Properties";
+                    fileType: FileType;
+                    imagePreview?: string | null | undefined;
+                    fileUrl?: string | null | undefined;
+                    originalFileUrl?: string | null | undefined;
+                    thumbnailUrl?: string | null | undefined;
+                    originalThumbnailUrl?: string | null | undefined;
+                  };
+                  transcodings?:
+                    | Array<{
+                        __typename?: "Transcoding";
+                        url: string;
+                        mimeType: string;
+                      }>
+                    | null
+                    | undefined;
+                };
               }>
-            >;
-          };
-        }>
-      >;
-      pageInfo?: Maybe<{
-        __typename?: "ItemPageInfo";
-        startCursor?: Maybe<string>;
-        endCursor?: Maybe<string>;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-      }>;
-    };
-  }>;
+            | null
+            | undefined;
+          pageInfo?:
+            | {
+                __typename?: "ItemPageInfo";
+                startCursor?: string | null | undefined;
+                endCursor?: string | null | undefined;
+                hasNextPage: boolean;
+                hasPreviousPage: boolean;
+              }
+            | null
+            | undefined;
+        };
+      }
+    | null
+    | undefined;
 };
 
 export type UploadFileMutationVariables = Exact<{
@@ -1480,7 +1728,7 @@ export type CreateItemMutation = {
   __typename?: "Mutation";
   createItem: {
     __typename?: "CreateItemOutput";
-    signature?: Maybe<string>;
+    signature?: string | null | undefined;
     item: {
       __typename?: "Item";
       id: string;
@@ -1488,14 +1736,15 @@ export type CreateItemMutation = {
       contractAddress: string;
       chainId: number;
       supply: number;
+      totalSupply: number;
       type: TokenType;
       properties: {
         __typename?: "Properties";
         fileType: FileType;
-        imagePreview?: Maybe<string>;
-        fileUrl?: Maybe<string>;
-        ipfsUrl?: Maybe<string>;
-        ipfsDocument?: Maybe<string>;
+        imagePreview?: string | null | undefined;
+        fileUrl?: string | null | undefined;
+        ipfsUrl?: string | null | undefined;
+        ipfsDocument?: string | null | undefined;
       };
     };
   };
@@ -1516,14 +1765,15 @@ export type FinishMintMutation = {
       contractAddress: string;
       chainId: number;
       supply: number;
+      totalSupply: number;
       type: TokenType;
       properties: {
         __typename?: "Properties";
         fileType: FileType;
-        imagePreview?: Maybe<string>;
-        fileUrl?: Maybe<string>;
-        ipfsUrl?: Maybe<string>;
-        ipfsDocument?: Maybe<string>;
+        imagePreview?: string | null | undefined;
+        fileUrl?: string | null | undefined;
+        ipfsUrl?: string | null | undefined;
+        ipfsDocument?: string | null | undefined;
       };
     };
   };
@@ -1538,43 +1788,72 @@ export type CreateOfferForEditionsMutation = {
   createOfferForItems: {
     __typename?: "Offer";
     id: string;
+    type: OfferType;
     active: boolean;
     supply: number;
-    signature?: Maybe<string>;
-    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-    auction?: Maybe<{
-      __typename?: "Auction";
+    totalSupply: number;
+    signature?: string | null | undefined;
+    user: {
+      __typename?: "User";
       id: string;
-      auctionId?: Maybe<string>;
-      startTime?: Maybe<any>;
-      endTime?: Maybe<any>;
-      startPrice?: Maybe<number>;
-      bids: Array<{
-        __typename?: "Bid";
-        transactionHash: string;
-        bidAmount: number;
-        bidTime: any;
-        bidder?: Maybe<{
-          __typename?: "User";
-          ethAddress?: Maybe<string>;
-          description?: Maybe<string>;
-          name?: Maybe<string>;
-          profileImage?: Maybe<string>;
-        }>;
-      }>;
-      highestBid?: Maybe<{
-        __typename?: "Bid";
-        transactionHash: string;
-        bidAmount: number;
-        bidTime: any;
-        bidder?: Maybe<{
-          __typename?: "User";
-          ethAddress?: Maybe<string>;
-          description?: Maybe<string>;
-          name?: Maybe<string>;
-          profileImage?: Maybe<string>;
-        }>;
-      }>;
-    }>;
+      ethAddress?: string | null | undefined;
+    };
+    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+    auction?:
+      | {
+          __typename?: "Auction";
+          id: string;
+          auctionId?: string | null | undefined;
+          auctionContractAddress?: string | null | undefined;
+          startTime?: any | null | undefined;
+          endTime?: any | null | undefined;
+          startPrice?: number | null | undefined;
+          bids: Array<{
+            __typename?: "Bid";
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?:
+              | {
+                  __typename?: "User";
+                  ethAddress?: string | null | undefined;
+                  description?: string | null | undefined;
+                  name?: string | null | undefined;
+                  profileImage?: string | null | undefined;
+                }
+              | null
+              | undefined;
+          }>;
+          highestBid?:
+            | {
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }
+            | null
+            | undefined;
+        }
+      | null
+      | undefined;
   };
+};
+
+export type PurchaseItemMutationVariables = Exact<{
+  input: CreatePurchaseInput;
+}>;
+
+export type PurchaseItemMutation = {
+  __typename?: "Mutation";
+  createPurchase: { __typename?: "Purchase"; transactionHash: string };
 };
