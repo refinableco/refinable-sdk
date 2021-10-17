@@ -1,7 +1,6 @@
 import * as ethers from "ethers";
-import { ReadStream } from "fs";
+import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
-import "isomorphic-unfetch";
 import {
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
@@ -9,12 +8,15 @@ import {
   GetUserOfferItemsQueryVariables,
   TokenType,
 } from "./@types/graphql";
+import Account from "./Account";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
+import { PartialOffer } from "./offer/Offer";
+import { OfferFactory } from "./offer/OfferFactory";
 import { RefinableContracts } from "./RefinableContracts";
 import { limit } from "./utils/limitItems";
 
@@ -24,10 +26,12 @@ export const nftMap = {
 };
 
 export type NftMap = typeof nftMap;
-type Tuples<T> = T extends TokenType ? [T, InstanceType<NftMap[T]>] : never;
-type SingleKeys<K, F> = [K] extends (K extends TokenType ? [K] : F) ? K : F;
-type ClassType<A extends TokenType, F> =
-  | Extract<Tuples<TokenType>, [A, any]>[1]
+type Tuples<T, F> = T extends TokenType ? [T, InstanceType<NftMap[T]>] : F;
+type SingleKeys<K> = [K] extends (K extends TokenType ? [K] : string)
+  ? K
+  : string;
+type ClassType<A extends TokenType, F extends AbstractNFT> =
+  | Extract<Tuples<TokenType, F>, [A, any]>[1]
   | F;
 
 export type ContractType =
@@ -56,7 +60,8 @@ export type AllContractTypes =
   | "RefinableERC721WhiteListedTokenV2";
 
 interface RefinableOptions {
-  waitConfirmations: number;
+  waitConfirmations?: number;
+  apiUrl?: string;
 }
 
 enum OfferType {
@@ -71,22 +76,33 @@ export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
   private _apiKey: string;
+  public account: Account;
+  public contracts: RefinableContracts;
 
   static async create(
     provider: ethers.Signer,
-    apiToken: string,
+    apiOrBearerToken: string,
     options?: Partial<RefinableOptions>
   ) {
     const accountAddress = await provider.getAddress();
     const refinable = new Refinable(provider, accountAddress, options);
 
-    const graphqlUrl =
-      process.env.GRAPHQL_URL ?? "https://api.refinable.com/graphql";
+    const graphqlUrl = options.apiUrl ?? "https://api.refinable.com/graphql";
 
-    refinable._apiKey = apiToken;
+    if (!apiOrBearerToken) throw new Error("No authentication key present");
+
+    refinable._apiKey = apiOrBearerToken;
     refinable.apiClient = new GraphQLClient(graphqlUrl, {
-      headers: { "X-API-KEY": apiToken },
+      headers:
+        apiOrBearerToken.length === 32
+          ? { "X-API-KEY": apiOrBearerToken }
+          : { authorization: `Bearer ${apiOrBearerToken}` },
     });
+
+    refinable.account = new Account(accountAddress, refinable);
+    refinable.contracts = new RefinableContracts(refinable)
+
+    await refinable.contracts.initialize();
 
     return refinable;
   }
@@ -122,10 +138,6 @@ export class Refinable {
     this._apiClient = apiClient;
   }
 
-  get contracts() {
-    return new RefinableContracts(this);
-  }
-
   nftBuilder(params?: NftBuilderParams) {
     return new NFTBuilder(this, params);
   }
@@ -149,23 +161,24 @@ export class Refinable {
     return reconstructed;
   }
 
-  async createNft<K extends TokenType>(
-    item: PartialNFTItem & { type: SingleKeys<K, string> }
-  ): Promise<ClassType<K, AbstractNFT>> {
-    let nft: AbstractNFT;
+  createOffer<K extends OfferType>(
+    offer: PartialOffer & { type: K },
+    nft: AbstractNFT
+  ) {
+    return OfferFactory.createOffer<K>(this, offer, nft);
+  }
 
-    switch (item.type) {
-      case TokenType.Erc721:
-        nft = new ERC721NFT(this, item);
-        break;
-      case TokenType.Erc1155:
-        nft = new ERC1155NFT(this, item);
-        break;
-      default:
-        throw new Error("This type is not supported yet");
-    }
+  createNft<K extends TokenType>(
+    item: PartialNFTItem & { type: SingleKeys<K> }
+  ): ClassType<K, AbstractNFT> {
 
-    return nft.build();
+    if(!item) return null;
+
+    const Class = nftMap[item.type as TokenType];
+
+    if (!Class) throw new Error("Item type not supported");
+
+    return new Class(this, item).build();
   }
 
   private async getItemsWithOffer(
@@ -239,10 +252,10 @@ export class Refinable {
   }
 
   // Upload image / video
-  public async uploadFile(file: ReadStream): Promise<string> {
+  public async uploadFile(file: Stream): Promise<string> {
     const { uploadFile: uploadedFileName } = await uploadFile(
-      file,
-      this.apiKey as string
+      this.apiClient,
+      file
     );
 
     if (!uploadedFileName) {

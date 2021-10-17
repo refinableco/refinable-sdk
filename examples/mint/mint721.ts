@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
-import { Chain, StandardRoyaltyStrategy, PriceCurrency } from "../..";
+import { Chain, StandardRoyaltyStrategy, PriceCurrency } from "../../src";
 import { createRefinableClient } from "../shared";
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { Chain, TokenType } from "..";
+import { Chain, TokenType } from "../src";
 import { createRefinableClient } from "./shared";
 dotenv.config({ path: ".env.testnet" });
 
@@ -11,7 +11,7 @@ async function main() {
     TokenType.Erc721
   );
 
-  const nft = await refinable.createNft({
+  const nft = refinable.createNft({
     type: TokenType.Erc721,
     chainId: Chain.BscTestnet,
     contractAddress,

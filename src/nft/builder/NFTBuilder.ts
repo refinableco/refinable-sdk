@@ -14,7 +14,7 @@ import {
   FinishMintMutationVariables,
 } from "../../@types/graphql";
 import { CREATE_ITEM, FINISH_MINT } from "../../graphql/mint";
-import { optionalParam } from "../../utils";
+import { optionalParam } from "../../utils/utils";
 import assert from "assert";
 import { ERC721NFT } from "../ERC721NFT";
 import { ERC1155NFT } from "../ERC1155NFT";
@@ -25,7 +25,7 @@ export interface NftBuilderParams
   contractAddress?: string;
 }
 
-export class NFTBuilder<NFTClass extends AbstractNFT> {
+export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
   private signature: string;
   private item: CreateItemMutation["createItem"]["item"];
   public mintTransaction: TransactionResponse;
@@ -57,7 +57,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       type: TokenType.Erc1155,
     };
 
-    return this;
+    return this as any;
   }
 
   /**
@@ -135,7 +135,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
         : [],
       // uint256 _supply - Only for ERC1155
       ...optionalParam(
-        TokenType[this.item.type] === TokenType.Erc1155,
+        this.item.type === TokenType.Erc1155,
         this.item.supply.toString()
       ),
 
@@ -143,7 +143,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       this.item.properties.ipfsDocument,
     ];
 
-    if (tokenContract.hasTag(ContractTags.V2Royalties)) {
+    if (tokenContract.hasTagSemver("TOKEN", ">=2.0.0")) {
       mintArgs.push(
         // uint256 _royaltyBps
         this.royaltySettings.royaltyBps,
@@ -152,7 +152,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       );
     }
 
-    if (tokenContract.hasTag(ContractTags.V3RoyaltiesPrimary)) {
+    if (tokenContract.hasTagSemver("TOKEN", "^3.0.0")) {
       mintArgs.push(
         // _primaryRoyaltyShares - Not supported yet through the SDK
         []
@@ -175,7 +175,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
   /**
    * Action to finalize minting and return a item object
    */
-  async finishMint() {
+  async finishMint(): Promise<AbstractNFT> {
     const { tokenId, contractAddress } = this.item;
 
     const finishMint = await this.refinable.apiClient.request<
@@ -189,7 +189,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       },
     });
 
-    return this.refinable.createNft(finishMint.finishMint.item);
+    return this.refinable.createNft(finishMint.finishMint.item) as AbstractNFT;
   }
 
   /**

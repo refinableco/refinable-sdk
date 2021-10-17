@@ -1,5 +1,5 @@
 import * as ethers from "ethers";
-import { chainMap } from "./chains";
+import { chainMap } from "./config/chains";
 import { Chain } from "./interfaces/Network";
 
 export const createWallet = (privateKey: string, chain: Chain) => {
