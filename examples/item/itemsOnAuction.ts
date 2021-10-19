@@ -1,9 +1,8 @@
 import dotenv from "dotenv";
-import { Chain } from "../../interfaces/Network";
-import { createWallet } from "../../providers";
+import { Chain, Refinable } from "../../";
+import { createWallet } from "../../src/providers";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-import { Refinable } from "../../Refinable";
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 const API_KEY = process.env.API_KEY as string;
 
