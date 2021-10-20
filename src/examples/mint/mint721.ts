@@ -1,29 +1,29 @@
 import dotenv from "dotenv";
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-
-import { TOKEN_TYPE } from "../../nft/nft";
 import * as fs from "fs";
 import * as path from "path";
-import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
-import { PriceCurrency } from "../../@types/graphql";
-import { setupNft } from "../shared";
+import { Chain, StandardRoyaltyStrategy, PriceCurrency } from "../..";
+import { createRefinableClient } from "../shared";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 async function main() {
-  const nft = await setupNft(TOKEN_TYPE.ERC721);
+  const refinable = await createRefinableClient(Chain.BscTestnet);
 
   const fileStream = fs.createReadStream(path.join(__dirname, "./image.jpg"));
 
   console.log("Minting...");
+  const file = await refinable.uploadFile(fileStream);
 
   // SDK: mint nft
-  await nft.mint(
-    {
-      file: fileStream,
+  const nft = await refinable
+    .nftBuilder()
+    .erc721({
+      file,
       description: "some test description",
       name: "The Test NFT",
-    },
-    new StandardRoyaltyStrategy([])
-  );
+      royalty: new StandardRoyaltyStrategy([]),
+      chainId: Chain.BscTestnet,
+    })
+    .createAndMint();
 
   console.log("Listing for sale...");
 

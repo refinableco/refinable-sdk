@@ -1,21 +1,14 @@
 import * as dotenv from "dotenv";
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-
-import * as readline from "readline";
 import * as fs from "fs";
-import * as path from "path";
-
-import { PriceCurrency } from "../@types/graphql";
-import { setupNft } from "./shared";
-import { TOKEN_TYPE } from "../nft/nft";
-import { StandardRoyaltyStrategy } from "../nft/royaltyStrategies/StandardRoyaltyStrategy";
+import * as readline from "readline";
+import { Chain, TokenType, PriceCurrency } from "..";
+import { createRefinableClient } from "./shared";
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 type ParameterTuple = [string, string, string, string, number, number];
 
 async function main() {
-  const fileStream = fs.createReadStream(
-    path.join(__dirname, "./mint/image.jpg")
-  );
+  const refinable = await createRefinableClient(Chain.BscTestnet);
 
   let lineNumber = 0;
   const rl = readline.createInterface({
@@ -38,15 +31,14 @@ async function main() {
   // like this we can process them sync, otherwise blockchain will say we're doing too many txs
   rl.on("close", async function () {
     for (const parameters of nfts) {
-      const nft = await setupNft(TOKEN_TYPE.ERC721);
+      // Use and parse existing NFTs to put for sale
+      const nft = await refinable.createNft({
+        type: parameters[2] as TokenType,
+        chainId: Chain.BscTestnet,
+        contractAddress: parameters[0],
+        tokenId: parameters[1],
+      });
 
-      await nft.mint(
-        {
-          file: fileStream,
-          description: "some test description",
-        },
-        new StandardRoyaltyStrategy([])
-      );
       await nft.putForSale({
         amount: parameters[4],
         currency: parameters[3] as PriceCurrency,

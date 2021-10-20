@@ -1,18 +1,24 @@
 import dotenv from "dotenv";
+import { Chain, TokenType } from "..";
+import { createRefinableClient } from "./shared";
 dotenv.config({ path: ".env.testnet" });
 
-import { TOKEN_TYPE } from "../nft/nft";
-import { setupNft } from "./shared";
-
 async function main() {
-  const nft = await setupNft(TOKEN_TYPE.ERC721);
-  nft.setItem({
-    ...nft.getItem(),
+  const refinable = await createRefinableClient(Chain.BscTestnet);
+
+  const { contractAddress } = await refinable.contracts.getDefaultTokenContract(
+    Chain.BscTestnet,
+    TokenType.Erc721
+  );
+
+  const nft = await refinable.createNft({
+    type: TokenType.Erc721,
+    chainId: Chain.BscTestnet,
+    contractAddress,
     tokenId: "320",
   });
 
-  const auctionId = await nft.getAuctionId();
-  await nft.cancelAuction(auctionId);
+  await nft.cancelAuction();
 }
 
 main();

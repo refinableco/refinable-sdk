@@ -36,6 +36,7 @@ export const FINISH_MINT = gql`
         id
         tokenId
         contractAddress
+        chainId
         supply
         type
         properties {

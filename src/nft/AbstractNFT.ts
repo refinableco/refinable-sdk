@@ -1,50 +1,47 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
+import assert from "assert";
 import { BigNumber, Contract, ethers } from "ethers";
 import { soliditySha3, toWei } from "web3-utils";
-import { ContractType, Refinable } from "../Refinable";
-import { TOKEN_TYPE } from "./nft";
+import {
+  ContractTypes,
+  CreateOfferForEditionsMutation,
+  OfferType,
+  PriceCurrency,
+  TokenType,
+} from "../@types/graphql";
+import { chainMap } from "../chains";
 import { Price } from "../constants/currency";
-import { optionalParam } from "../utils";
-import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { CreateItemInput, PriceCurrency } from "../@types/graphql";
-import { ReadStream } from "fs";
-import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { getApproveContract } from "../contracts";
 import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
-import { chainMap } from "../chains";
+import { Refinable } from "../Refinable";
+import { optionalParam } from "../utils";
 import { getSupportedCurrency } from "../utils/chain";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
 
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
+  supply?: number;
+  // TODO: should not be optional
   tokenId?: string;
 }
-
-export interface NftValues
-  extends Omit<CreateItemInput, "file" | "contractAddress" | "type"> {
-  file: ReadStream;
-}
-
-export enum OfferType {
-  Sale = "SALE",
-  Auction = "AUCTION",
-}
 export abstract class AbstractNFT {
-  protected _types: ContractType[] = [];
+  protected _types: ContractTypes[] = [];
   protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
 
   protected saleContract: Contract;
-  protected mintContract: Contract;
+  protected nftTokenContract: Contract;
   protected nonceContract: Contract;
   protected auctionContract: Contract;
+  protected airdropContract: Contract;
   protected transferProxyContract: Contract;
 
   constructor(
-    protected type: TOKEN_TYPE,
+    protected type: TokenType,
     protected refinable: Refinable,
     protected item: PartialNFTItem
   ) {
@@ -59,23 +56,24 @@ export abstract class AbstractNFT {
       `${type}_SALE`,
       `${type}_SALE_NONCE_HOLDER`,
       "TRANSFER_PROXY",
-    ] as ContractType[];
+    ] as ContractTypes[];
     this._chain = chainMap[item.chainId];
   }
 
   public async build(): Promise<this> {
-    const { refinableContracts } = await this.refinable.getContracts(
-      this.item.chainId,
-      this._types
-    );
+    const refinableContracts =
+      await this.refinable.contracts.getRefinableContracts(
+        this.item.chainId,
+        this._types
+      );
 
     const refinableContractsMap = refinableContracts.reduce(
-      (prev: any, contract: any) => ({ ...prev, [contract.type]: contract }),
+      (prev, contract) => ({ ...prev, [contract.type]: contract }),
       {}
     );
 
     // Token contract
-    this.mintContract = new ethers.Contract(
+    this.nftTokenContract = new ethers.Contract(
       refinableContractsMap[`${this.type}_TOKEN`].contractAddress,
       refinableContractsMap[`${this.type}_TOKEN`].contractABI
     ).connect(this.refinable.provider);
@@ -103,6 +101,13 @@ export abstract class AbstractNFT {
       refinableContractsMap["TRANSFER_PROXY"].contractAddress,
       refinableContractsMap["TRANSFER_PROXY"].contractABI
     ).connect(this.refinable.provider);
+
+    // Airdrop contract
+    // TODO
+    // this.airdropContract = new ethers.Contract(
+    //   refinableContractsMap[`${this.type}_AIRDROP`].contractAddress,
+    //   refinableContractsMap[`${this.type}_AIRDROP`].contractABI
+    // ).connect(this.refinable.provider);
 
     this._initialized = true;
 
@@ -138,6 +143,13 @@ export abstract class AbstractNFT {
 
   abstract isApproved(operatorAddress?: string): Promise<boolean>;
   abstract approve(operatorAddress?: string): Promise<TransactionResponse>;
+  abstract burn(supply?: number): Promise<TransactionResponse>;
+  abstract putForSale(price: Price, supply?: number): Promise<string>;
+  abstract transfer(
+    ownerEthAddress: string,
+    recipientEthAddress: string
+  ): Promise<TransactionResponse>;
+  abstract cancelSale(): Promise<TransactionResponse>;
 
   protected async getSaleParamsHash(
     price: Price,
@@ -204,7 +216,7 @@ export abstract class AbstractNFT {
       }
 
       const approvalResult: TransactionResponse =
-        await this.mintContract.approve(
+        await this.nftTokenContract.approve(
           spenderAddress,
           toWei(price.amount.toString(), "ether")
         );
@@ -217,20 +229,8 @@ export abstract class AbstractNFT {
   }
 
   protected approveForAll(address: string): Promise<TransactionResponse> {
-    return this.mintContract.setApprovalForAll(address, true);
+    return this.nftTokenContract.setApprovalForAll(address, true);
   }
-
-  abstract mint(
-    nftValues: NftValues,
-    royalty?: IRoyalty
-  ): Promise<TransactionResponse>;
-
-  abstract putForSale(price: Price): Promise<string>;
-
-  abstract transfer(
-    ownerEthAddress: string,
-    recipientEthAddress: string
-  ): Promise<TransactionResponse>;
 
   async putForAuction({
     price,
@@ -240,7 +240,10 @@ export abstract class AbstractNFT {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-  }): Promise<string> {
+  }): Promise<{
+    txResponse: TransactionResponse;
+    result: CreateOfferForEditionsMutation;
+  }> {
     await this.approveIfNeeded(this.auctionContract.address);
 
     const startPrice = ethers.utils
@@ -264,40 +267,78 @@ export abstract class AbstractNFT {
       getUnixEpochTimeStampFromDate(auctionEndDate)
     );
 
+    const result =
+      await this.refinable.apiClient.request<CreateOfferForEditionsMutation>(
+        CREATE_OFFER,
+        {
+          input: {
+            tokenId: this.item.tokenId,
+            contractAddress: this.item.contractAddress,
+            type: OfferType.Auction,
+            price,
+            supply: 1,
+            offerContractAddress: blockchainAuctionResponse.to,
+            transactionHash: blockchainAuctionResponse.hash,
+            startTime: auctionStartDate,
+            endTime: auctionEndDate,
+          },
+        }
+      );
+
     await blockchainAuctionResponse.wait(
       this.refinable.options.waitConfirmations
     );
 
-    const result = await this.refinable.apiClient.request(CREATE_OFFER, {
-      input: {
-        tokenId: this.item.tokenId,
-        contractAddress: this.item.contractAddress,
-        type: OfferType.Auction,
-        price,
-        supply: 1,
-        offerContractAddress: blockchainAuctionResponse.to,
-        transactionHash: blockchainAuctionResponse.hash,
-        startTime: auctionStartDate,
-        endTime: auctionEndDate,
-      },
-    });
-
-    return result;
+    return {
+      txResponse: blockchainAuctionResponse,
+      result,
+    };
   }
 
-  cancelAuction(auctionId?: string): Promise<TransactionResponse> {
+  async cancelAuction(auctionId?: string): Promise<TransactionResponse> {
+    if (!auctionId) {
+      auctionId = await this.getAuctionId();
+    }
+
     return this.auctionContract.cancelAuction(auctionId);
   }
 
   getAuctionId(): Promise<string> {
     return this.auctionContract.getAuctionId(
-      this.mintContract.address,
+      this.nftTokenContract.address,
       this.item.tokenId,
       this.refinable.accountAddress
     );
   }
 
-  endAuction(auctionId?: string): Promise<TransactionResponse> {
+  async endAuction(auctionId?: string): Promise<TransactionResponse> {
+    if (!auctionId) {
+      auctionId = await this.getAuctionId();
+    }
+
     return this.auctionContract.endAuction(auctionId);
+  }
+
+  async airdrop(recipients: string[]): Promise<TransactionResponse> {
+    this.verifyItem();
+
+    await this.approveIfNeeded(this.airdropContract.address);
+
+    if (this.item.supply != null) {
+      assert(
+        recipients.length <= this.item.supply,
+        "Not enough supply for this amount of recipients"
+      );
+    }
+
+    // const result = this.airdropContract.airdrop(
+    //   this.item.contractAddress,
+    //   recipients.map(() => this.item.tokenId),
+    //   recipients
+    // );
+
+    // return result;
+
+    return {} as any;
   }
 }

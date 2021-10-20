@@ -1,21 +1,14 @@
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
+import { Chain, StandardRoyaltyStrategy, PriceCurrency } from "../..";
+import { createRefinableClient } from "../shared";
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-
-import { TOKEN_TYPE } from "../../nft/nft";
-import { StandardRoyaltyStrategy } from "../../nft/royaltyStrategies/StandardRoyaltyStrategy";
-import { setupNft } from "../shared";
-import { createWallet } from "../../providers";
-import { Chain } from "../../interfaces/Network";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 
 async function main() {
-  const chainId = Chain.EthereumRinkeby;
-  const wallet = createWallet(PRIVATE_KEY, chainId);
-
-  const address = await wallet.getAddress();
+  const refinable = await createRefinableClient(Chain.BscTestnet);
 
   const fileStream = fs.createReadStream(
     path.join(__dirname, "../mint/image.jpg")
@@ -23,20 +16,21 @@ async function main() {
 
   // SDK: create an nft
   try {
-    const nft = await setupNft(TOKEN_TYPE.ERC1155);
-
     console.log("minting >>>");
+    const file = await refinable.uploadFile(fileStream);
 
     // SDK: mint nft
-    await nft.mint(
-      {
-        file: fileStream,
+    const nft = await refinable
+      .nftBuilder()
+      .erc1155({
+        file,
         description: "some test description",
         name: "The Test NFT",
+        royalty: new StandardRoyaltyStrategy([]),
+        chainId: Chain.BscTestnet,
         supply: 5,
-      },
-      new StandardRoyaltyStrategy([])
-    );
+      })
+      .createAndMint();
 
     console.log("burning >>>");
 
