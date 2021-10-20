@@ -151,7 +151,7 @@ export class ERC1155NFT extends AbstractNFT {
 
   async burn(
     amount: number,
-    ownerEthAddress?: string
+    ownerEthAddress: string
   ): Promise<TransactionResponse> {
     const nftTokenContract = await this.getTokenContract();
 

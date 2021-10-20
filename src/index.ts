@@ -1,4 +1,9 @@
-import { CreateItemInput, PriceCurrency, TokenType } from "./@types/graphql";
+import {
+  CreateItemInput,
+  PriceCurrency,
+  TokenType,
+  OfferType,
+} from "./@types/graphql";
 import { Chain } from "./interfaces/Network";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder } from "./nft/builder/NFTBuilder";
@@ -13,8 +18,10 @@ import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyalty
 import { Offer, PartialOffer } from "./offer/Offer";
 import { NftMap, Refinable } from "./Refinable";
 import * as is from "./utils/is";
+export * from "./providers";
 
 export {
+  OfferType,
   PartialOffer,
   AbstractNFT,
   Refinable,

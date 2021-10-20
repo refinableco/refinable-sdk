@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { Chain, TokenType } from "../src";
+import { Chain, PriceCurrency, TokenType } from "../src";
 import { createRefinableClient } from "./shared";
 dotenv.config({ path: ".env.testnet" });
 
@@ -18,7 +18,17 @@ async function main() {
     tokenId: "320",
   });
 
-  await nft.endAuction();
+  const { offer } = await nft.putForAuction({
+    auctionStartDate: new Date(Date.now() + 300000),
+    auctionEndDate: new Date(Date.now() + 900000),
+    price: {
+      amount: 1,
+      currency: PriceCurrency.Bnb,
+    },
+  });
+
+
+  await offer.endAuction();
 }
 
 main();

@@ -12,7 +12,7 @@ export default class Account {
    * @return {Promise<string>}
    */
   public async getTokenBalance(tokenAddress: string): Promise<string> {
-    if (tokenAddress === null) return null;
+    if (tokenAddress == null) return null;
 
     let result = null;
     const decimals = await this.getTokenDecimals(tokenAddress);
@@ -58,7 +58,7 @@ export default class Account {
    */
   public async getTokenDecimals(tokenAddress: string): Promise<number> {
     let decimals = 18;
-    if (tokenAddress === null) return decimals;
+    if (tokenAddress == null) return decimals;
 
     try {
       const token = new ethers.Contract(

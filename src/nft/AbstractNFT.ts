@@ -345,8 +345,15 @@ export abstract class AbstractNFT {
       );
   }
 
+  /**
+   * Cancels an auction, without transfering the NFT.
+   * @param auctionContractAddress The contractAddress for the auction contract you are interacting with
+   * @param auctionId The auction identifier bound to the owner and token address and id
+   * @param ownerEthAddress
+   * @returns
+   */
   async cancelAuction(
-    auctionContractAddress?: string,
+    auctionContractAddress: string,
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<TransactionResponse> {
@@ -375,8 +382,14 @@ export abstract class AbstractNFT {
     }
   }
 
+  /**
+   * Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.
+   * @param auctionContractAddress The contractAddress for the auction contract you are interacting with
+   * @param auctionId The auction identifier bound to the owner and token address and id
+   * @param ownerEthAddress
+   */
   async endAuction(
-    auctionContractAddress?: string,
+    auctionContractAddress: string,
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<TransactionResponse> {
@@ -526,7 +539,7 @@ export abstract class AbstractNFT {
 
     if (!currency) throw new Error("Unsupported currency");
 
-    return currency?.address;
+    return currency.address;
   }
 
   protected async isValidRoyaltyContract(royaltyContractAddress?: string) {
