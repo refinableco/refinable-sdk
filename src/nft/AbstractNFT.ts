@@ -1,50 +1,48 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
+import assert from "assert";
 import { BigNumber, Contract, ethers } from "ethers";
 import { soliditySha3, toWei } from "web3-utils";
-import { ContractType, Refinable } from "../Refinable";
-import { TOKEN_TYPE } from "./nft";
-import { Price } from "../constants/currency";
-import { optionalParam } from "../utils";
-import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { CreateItemInput, PriceCurrency } from "../@types/graphql";
-import { ReadStream } from "fs";
-import { getUnixEpochTimeStampFromDate } from "../utils/time";
-import { getApproveContract } from "../contracts";
+import {
+  ContractTags,
+  CreateOfferForEditionsMutation,
+  OfferType,
+  Price,
+  PriceCurrency,
+  TokenType,
+} from "../@types/graphql";
+import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
+import { chainMap } from "../config/chains";
 import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
-import { chainMap } from "../chains";
-import { getSupportedCurrency } from "../utils/chain";
+import { AuctionOffer } from "../offer/AuctionOffer";
+import { SaleOffer } from "../offer/SaleOffer";
+import { Refinable } from "../Refinable";
+import { getSupportedCurrency, parseBPS } from "../utils/chain";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
+import { optionalParam } from "../utils/utils";
 
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
-  tokenId?: string;
-}
-
-export interface NftValues
-  extends Omit<CreateItemInput, "file" | "contractAddress" | "type"> {
-  file: ReadStream;
-}
-
-export enum OfferType {
-  Sale = "SALE",
-  Auction = "AUCTION",
+  tokenId: string;
+  supply?: number;
+  totalSupply?: number;
 }
 export abstract class AbstractNFT {
-  protected _types: ContractType[] = [];
   protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
 
   protected saleContract: Contract;
-  protected mintContract: Contract;
+  private nftTokenContract: Contract | null;
   protected nonceContract: Contract;
   protected auctionContract: Contract;
+  protected airdropContract: Contract | null;
   protected transferProxyContract: Contract;
 
   constructor(
-    protected type: TOKEN_TYPE,
+    protected type: TokenType,
     protected refinable: Refinable,
     protected item: PartialNFTItem
   ) {
@@ -53,60 +51,72 @@ export abstract class AbstractNFT {
     }
 
     this._item = item;
-    this._types = [
-      `${type}_TOKEN`,
-      `${type}_AUCTION`,
-      `${type}_SALE`,
-      `${type}_SALE_NONCE_HOLDER`,
-      "TRANSFER_PROXY",
-    ] as ContractType[];
     this._chain = chainMap[item.chainId];
   }
 
-  public async build(): Promise<this> {
-    const { refinableContracts } = await this.refinable.getContracts(
-      this.item.chainId,
-      this._types
-    );
+  getSaleContractAddress(): string {
+    return this.saleContract.address;
+  }
 
-    const refinableContractsMap = refinableContracts.reduce(
-      (prev: any, contract: any) => ({ ...prev, [contract.type]: contract }),
-      {}
-    );
-
-    // Token contract
-    this.mintContract = new ethers.Contract(
-      refinableContractsMap[`${this.type}_TOKEN`].contractAddress,
-      refinableContractsMap[`${this.type}_TOKEN`].contractABI
-    ).connect(this.refinable.provider);
-
+  public build() {
     // Sale contract
-    this.saleContract = new ethers.Contract(
-      refinableContractsMap[`${this.type}_SALE`].contractAddress,
-      refinableContractsMap[`${this.type}_SALE`].contractABI
-    ).connect(this.refinable.provider);
+    const sale = this.refinable.contracts.getBaseContract(
+      this.item.chainId,
+      `${this.type}_SALE`
+    );
+
+    this.saleContract = sale.toEthersContract();
 
     // Auction contract
-    this.auctionContract = new ethers.Contract(
-      refinableContractsMap[`${this.type}_AUCTION`].contractAddress,
-      refinableContractsMap[`${this.type}_AUCTION`].contractABI
-    ).connect(this.refinable.provider);
+    const auction = this.refinable.contracts.getBaseContract(
+      this.item.chainId,
+      `${this.type}_AUCTION`
+    );
+
+    this.auctionContract = auction.toEthersContract();
 
     // Nonce contract
-    this.nonceContract = new ethers.Contract(
-      refinableContractsMap[`${this.type}_SALE_NONCE_HOLDER`].contractAddress,
-      refinableContractsMap[`${this.type}_SALE_NONCE_HOLDER`].contractABI
-    ).connect(this.refinable.provider);
+    const saleNonceHolder = this.refinable.contracts.getBaseContract(
+      this.item.chainId,
+      `${this.type}_SALE_NONCE_HOLDER`
+    );
+
+    this.nonceContract = saleNonceHolder.toEthersContract();
 
     // transfer proxy
-    this.transferProxyContract = new ethers.Contract(
-      refinableContractsMap["TRANSFER_PROXY"].contractAddress,
-      refinableContractsMap["TRANSFER_PROXY"].contractABI
-    ).connect(this.refinable.provider);
+    const transferProxy = this.refinable.contracts.getBaseContract(
+      this.item.chainId,
+      `TRANSFER_PROXY`
+    );
+
+    this.transferProxyContract = transferProxy.toEthersContract();
+
+    // Airdrop contract
+    const airdrop = this.refinable.contracts.getBaseContract(
+      this.item.chainId,
+      `${this.type}_AIRDROP`,
+      false // Should not fail if not found as airdrop is not supported yet for ETH
+    );
+
+    this.airdropContract = airdrop?.toEthersContract();
 
     this._initialized = true;
 
     return this;
+  }
+
+  public async getTokenContract() {
+    if (this.nftTokenContract) return this.nftTokenContract;
+
+    const nftTokenContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        this.item.contractAddress
+      );
+
+    this.nftTokenContract = nftTokenContract.toEthersContract();
+
+    return this.nftTokenContract;
   }
 
   public getItem() {
@@ -121,67 +131,26 @@ export abstract class AbstractNFT {
     if (!this.item) throw new Error("Unable to do this action, item required");
   }
 
-  protected async approveIfNeeded(
-    operatorAddress: string
-  ): Promise<TransactionResponse | null> {
-    const isApproved = await this.isApproved(operatorAddress);
-
-    if (!isApproved) {
-      const approvalResult = await this.approve(operatorAddress);
-
-      // Wait for confirmations
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-
-      return approvalResult;
-    }
-  }
-
   abstract isApproved(operatorAddress?: string): Promise<boolean>;
   abstract approve(operatorAddress?: string): Promise<TransactionResponse>;
-
-  protected async getSaleParamsHash(
-    price: Price,
-    ethAddress?: string,
+  abstract burn(
+    supply?: number,
+    ownerEthAddress?: string
+  ): Promise<TransactionResponse>;
+  abstract putForSale(price: Price, supply?: number): Promise<SaleOffer>;
+  abstract transfer(
+    ownerEthAddress: string,
+    recipientEthAddress: string,
     supply?: number
-  ) {
-    const value = ethers.utils.parseEther(price.amount.toString()).toString();
-    const paymentToken = getSupportedCurrency(
-      this._chain.supportedCurrencies,
-      price.currency
-    ).address;
-
-    const nonceResult: BigNumber = await this.nonceContract.getNonce(
-      this.item.contractAddress,
-      this.item.tokenId,
-      ethAddress
-    );
-
-    const params = [
-      this.item.contractAddress, // token
-      this.item.tokenId, // tokenId
-      // Remove the payment token when we pay in BNB. To keep supporting signatures before multi-currency support which are inherently BNB
-      ...optionalParam(price.currency !== PriceCurrency.Bnb, paymentToken),
-      value, // values.price, // price
-      ...optionalParam(
-        supply != null,
-        supply // selling
-      ),
-      nonceResult.toNumber(), // nonce
-    ];
-
-    const hash = soliditySha3(...(params as string[]));
-
-    return hash;
-  }
-
-  protected isNativeCurrency(priceCurrency: PriceCurrency) {
-    const currency = getSupportedCurrency(
-      this._chain.supportedCurrencies,
-      priceCurrency
-    );
-
-    return currency && currency.native === true;
-  }
+  ): Promise<TransactionResponse>;
+  abstract buy(
+    signature: string,
+    price: Price,
+    ownerEthAddress: string,
+    royaltyContractAddress?: string,
+    supply?: number,
+    amount?: number
+  ): Promise<TransactionResponse>;
 
   protected async approveForTokenIfNeeded(
     price: Price,
@@ -195,19 +164,17 @@ export abstract class AbstractNFT {
         this._chain.supportedCurrencies,
         price.currency
       ).address;
-      const erc20Contract = getApproveContract(contractAddress, price.currency);
 
-      if (!erc20Contract) {
-        throw new Error(
-          `Unable to create ERC20 contract for ${price.currency}`
-        );
-      }
+      const erc20Contract = new ethers.Contract(
+        contractAddress,
+        [`function approve(address _spender, uint256 _value)`],
+        this.refinable.provider
+      );
 
-      const approvalResult: TransactionResponse =
-        await this.mintContract.approve(
-          spenderAddress,
-          toWei(price.amount.toString(), "ether")
-        );
+      const approvalResult: TransactionResponse = await erc20Contract.approve(
+        spenderAddress,
+        toWei(price.amount.toString(), "ether")
+      );
 
       // Wait for 1 confirmation
       await approvalResult.wait(this.refinable.options.waitConfirmations);
@@ -216,88 +183,449 @@ export abstract class AbstractNFT {
     return Promise.resolve();
   }
 
-  protected approveForAll(address: string): Promise<TransactionResponse> {
-    return this.mintContract.setApprovalForAll(address, true);
-  }
-
-  abstract mint(
-    nftValues: NftValues,
-    royalty?: IRoyalty
-  ): Promise<TransactionResponse>;
-
-  abstract putForSale(price: Price): Promise<string>;
-
-  abstract transfer(
-    ownerEthAddress: string,
-    recipientEthAddress: string
-  ): Promise<TransactionResponse>;
-
   async putForAuction({
     price,
     auctionStartDate,
     auctionEndDate,
+    royaltyContractAddress,
   }: {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-  }): Promise<string> {
+    royaltyContractAddress?: string;
+  }): Promise<{
+    txResponse: TransactionResponse;
+    offer: AuctionOffer;
+  }> {
+    await this.isValidRoyaltyContract(royaltyContractAddress);
+
     await this.approveIfNeeded(this.auctionContract.address);
 
     const startPrice = ethers.utils
       .parseEther(price.amount.toString())
       .toString();
 
-    const paymentToken = getSupportedCurrency(
-      this._chain.supportedCurrencies,
-      price.currency
-    ).address;
+    const paymentToken = this.getPaymentToken(price.currency);
 
     const blockchainAuctionResponse = await this.auctionContract.createAuction(
+      // address _token
       this.item.contractAddress,
-      // TODO: Preparation for V2
-      // ethers.constants.AddressZero, // _royaltyToken
-      // TODO: Preparation for V2
-      this.item.tokenId, //tokenId, // uint256 tokenId
+      // address _royaltyToken
+      royaltyContractAddress ?? ethers.constants.AddressZero,
+      // uint256 _tokenId
+      this.item.tokenId,
+      // address _payToken
       paymentToken,
+      // uint256 _startPrice
       startPrice,
+      // uint256 _startTimestamp
       getUnixEpochTimeStampFromDate(auctionStartDate),
+      //uint256 _endTimestamp
       getUnixEpochTimeStampFromDate(auctionEndDate)
     );
+
+    const result =
+      await this.refinable.apiClient.request<CreateOfferForEditionsMutation>(
+        CREATE_OFFER,
+        {
+          input: {
+            tokenId: this.item.tokenId,
+            contractAddress: this.item.contractAddress,
+            type: OfferType.Auction,
+            price,
+            supply: 1,
+            offerContractAddress: blockchainAuctionResponse.to,
+            transactionHash: blockchainAuctionResponse.hash,
+            startTime: auctionStartDate,
+            endTime: auctionEndDate,
+          },
+        }
+      );
 
     await blockchainAuctionResponse.wait(
       this.refinable.options.waitConfirmations
     );
 
-    const result = await this.refinable.apiClient.request(CREATE_OFFER, {
-      input: {
-        tokenId: this.item.tokenId,
-        contractAddress: this.item.contractAddress,
-        type: OfferType.Auction,
-        price,
-        supply: 1,
-        offerContractAddress: blockchainAuctionResponse.to,
-        transactionHash: blockchainAuctionResponse.hash,
-        startTime: auctionStartDate,
-        endTime: auctionEndDate,
-      },
-    });
+    const offer = this.refinable.createOffer<OfferType.Auction>(
+      { ...result.createOfferForItems, type: OfferType.Auction },
+      this
+    );
+
+    return {
+      txResponse: blockchainAuctionResponse,
+      offer,
+    };
+  }
+
+  cancelSale(): Promise<TransactionResponse> {
+    if (!this.item.tokenId) {
+      throw new Error("tokenId is not set");
+    }
+
+    if (!this.item.contractAddress) {
+      throw new Error("contract address is not set");
+    }
+
+    this.verifyItem();
+    return this.saleContract.cancel(
+      this.item.contractAddress,
+      this.item.tokenId //tokenId, // uint256 tokenId
+    );
+  }
+
+  async placeBid(
+    auctionContractAddress: string,
+    price: Price,
+    auctionId?: string,
+    ownerEthAddress?: string
+  ): Promise<TransactionResponse> {
+    this.verifyItem();
+
+    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+      price,
+      auctionContractAddress
+    );
+
+    await this.approveForTokenIfNeeded(
+      priceWithServiceFee,
+      auctionContractAddress
+    );
+
+    const valueParam = optionalParam(
+      // If currency is Native, send msg.value
+      this.isNativeCurrency(priceWithServiceFee.currency),
+      {
+        value: ethers.utils
+          .parseEther(priceWithServiceFee.amount.toString())
+          .toString(),
+      }
+    );
+
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        auctionContractAddress
+      );
+    const ethersContracts = currentAuctionContract.toEthersContract();
+
+    let result: TransactionResponse;
+
+    if (currentAuctionContract.hasTag(ContractTags.AuctionV1_0_0)) {
+      result = await ethersContracts.placeBid(
+        this.item.tokenId, //tokenId, // uint256 tokenId
+        ownerEthAddress,
+        ...valueParam
+      );
+    } else {
+      if (!auctionId) {
+        auctionId = await this.getAuctionId(auctionContractAddress);
+      }
+
+      assert(!!auctionId, "AuctionId must be defined");
+
+      result = await ethersContracts.placeBid(auctionId, ...valueParam);
+    }
 
     return result;
   }
 
-  cancelAuction(auctionId?: string): Promise<TransactionResponse> {
-    return this.auctionContract.cancelAuction(auctionId);
+  async getAuctionId(auctionContractAddress: string): Promise<string> {
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        auctionContractAddress
+      );
+
+    return currentAuctionContract
+      .toEthersContract()
+      .getAuctionId(
+        this.item.contractAddress,
+        this.item.tokenId,
+        this.refinable.accountAddress
+      );
   }
 
-  getAuctionId(): Promise<string> {
-    return this.auctionContract.getAuctionId(
-      this.mintContract.address,
-      this.item.tokenId,
+  /**
+   * Cancels an auction, without transfering the NFT.
+   * @param auctionContractAddress The contractAddress for the auction contract you are interacting with
+   * @param auctionId The auction identifier bound to the owner and token address and id
+   * @param ownerEthAddress
+   * @returns
+   */
+  async cancelAuction(
+    auctionContractAddress: string,
+    auctionId?: string,
+    ownerEthAddress?: string
+  ): Promise<TransactionResponse> {
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        auctionContractAddress
+      );
+
+    const ethersContract = currentAuctionContract.toEthersContract();
+
+    if (currentAuctionContract.hasTag(ContractTags.AuctionV1_0_0)) {
+      return ethersContract.cancelAuction(
+        // uint256 tokenId
+        this.item.tokenId,
+        ownerEthAddress
+      );
+    } else {
+      if (!auctionId) {
+        auctionId = await this.getAuctionId(auctionContractAddress);
+      }
+
+      assert(!!auctionId, "AuctionId must be defined");
+
+      return ethersContract.cancelAuction(auctionId);
+    }
+  }
+
+  /**
+   * Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.
+   * @param auctionContractAddress The contractAddress for the auction contract you are interacting with
+   * @param auctionId The auction identifier bound to the owner and token address and id
+   * @param ownerEthAddress
+   */
+  async endAuction(
+    auctionContractAddress: string,
+    auctionId?: string,
+    ownerEthAddress?: string
+  ): Promise<TransactionResponse> {
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        auctionContractAddress
+      );
+
+    const ethersContract = currentAuctionContract.toEthersContract();
+
+    if (currentAuctionContract.hasTag(ContractTags.AuctionV1_0_0)) {
+      return ethersContract.endAuction(
+        // uint256 tokenId
+        this.item.tokenId,
+        ownerEthAddress
+      );
+    } else {
+      if (!auctionId) {
+        auctionId = await this.getAuctionId(auctionContractAddress);
+      }
+
+      assert(!!auctionId, "AuctionId must be defined");
+
+      return ethersContract.endAuction(auctionId);
+    }
+  }
+
+  async airdrop(recipients: string[]): Promise<TransactionResponse> {
+    this.verifyItem();
+
+    if (!this.airdropContract)
+      throw new Error(`Airdrop not supported for ${this.item.chainId}`);
+
+    await this.approveIfNeeded(this.airdropContract.address);
+
+    if (this.item.supply != null) {
+      assert(
+        recipients.length <= this.item.supply,
+        "Not enough supply for this amount of recipients"
+      );
+    }
+
+    const tokenIds =
+      this.type === TokenType.Erc721 ? [this.item.tokenId] : this.item.tokenId;
+
+    const result = this.airdropContract.airdrop(
+      this.item.contractAddress,
+      tokenIds,
+      recipients
+    );
+
+    return result;
+  }
+
+  public async getBuyServiceFee(
+    serviceFeeUserAddress: string,
+    address: string
+  ): Promise<number> {
+    // Get ServiceFeeProxyAddress from user contract (sale or auction)
+    const serviceFeeUserContract = new ethers.Contract(
+      serviceFeeUserAddress,
+      [
+        {
+          inputs: [],
+          name: "serviceFeeProxy",
+          outputs: [
+            {
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+          constant: true,
+        },
+      ],
+      this.refinable.provider
+    );
+
+    const serviceFeeProxyAddress =
+      await serviceFeeUserContract.serviceFeeProxy();
+
+    if (!serviceFeeProxyAddress)
+      throw new Error(
+        `Unable to fetch serviceFeeProxy from address ${serviceFeeUserAddress}`
+      );
+
+    const serviceFeeProxyContract = new ethers.Contract(
+      serviceFeeProxyAddress,
+      serviceFeeProxyABI,
+      this.refinable.provider
+    );
+
+    const serviceFee: BigNumber =
+      await serviceFeeProxyContract.getBuyServiceFeeBps(address);
+
+    return parseBPS(serviceFee);
+  }
+
+  public async getPriceWithBuyServiceFee(
+    price: Price,
+    contractAddress: string,
+    amount = 1
+  ): Promise<Price> {
+    const serviceFeeBps = await this.getBuyServiceFee(
+      contractAddress,
       this.refinable.accountAddress
     );
+
+    // We need to do this because of the rounding in our contracts
+    const weiAmount = ethers.utils
+      .parseEther(price.amount.toString())
+      .mul(10000 + serviceFeeBps)
+      .div(10000)
+      .toString();
+
+    return {
+      ...price,
+      amount: Number(ethers.utils.formatUnits(weiAmount, 18)) * amount,
+    };
   }
 
-  endAuction(auctionId?: string): Promise<TransactionResponse> {
-    return this.auctionContract.endAuction(auctionId);
+  async getMinBidIncrement(auctionContractAddress: string): Promise<number> {
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        auctionContractAddress
+      );
+
+    const ethersContract = currentAuctionContract.toEthersContract();
+
+    if (currentAuctionContract.hasTagSemver("AUCTION", "<3.1.0")) {
+      return 0;
+    }
+
+    const minBidIncrementBps: BigNumber =
+      await ethersContract.minBidIncrementBps();
+
+    return parseBPS(minBidIncrementBps) / 100;
+  }
+
+  protected getPaymentToken(priceCurrency: PriceCurrency) {
+    const currency = this._chain.supportedCurrencies.find(
+      (c) => c.symbol === priceCurrency
+    );
+
+    if (!currency) throw new Error("Unsupported currency");
+
+    return currency.address;
+  }
+
+  protected async isValidRoyaltyContract(royaltyContractAddress?: string) {
+    if (!royaltyContractAddress) return false;
+
+    const isCustomRoyaltyContractDeployed =
+      royaltyContractAddress != null &&
+      (await this.refinable.contracts.isContractDeployed(
+        royaltyContractAddress
+      ));
+
+    // Verify Royalty address
+    if (royaltyContractAddress && !isCustomRoyaltyContractDeployed) {
+      throw new Error(
+        `RoyaltyContract at address ${royaltyContractAddress} is not deployed`
+      );
+    }
+  }
+
+  protected async approveIfNeeded(
+    operatorAddress: string
+  ): Promise<TransactionResponse | null> {
+    const isContractDeployed =
+      await this.refinable.contracts.isContractDeployed(operatorAddress);
+
+    if (!isContractDeployed) {
+      throw new Error(
+        `OperatContract at address ${operatorAddress} is not deployed`
+      );
+    }
+
+    const isApproved = await this.isApproved(operatorAddress);
+
+    if (!isApproved) {
+      const approvalResult = await this.approve(operatorAddress);
+
+      // Wait for confirmations
+      await approvalResult.wait(this.refinable.options.waitConfirmations);
+
+      return approvalResult;
+    }
+  }
+
+  protected async getSaleParamsHash(
+    price: Price,
+    ethAddress?: string,
+    supply?: number
+  ) {
+    const value = ethers.utils.parseEther(price.amount.toString()).toString();
+
+    const paymentToken = this.getPaymentToken(price.currency);
+    const isNativeCurrency = this.isNativeCurrency(price.currency);
+
+    const nonceResult: BigNumber = await this.nonceContract.getNonce(
+      this.item.contractAddress,
+      this.item.tokenId,
+      ethAddress
+    );
+
+    const params = [
+      // address _token
+      this.item.contractAddress,
+      // uint256 _tokenId
+      this.item.tokenId,
+      // address _payToken - Remove the payment token when we pay in BNB. To keep supporting signatures before multi-currency support which are inherently BNB
+      ...optionalParam(!isNativeCurrency, paymentToken),
+      // uint256 price
+      value,
+      // uint256 _selling
+      ...optionalParam(
+        supply != null,
+        supply // selling
+      ),
+      // uint256 nonce
+      nonceResult.toNumber(),
+    ];
+
+    return soliditySha3(...(params as string[]));
+  }
+
+  protected isNativeCurrency(priceCurrency: PriceCurrency) {
+    const currency = getSupportedCurrency(
+      this._chain.supportedCurrencies,
+      priceCurrency
+    );
+
+    return currency && currency.native === true;
   }
 }

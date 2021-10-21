@@ -1,45 +1,97 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { Refinable } from "../Refinable";
-import { AbstractNFT, NftValues, PartialNFTItem } from "./AbstractNFT";
-import { TOKEN_TYPE } from "./nft";
-import { Price } from "../constants/currency";
-import { soliditySha3 } from "web3-utils";
-import { IRoyalty } from "./royaltyStrategies/Royalty";
-import { CREATE_ITEM, FINISH_MINT } from "../graphql/mint";
+import { ethers } from "ethers";
 import {
-  CreateItemMutation,
-  FinishMintMutation,
-  FinishMintMutationVariables,
-  CreateItemMutationVariables,
+  CreateOfferForEditionsMutation,
+  CreateOfferForEditionsMutationVariables,
+  OfferType,
+  Price,
+  TokenType,
 } from "../@types/graphql";
-import { uploadFile } from "../graphql/utils";
-import { CREATE_OFFERS } from "../graphql/sale";
+import { CREATE_OFFER } from "../graphql/sale";
+import { SaleOffer } from "../offer/SaleOffer";
+import { Refinable } from "../Refinable";
+import { optionalParam } from "../utils/utils";
+import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 
 export class ERC721NFT extends AbstractNFT {
-  constructor(
-    protected readonly refinable: Refinable,
-    protected readonly item: PartialNFTItem
-  ) {
-    super(TOKEN_TYPE.ERC721, refinable, item);
+  constructor(refinable: Refinable, item: PartialNFTItem) {
+    super(TokenType.Erc721, refinable, item);
   }
 
-  approve(operatorAddress: string): Promise<TransactionResponse> {
-    return this.mintContract.setApprovalForAll(operatorAddress, true);
+  async approve(operatorAddress: string): Promise<TransactionResponse> {
+    const nftTokenContract = await this.getTokenContract();
+
+    // TODO: we should actually use this but our contracts do not support it
+    // return this.nftTokenContract.approve(operatorAddress, this.item.tokenId);
+    return nftTokenContract.setApprovalForAll(operatorAddress, true);
   }
 
-  async putForSale(price: Price): Promise<string> {
+  async isApproved(operatorAddress: string) {
+    const nftTokenContract = await this.getTokenContract();
+
+    // TODO: we should actually use this but our contracts do not support it
+    // const approvedSpender = await this.nftTokenContract.getApproved(this.item.tokenId);
+    const isApprovedForAll = await nftTokenContract.isApprovedForAll(
+      this.refinable.accountAddress,
+      operatorAddress
+    );
+
+    // return approvedSpender.toLowerCase() === operatorAddress.toLowerCase() || isApprovedForAll;
+    return isApprovedForAll;
+  }
+
+  async buy(
+    signature: string,
+    price: Price,
+    ownerEthAddress: string,
+    royaltyContractAddress?: string
+  ): Promise<TransactionResponse> {
     this.verifyItem();
 
-    if (!this.item.tokenId) {
-      throw new Error("tokenId is not set");
-    }
+    await this.isValidRoyaltyContract(royaltyContractAddress);
 
-    if (!this.item.contractAddress) {
-      throw new Error("contract address is not set");
-    }
+    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+      price,
+      this.saleContract.address
+    );
 
-    await this.approveIfNeeded(this.transferProxyContract.addresss);
+    await this.approveForTokenIfNeeded(
+      priceWithServiceFee,
+      this.saleContract.address
+    );
+
+    const paymentToken = this.getPaymentToken(price.currency);
+    const isNativeCurrency = this.isNativeCurrency(price.currency);
+
+    const result = await this.saleContract.buy(
+      // address _token
+      this.item.contractAddress,
+      // address _royaltyToken,
+      royaltyContractAddress ?? ethers.constants.AddressZero,
+      // uint256 _tokenId
+      this.item.tokenId,
+      // address _payToken
+      paymentToken,
+      // address payable _owner
+      ownerEthAddress,
+      // bytes memory _signature
+      signature,
+      // If currency is native, send msg.value
+      ...optionalParam(isNativeCurrency, {
+        value: ethers.utils
+          .parseEther(priceWithServiceFee.amount.toString())
+          .toString(),
+      })
+    );
+
+    return result;
+  }
+
+  async putForSale(price: Price): Promise<SaleOffer> {
+    this.verifyItem();
+
+    await this.approveIfNeeded(this.transferProxyContract.address);
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,
@@ -50,11 +102,14 @@ export class ERC721NFT extends AbstractNFT {
       saleParamsHash as string
     );
 
-    const result = await this.refinable.apiClient.request(CREATE_OFFERS, {
+    const result = await this.refinable.apiClient.request<
+      CreateOfferForEditionsMutation,
+      CreateOfferForEditionsMutationVariables
+    >(CREATE_OFFER, {
       input: {
         tokenId: this.item.tokenId,
         signature: signedHash,
-        type: "SALE",
+        type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
           currency: price.currency,
@@ -64,148 +119,29 @@ export class ERC721NFT extends AbstractNFT {
       },
     });
 
-    return result;
-  }
-
-  async isApproved(operatorAddress: string) {
-    const isApprovedForAll = await this.mintContract.isApprovedForAll(
-      this.refinable.accountAddress,
-      operatorAddress
-    );
-
-    return isApprovedForAll;
-  }
-
-  async mint(
-    nftValues: Omit<NftValues, "supply">,
-    royalty?: IRoyalty
-  ): Promise<TransactionResponse> {
-    if (!this._initialized) {
-      throw Error("SDK_NOT_INITIALIZED");
-    }
-
-    this.verifyItem();
-
-    // get royalty settings
-    const royaltySettings = royalty ? royalty.serialize() : null;
-
-    // Upload image / video
-    const { uploadFile: uploadedFileName } = await uploadFile(
-      nftValues.file,
-      this.refinable.apiKey as string
-    );
-
-    if (!uploadedFileName) {
-      throw new Error("Couldn't upload image for NFT");
-    }
-
-    // API Call
-    const { createItem } = await this.refinable.apiClient.request<
-      CreateItemMutation,
-      CreateItemMutationVariables
-    >(CREATE_ITEM, {
-      input: {
-        description: nftValues.description,
-        marketingDescription: nftValues.marketingDescription,
-        name: nftValues.name,
-        supply: 1,
-        royaltySettings,
-        tags: nftValues.tags,
-        airdropAddresses: nftValues.airdropAddresses,
-        file: uploadedFileName as string,
-        type: TOKEN_TYPE.ERC721,
-        contractAddress: this.item.contractAddress,
-        chainId: this.item.chainId,
-      },
-    });
-
-    if (!createItem) {
-      throw new Error("Couldn't create data object for NFT");
-    }
-
-    let { signature, item } = createItem;
-
-    // update nft
-    this.setItem(item);
-
-    // Blockchain part
-    if (!signature) {
-      const approveMintSha3 = soliditySha3(
-        this.item.contractAddress,
-        item.tokenId,
-        this.refinable.accountAddress
-      );
-
-      signature = await this.refinable.personalSign(approveMintSha3 as string);
-    }
-
-    const mintArgs = [
-      item.tokenId,
-      signature,
-      royaltySettings?.shares
-        ? royaltySettings.shares.map((share) => [share.recipient, share.value])
-        : [],
-      item.properties.ipfsDocument,
-    ];
-
-    // TODO: When V2 is deployed
-    // if (royaltySettings) {
-    //   mintArgs.push(
-    //     royaltySettings.royaltyBps,
-    //     royaltySettings.royaltyStrategy
-    //   );
-    // }
-
-    const result: TransactionResponse = await this.mintContract.mint(
-      ...mintArgs
-    );
-
-    // Wait for 1 confirmation
-    await result.wait(this.refinable.options.waitConfirmations);
-
-    await this.refinable.apiClient.request<
-      FinishMintMutation,
-      FinishMintMutationVariables
-    >(FINISH_MINT, {
-      input: {
-        tokenId: item.tokenId,
-        contractAddress: item.contractAddress,
-        transactionHash: result.hash,
-      },
-    });
-
-    return result;
-  }
-
-  cancelSale(): Promise<TransactionResponse> {
-    if (!this.item.tokenId) {
-      throw new Error("tokenId is not set");
-    }
-
-    if (!this.item.contractAddress) {
-      throw new Error("contract address is not set");
-    }
-
-    this.verifyItem();
-    return this.saleContract.cancel(
-      this.item.contractAddress,
-      this.item.tokenId //tokenId, // uint256 tokenId
+    return this.refinable.createOffer<OfferType.Sale>(
+      { ...result.createOfferForItems, type: OfferType.Sale },
+      this
     );
   }
 
-  transfer(
+  async transfer(
     ownerEthAddress: string,
     recipientEthAddress: string
   ): Promise<TransactionResponse> {
+    const nftTokenContract = await this.getTokenContract();
+
     // the method is overloaded, generally this is the one we want to use
-    return this.mintContract["safeTransferFrom(address,address,uint256)"](
+    return nftTokenContract["safeTransferFrom(address,address,uint256)"](
       ownerEthAddress,
       recipientEthAddress,
       this.item.tokenId
     );
   }
 
-  burn(): Promise<TransactionResponse> {
-    return this.mintContract.burn(this.item.tokenId);
+  async burn(): Promise<TransactionResponse> {
+    const nftTokenContract = await this.getTokenContract();
+
+    return nftTokenContract.burn(this.item.tokenId);
   }
 }

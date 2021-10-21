@@ -1,26 +1,38 @@
-import "isomorphic-unfetch";
-
-import { PartialNFTItem } from "./nft/AbstractNFT";
-import { ERC1155NFT } from "./nft/ERC1155NFT";
-import { ERC721NFT } from "./nft/ERC721NFT";
-import { TOKEN_TYPE } from "./nft/nft";
 import * as ethers from "ethers";
+import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
-import { Chain } from "./interfaces/Network";
-import { GET_REFINABLE_CONTRACT } from "./graphql/contracts";
 import {
-  GetUserOfferItemsQuery,
-  GetUserOfferItemsQueryVariables,
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
+  GetUserOfferItemsQuery,
+  GetUserOfferItemsQueryVariables,
+  TokenType,
 } from "./@types/graphql";
+import Account from "./Account";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
+import { uploadFile } from "./graphql/utils";
+import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
+import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
+import { ERC1155NFT } from "./nft/ERC1155NFT";
+import { ERC721NFT } from "./nft/ERC721NFT";
+import { PartialOffer } from "./offer/Offer";
+import { OfferFactory } from "./offer/OfferFactory";
+import { RefinableContracts } from "./RefinableContracts";
 import { limit } from "./utils/limitItems";
 
-export interface NftRegistry {
-  [TOKEN_TYPE.ERC721]: ERC721NFT;
-  [TOKEN_TYPE.ERC1155]: ERC1155NFT;
-}
+export const nftMap = {
+  [TokenType.Erc721]: ERC721NFT,
+  [TokenType.Erc1155]: ERC1155NFT,
+};
+
+export type NftMap = typeof nftMap;
+type Tuples<T, F> = T extends TokenType ? [T, InstanceType<NftMap[T]>] : F;
+type SingleKeys<K> = [K] extends (K extends TokenType ? [K] : string)
+  ? K
+  : string;
+type ClassType<A extends TokenType, F extends AbstractNFT> =
+  | Extract<Tuples<TokenType, F>, [A, any]>[1]
+  | F;
 
 export type ContractType =
   | "ERC721_TOKEN"
@@ -48,7 +60,8 @@ export type AllContractTypes =
   | "RefinableERC721WhiteListedTokenV2";
 
 interface RefinableOptions {
-  waitConfirmations: number;
+  waitConfirmations?: number;
+  apiUrl?: string;
 }
 
 enum OfferType {
@@ -63,22 +76,33 @@ export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
   private _apiKey: string;
+  public account: Account;
+  public contracts: RefinableContracts;
 
   static async create(
     provider: ethers.Signer,
-    apiToken: string,
+    apiOrBearerToken: string,
     options?: Partial<RefinableOptions>
   ) {
     const accountAddress = await provider.getAddress();
     const refinable = new Refinable(provider, accountAddress, options);
 
-    const graphqlUrl =
-      process.env.GRAPHQL_URL ?? "https://api.refinable.com/graphql";
+    const graphqlUrl = options.apiUrl ?? "https://api.refinable.com/graphql";
 
-    refinable._apiKey = apiToken;
+    if (!apiOrBearerToken) throw new Error("No authentication key present");
+
+    refinable._apiKey = apiOrBearerToken;
     refinable.apiClient = new GraphQLClient(graphqlUrl, {
-      headers: { "X-API-KEY": apiToken },
+      headers:
+        apiOrBearerToken.length === 32
+          ? { "X-API-KEY": apiOrBearerToken }
+          : { authorization: `Bearer ${apiOrBearerToken}` },
     });
+
+    refinable.account = new Account(accountAddress, refinable);
+    refinable.contracts = new RefinableContracts(refinable)
+
+    await refinable.contracts.initialize();
 
     return refinable;
   }
@@ -114,6 +138,10 @@ export class Refinable {
     this._apiClient = apiClient;
   }
 
+  nftBuilder(params?: NftBuilderParams) {
+    return new NFTBuilder(this, params);
+  }
+
   setApiClient(client: GraphQLClient) {
     this.apiClient = client;
   }
@@ -133,30 +161,24 @@ export class Refinable {
     return reconstructed;
   }
 
-  async createNft<K extends keyof NftRegistry>(
-    type: K,
-    item: PartialNFTItem
-  ): Promise<NftRegistry[K]> {
-    let nft;
-
-    switch (type) {
-      case TOKEN_TYPE.ERC721:
-        nft = new ERC721NFT(this, item) as NftRegistry[K];
-        break;
-      case TOKEN_TYPE.ERC1155:
-        nft = new ERC1155NFT(this, item) as NftRegistry[K];
-        break;
-      default:
-        throw new Error("This type is not supported yet");
-    }
-
-    return nft.build() as Promise<NftRegistry[K]>;
+  createOffer<K extends OfferType>(
+    offer: PartialOffer & { type: K },
+    nft: AbstractNFT
+  ) {
+    return OfferFactory.createOffer<K>(this, offer, nft);
   }
 
-  getContracts(chainId: Chain, types: ContractType[]) {
-    return this.apiClient.request(GET_REFINABLE_CONTRACT, {
-      input: { types, chainId: chainId },
-    });
+  createNft<K extends TokenType>(
+    item: PartialNFTItem & { type: SingleKeys<K> }
+  ): ClassType<K, AbstractNFT> {
+
+    if(!item) return null;
+
+    const Class = nftMap[item.type as TokenType];
+
+    if (!Class) throw new Error("Item type not supported");
+
+    return new Class(this, item).build();
   }
 
   private async getItemsWithOffer(
@@ -227,5 +249,19 @@ export class Refinable {
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const filter = UserItemFilterType.Owned;
     return this.getItems(paging, filter, after);
+  }
+
+  // Upload image / video
+  public async uploadFile(file: Stream): Promise<string> {
+    const { uploadFile: uploadedFileName } = await uploadFile(
+      this.apiClient,
+      file
+    );
+
+    if (!uploadedFileName) {
+      throw new Error("Couldn't upload image for NFT");
+    }
+
+    return uploadedFileName;
   }
 }

@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { NativeCurrency } from "../interfaces/Config";
 
 export function getSupportedCurrency(
@@ -10,3 +11,7 @@ export function getSupportedCurrency(
   }
   return found;
 }
+
+export const parseBPS = (numberBPS: BigNumber): number => {
+  return BigNumber.from(numberBPS._hex).toNumber();
+};
