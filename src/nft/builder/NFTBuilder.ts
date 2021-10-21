@@ -1,4 +1,5 @@
 import { TransactionResponse } from "@ethersproject/providers";
+import assert from "assert";
 import {
   AbstractNFT,
   CreateItemInput,
@@ -7,25 +8,34 @@ import {
   TokenType,
 } from "../..";
 import {
-  ContractTags,
   CreateItemMutation,
   CreateItemMutationVariables,
   FinishMintMutation,
   FinishMintMutationVariables,
 } from "../../@types/graphql";
 import { CREATE_ITEM, FINISH_MINT } from "../../graphql/mint";
-import { optionalParam } from "../../utils";
-import assert from "assert";
-import { ERC721NFT } from "../ERC721NFT";
+import { optionalParam } from "../../utils/utils";
 import { ERC1155NFT } from "../ERC1155NFT";
+import { ERC721NFT } from "../ERC721NFT";
+import { Stream } from "form-data";
 
 export interface NftBuilderParams
-  extends Omit<CreateItemInput, "royaltySettings" | "contractAddress"> {
+  extends Omit<
+    CreateItemInput,
+    "royaltySettings" | "contractAddress" | "file"
+  > {
   royalty?: IRoyalty;
   contractAddress?: string;
+  file?: string;
+  nftFile?: Stream;
 }
 
-export class NFTBuilder<NFTClass extends AbstractNFT> {
+export interface NftBuilderParamsWithFileStream
+  extends Omit<NftBuilderParams, "file"> {
+  nftFile: Stream;
+}
+
+export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
   private signature: string;
   private item: CreateItemMutation["createItem"]["item"];
   public mintTransaction: TransactionResponse;
@@ -40,7 +50,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
   }
 
   erc721(
-    params: Omit<NftBuilderParams, "type" | "supply">
+    params: Omit<NftBuilderParamsWithFileStream, "type" | "supply">
   ): NFTBuilder<ERC721NFT> {
     this.buildData = {
       ...params,
@@ -51,13 +61,15 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
     return this;
   }
 
-  erc1155(params: Omit<NftBuilderParams, "type">): NFTBuilder<ERC1155NFT> {
+  erc1155(
+    params: Omit<NftBuilderParamsWithFileStream, "type">
+  ): NFTBuilder<ERC1155NFT> {
     this.buildData = {
       ...params,
       type: TokenType.Erc1155,
     };
 
-    return this;
+    return this as any;
   }
 
   /**
@@ -135,7 +147,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
         : [],
       // uint256 _supply - Only for ERC1155
       ...optionalParam(
-        TokenType[this.item.type] === TokenType.Erc1155,
+        this.item.type === TokenType.Erc1155,
         this.item.supply.toString()
       ),
 
@@ -143,7 +155,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       this.item.properties.ipfsDocument,
     ];
 
-    if (tokenContract.hasTag(ContractTags.V2Royalties)) {
+    if (tokenContract.hasTagSemver("TOKEN", ">=2.0.0")) {
       mintArgs.push(
         // uint256 _royaltyBps
         this.royaltySettings.royaltyBps,
@@ -152,7 +164,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       );
     }
 
-    if (tokenContract.hasTag(ContractTags.V3RoyaltiesPrimary)) {
+    if (tokenContract.hasTagSemver("TOKEN", "^3.0.0")) {
       mintArgs.push(
         // _primaryRoyaltyShares - Not supported yet through the SDK
         []
@@ -175,7 +187,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
   /**
    * Action to finalize minting and return a item object
    */
-  async finishMint() {
+  async finishMint(): Promise<AbstractNFT> {
     const { tokenId, contractAddress } = this.item;
 
     const finishMint = await this.refinable.apiClient.request<
@@ -189,7 +201,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
       },
     });
 
-    return this.refinable.createNft(finishMint.finishMint.item);
+    return this.refinable.createNft(finishMint.finishMint.item) as AbstractNFT;
   }
 
   /**
@@ -197,6 +209,10 @@ export class NFTBuilder<NFTClass extends AbstractNFT> {
    */
   async createAndMint(): Promise<NFTClass> {
     await this.useDefaultMintContractIfUndefined();
+
+    this.buildData.file = await this.refinable.uploadFile(
+      this.buildData.nftFile
+    );
 
     await this.create();
     await this.mint();

@@ -29,6 +29,7 @@ const itemInfoFragment = gql`
     tokenId
     contractAddress
     supply
+    totalSupply
     name
     description
     chainId
@@ -84,4 +85,59 @@ export const UserItemsFragment = gql`
   }
   ${itemInfoFragment}
   ${saleInfoFragment}
+`;
+
+export const AuctionFragment = gql`
+  fragment AuctionInfo on Auction {
+    id
+    auctionId
+    auctionContractAddress
+    bids {
+      transactionHash
+      bidAmount
+      bidTime
+      bidder {
+        ethAddress
+        description
+        name
+        profileImage
+      }
+    }
+    highestBid {
+      transactionHash
+      bidAmount
+      bidTime
+      bidder {
+        ethAddress
+        description
+        name
+        profileImage
+      }
+    }
+    startTime
+    endTime
+    startPrice
+  }
+`;
+export const OfferFragment = gql`
+  fragment OfferInfo on Offer {
+    id
+    type
+    active
+    supply
+    totalSupply
+    user {
+      id
+      ethAddress
+    }
+    price {
+      amount
+      currency
+    }
+    signature
+    auction {
+      ...AuctionInfo
+    }
+  }
+  ${AuctionFragment}
 `;

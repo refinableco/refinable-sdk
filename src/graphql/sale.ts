@@ -1,89 +1,19 @@
 import { gql } from "graphql-request";
-
-export const CREATE_OFFERS = gql`
-  mutation createOfferForEditions($input: CreateOffersInput!) {
-    createOfferForItems(input: $input) {
-      id
-      active
-      supply
-      price {
-        amount
-        currency
-      }
-      signature
-      auction {
-        id
-        auctionId
-        bids {
-          transactionHash
-          bidAmount
-          bidTime
-          bidder {
-            ethAddress
-            description
-            name
-            profileImage
-          }
-        }
-        highestBid {
-          transactionHash
-          bidAmount
-          bidTime
-          bidder {
-            ethAddress
-            description
-            name
-            profileImage
-          }
-        }
-        startTime
-        endTime
-        startPrice
-      }
-    }
-  }
-`;
+import { OfferFragment } from "./fragments";
 
 export const CREATE_OFFER = gql`
   mutation createOfferForEditions($input: CreateOffersInput!) {
     createOfferForItems(input: $input) {
-      id
-      active
-      supply
-      price {
-        amount
-        currency
-      }
-      signature
-      auction {
-        id
-        auctionId
-        bids {
-          transactionHash
-          bidAmount
-          bidTime
-          bidder {
-            ethAddress
-            description
-            name
-            profileImage
-          }
-        }
-        highestBid {
-          transactionHash
-          bidAmount
-          bidTime
-          bidder {
-            ethAddress
-            description
-            name
-            profileImage
-          }
-        }
-        startTime
-        endTime
-        startPrice
-      }
+      ...OfferInfo
+    }
+  }
+  ${OfferFragment}
+`;
+
+export const PURCHASE_ITEM = gql`
+  mutation purchaseItem($input: CreatePurchaseInput!) {
+    createPurchase(input: $input) {
+      transactionHash
     }
   }
 `;

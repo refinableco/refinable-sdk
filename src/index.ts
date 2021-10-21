@@ -1,6 +1,11 @@
-import { CreateItemInput, PriceCurrency, TokenType } from "./@types/graphql";
+import {
+  CreateItemInput,
+  PriceCurrency,
+  TokenType,
+  OfferType,
+} from "./@types/graphql";
 import { Chain } from "./interfaces/Network";
-import { AbstractNFT } from "./nft/AbstractNFT";
+import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
@@ -10,9 +15,14 @@ import {
   RoyaltySettingsInput,
 } from "./nft/royaltyStrategies/Royalty";
 import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
+import { Offer, PartialOffer } from "./offer/Offer";
 import { NftMap, Refinable } from "./Refinable";
+import * as is from "./utils/is";
+export * from "./providers";
 
 export {
+  OfferType,
+  PartialOffer,
   AbstractNFT,
   Refinable,
   NftMap,
@@ -26,5 +36,8 @@ export {
   StandardRoyaltyStrategy,
   ProfitDistributionStrategy,
   NFTBuilder,
-  PriceCurrency
+  PriceCurrency,
+  PartialNFTItem,
+  is,
+  Offer,
 };
