@@ -1,4 +1,5 @@
 import { TransactionResponse } from "@ethersproject/providers";
+import assert from "assert";
 import {
   AbstractNFT,
   CreateItemInput,
@@ -7,7 +8,6 @@ import {
   TokenType,
 } from "../..";
 import {
-  ContractTags,
   CreateItemMutation,
   CreateItemMutationVariables,
   FinishMintMutation,
@@ -15,14 +15,24 @@ import {
 } from "../../@types/graphql";
 import { CREATE_ITEM, FINISH_MINT } from "../../graphql/mint";
 import { optionalParam } from "../../utils/utils";
-import assert from "assert";
-import { ERC721NFT } from "../ERC721NFT";
 import { ERC1155NFT } from "../ERC1155NFT";
+import { ERC721NFT } from "../ERC721NFT";
+import { Stream } from "form-data";
 
 export interface NftBuilderParams
-  extends Omit<CreateItemInput, "royaltySettings" | "contractAddress"> {
+  extends Omit<
+    CreateItemInput,
+    "royaltySettings" | "contractAddress" | "file"
+  > {
   royalty?: IRoyalty;
   contractAddress?: string;
+  file?: string;
+  nftFile?: Stream;
+}
+
+export interface NftBuilderParamsWithFileStream
+  extends Omit<NftBuilderParams, "file"> {
+  nftFile: Stream;
 }
 
 export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
@@ -40,7 +50,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
   }
 
   erc721(
-    params: Omit<NftBuilderParams, "type" | "supply">
+    params: Omit<NftBuilderParamsWithFileStream, "type" | "supply">
   ): NFTBuilder<ERC721NFT> {
     this.buildData = {
       ...params,
@@ -51,7 +61,9 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
     return this;
   }
 
-  erc1155(params: Omit<NftBuilderParams, "type">): NFTBuilder<ERC1155NFT> {
+  erc1155(
+    params: Omit<NftBuilderParamsWithFileStream, "type">
+  ): NFTBuilder<ERC1155NFT> {
     this.buildData = {
       ...params,
       type: TokenType.Erc1155,
@@ -197,6 +209,10 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
    */
   async createAndMint(): Promise<NFTClass> {
     await this.useDefaultMintContractIfUndefined();
+
+    this.buildData.file = await this.refinable.uploadFile(
+      this.buildData.nftFile
+    );
 
     await this.create();
     await this.mint();

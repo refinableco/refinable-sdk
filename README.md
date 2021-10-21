@@ -22,7 +22,7 @@ After executing this, you can view your nft at https://app-testnet.refinable.com
 To get started, create an instance of the refinable sdk.
 
 ```ts
-import { Refinable } from "@refinablecom/nft-sdk";
+import { Refinable } from "@refinableco/refinable-sdk";
 
 const refinable = await Refinable.create(wallet, "API_KEY", {
   // Optional options
@@ -42,7 +42,7 @@ To write scripts with our SDK, you'll need to initialize a wallet. When you're d
 For initializing the wallet you can rely on the added helper factories. When initializing your wallet, please select a chain you want to connect to. Currently the supported chains are `BscTestnet`, `BscMainnet`, `PolygonTestnet`, `PolygonMainnet`, `Ethereum`, `EthereumRinkeby`.
 
 ```ts
-import { initializeWallet, Chain } from "@refinablecom/nft-sdk";
+import { initializeWallet, Chain } from "@refinableco/refinable-sdk";
 
 const wallet = initializeWallet(PRIVATE_KEY, Chain.BscTestnet);
 const address = await wallet.getAddress();
@@ -53,7 +53,7 @@ const address = await wallet.getAddress();
 ### Minting a new NFT
 
 ```ts
-import { StandardRoyaltyStrategy, Chain } from "@refinablecom/nft-sdk";
+import { StandardRoyaltyStrategy, Chain } from "@refinableco/refinable-sdk";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -62,14 +62,12 @@ import * as path from "path";
 // Upload the file
 const fileStream = fs.createReadStream(path.join(__dirname, "./image.jpg"));
 
-// We accept any type of filestream here, you can also just download it and pass that steam
-const file = await refinable.uploadFile(fileStream);
-
 // SDK: mint nft
 const nft = await refinable
   .nftBuilder()
   .erc721({
-    file,
+    // We accept any type of filestream here, you can also just download it and pass that steam
+    nftFile: fileStream,
     description: "some test description",
     name: "The Test NFT",
     royalty: new StandardRoyaltyStrategy([]),
@@ -83,7 +81,7 @@ more detailed examples can be found in [the examples folder](./examples/mint)
 ### Listing for sale
 
 ```ts
-import { TokenType, PriceCurrency, Chain } from "@refinablecom/nft-sdk";
+import { TokenType, PriceCurrency, Chain } from "@refinableco/refinable-sdk";
 
 // ...
 
@@ -106,16 +104,16 @@ await nft.putForSale({
 
 #### `putForSale(price: Price, supply?: number): Promise<SaleOffer>`
 
-| Argument       | Description                                                                  | Values                                             |
-| -------------- | ---------------------------------------------------------------------------- | -------------------------------------------------- |
-| price.amount   | The price that you want to list the NFT for sale for                         | `number`                                           |
-| price.currency | The currency you want to use                                                 | [View supported currencies](#supported-currencies) |
+| Argument       | Description                                                         | Values                                             |
+| -------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+| price.amount   | The price that you want to list the NFT for sale for                | `number`                                           |
+| price.currency | The currency you want to use                                        | [View supported currencies](#supported-currencies) |
 | supply         | _optional (erc1155)_ - Only when putting for sale multiple editions | `number`                                           |
 
 ### Cancelling sale
 
 ```ts
-import { TokenType, Chain } from "@refinablecom/nft-sdk";
+import { TokenType, Chain } from "@refinableco/refinable-sdk";
 
 // ...
 
@@ -132,7 +130,9 @@ const nft = refinable.createNft({
 // Cancel sale
 await nft.cancelSale();
 ```
+
 #### `cancelSale(): Promise<TransactionResponse>`
+
 No parameters
 
 ### Transfering an item
@@ -140,7 +140,7 @@ No parameters
 Transfering an item requires you to call the `transfer` method on the NFT object.
 
 ```ts
-import { TokenType, Chain } from "@refinablecom/nft-sdk";
+import { TokenType, Chain } from "@refinableco/refinable-sdk";
 
 // ...
 
@@ -160,11 +160,13 @@ await nft.transfer("<Owner Wallet Address>", "<Recipient Wallet Address>");
 // Example for ERC1155
 await nft.transfer("<Owner Wallet Address>", "<Recipient Wallet Address>", 2);
 ```
+
 #### `transfer(ownerEthAddress: string, recipientEthAddress: string): Promise<TransactionResponse>`
-| Argument                 | Description                                                                    | Type   |
-| ------------------------ | ------------------------------------------------------------------------------ | ------ |
-| Owner Wallet Address     | The Wallet address that currently owns the NFT, 0x....                         | `string` |
-| Recipient Wallet Address | The Recipient wallet address that should receive the NFT, 0x...                | `string` |
+
+| Argument                 | Description                                                                | Type     |
+| ------------------------ | -------------------------------------------------------------------------- | -------- |
+| Owner Wallet Address     | The Wallet address that currently owns the NFT, 0x....                     | `string` |
+| Recipient Wallet Address | The Recipient wallet address that should receive the NFT, 0x...            | `string` |
 | Amount                   | _optional (erc1155)_ - The amount of editions of that nft you want to send | `number` |
 
 ### Burning an item
@@ -172,7 +174,7 @@ await nft.transfer("<Owner Wallet Address>", "<Recipient Wallet Address>", 2);
 For burning an item you need to call `burn` method on NFT object.
 
 ```ts
-import { TokenType, Chain } from "@refinablecom/nft-sdk";
+import { TokenType, Chain } from "@refinableco/refinable-sdk";
 
 // ...
 
@@ -190,19 +192,20 @@ const nft = refinable.createNft({
 await nft.burn();
 
 // Example for ERC1155
-await nft.burn("<Owner Wallet Address>", 2);
+await nft.burn(2, "<Owner Wallet Address>");
 ```
+
 #### `burn(supply?: number, ownerEthAddress?: string): Promise<TransactionResponse>`
 
-| Argument | Description                                         | Type   |
-| -------- | --------------------------------------------------- | ------ |
-| Supply   |  _optional (erc1155)_ - The amount of editions of that nft you want to burn | `number` |
-| OwnerEthAddress   | _optional (erc1155)_ - The address of the user owning the token | `string` |
+| Argument        | Description                                                                | Type     |
+| --------------- | -------------------------------------------------------------------------- | -------- |
+| Supply          | _optional (erc1155)_ - The amount of editions of that nft you want to burn | `number` |
+| OwnerEthAddress | _optional (erc1155)_ - The address of the user owning the token            | `string` |
 
 ### Listing for Auction
 
 ```javascript
-import { TokenType, PriceCurrency, Chain } from "@refinablecom/nft-sdk";
+import { TokenType, PriceCurrency, Chain } from "@refinableco/refinable-sdk";
 
 // ...
 
@@ -231,8 +234,8 @@ const response = await nft.putForAuction({
 | ------------------ | ---------------------------------------------------- | -------------------------------------------------- |
 | `auctionStartDate` | The date when the auction is supposed to start       | `Date`                                             |
 | `auctionEndDate`   | The date when the auction is supposed to end         | `Date`                                             |
-| `price.amount`           | The price that you want to list the NFT for sale for | `number`                                           |
-| `price.currency`         | The currency you want to use                         | [View supported currencies](#supported-currencies) |
+| `price.amount`     | The price that you want to list the NFT for sale for | `number`                                           |
+| `price.currency`   | The currency you want to use                         | [View supported currencies](#supported-currencies) |
 
 ### Cancelling an Auction
 
@@ -279,6 +282,7 @@ await offer.endAuction();
 ```
 
 ### Fetching data
+
 #### Getting items for sale
 
 Get all items for-sale of a user

@@ -9,18 +9,17 @@ dotenv.config({ path: ".env.testnet" });
 async function main() {
   const refinable = await createRefinableClient(Chain.BscTestnet);
 
-  const fileStream = await fs.createReadStream(
+  const fileStream = fs.createReadStream(
     path.join(__dirname, "mint/image.jpg")
   );
 
   // SDK: mint nft
   console.log("...minting");
-  const file = await refinable.uploadFile(fileStream);
 
   const nft = await refinable
     .nftBuilder()
     .erc721({
-      file,
+      nftFile: fileStream,
       description: "some test description",
       name: "The Auction Test NFT721",
       royalty: new StandardRoyaltyStrategy([]),

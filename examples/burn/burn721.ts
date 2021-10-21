@@ -15,12 +15,12 @@ async function main() {
 
   try {
     console.log("Minting >>>");
-    const file = await refinable.uploadFile(fileStream);
+
     // SDK: mint nft
     const nft = await refinable
       .nftBuilder()
       .erc721({
-        file,
+        nftFile: fileStream,
         description: "some test description",
         name: "The Test NFT",
         royalty: new StandardRoyaltyStrategy([]),
