@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
+import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
   CreateOfferForEditionsMutation,

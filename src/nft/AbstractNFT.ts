@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
-import { BigNumber, Contract, ethers } from "ethers";
-import { soliditySha3, toWei } from "web3-utils";
+import { BigNumber, constants, Contract, utils } from "ethers";
+import {soliditySha3} from "web3-utils";
+import { AuctionOffer } from "../offer/AuctionOffer";
+import { SaleOffer } from "../offer/SaleOffer";
+import { Refinable } from "../Refinable";
 import {
   ContractTags,
   CreateOfferForEditionsMutation,
@@ -15,13 +18,9 @@ import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
 import { chainMap } from "../config/chains";
 import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
-import { AuctionOffer } from "../offer/AuctionOffer";
-import { SaleOffer } from "../offer/SaleOffer";
-import { Refinable } from "../Refinable";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
-
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
@@ -165,7 +164,7 @@ export abstract class AbstractNFT {
         price.currency
       ).address;
 
-      const erc20Contract = new ethers.Contract(
+      const erc20Contract = new Contract(
         contractAddress,
         [`function approve(address _spender, uint256 _value)`],
         this.refinable.provider
@@ -173,7 +172,7 @@ export abstract class AbstractNFT {
 
       const approvalResult: TransactionResponse = await erc20Contract.approve(
         spenderAddress,
-        toWei(price.amount.toString(), "ether")
+        utils.parseEther(price.amount.toString())
       );
 
       // Wait for 1 confirmation
@@ -201,9 +200,7 @@ export abstract class AbstractNFT {
 
     await this.approveIfNeeded(this.auctionContract.address);
 
-    const startPrice = ethers.utils
-      .parseEther(price.amount.toString())
-      .toString();
+    const startPrice = utils.parseEther(price.amount.toString()).toString();
 
     const paymentToken = this.getPaymentToken(price.currency);
 
@@ -211,7 +208,7 @@ export abstract class AbstractNFT {
       // address _token
       this.item.contractAddress,
       // address _royaltyToken
-      royaltyContractAddress ?? ethers.constants.AddressZero,
+      royaltyContractAddress ?? constants.AddressZero,
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
@@ -295,7 +292,7 @@ export abstract class AbstractNFT {
       // If currency is Native, send msg.value
       this.isNativeCurrency(priceWithServiceFee.currency),
       {
-        value: ethers.utils
+        value: utils
           .parseEther(priceWithServiceFee.amount.toString())
           .toString(),
       }
@@ -450,7 +447,7 @@ export abstract class AbstractNFT {
     address: string
   ): Promise<number> {
     // Get ServiceFeeProxyAddress from user contract (sale or auction)
-    const serviceFeeUserContract = new ethers.Contract(
+    const serviceFeeUserContract = new Contract(
       serviceFeeUserAddress,
       [
         {
@@ -478,7 +475,7 @@ export abstract class AbstractNFT {
         `Unable to fetch serviceFeeProxy from address ${serviceFeeUserAddress}`
       );
 
-    const serviceFeeProxyContract = new ethers.Contract(
+    const serviceFeeProxyContract = new Contract(
       serviceFeeProxyAddress,
       serviceFeeProxyABI,
       this.refinable.provider
@@ -501,7 +498,7 @@ export abstract class AbstractNFT {
     );
 
     // We need to do this because of the rounding in our contracts
-    const weiAmount = ethers.utils
+    const weiAmount = utils
       .parseEther(price.amount.toString())
       .mul(10000 + serviceFeeBps)
       .div(10000)
@@ -509,7 +506,7 @@ export abstract class AbstractNFT {
 
     return {
       ...price,
-      amount: Number(ethers.utils.formatUnits(weiAmount, 18)) * amount,
+      amount: Number(utils.formatUnits(weiAmount, 18)) * amount,
     };
   }
 
@@ -588,7 +585,7 @@ export abstract class AbstractNFT {
     ethAddress?: string,
     supply?: number
   ) {
-    const value = ethers.utils.parseEther(price.amount.toString()).toString();
+    const value = utils.parseEther(price.amount.toString()).toString();
 
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);

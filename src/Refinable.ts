@@ -1,4 +1,4 @@
-import * as ethers from "ethers";
+import { utils, Signer } from "ethers";
 import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import {
@@ -80,7 +80,7 @@ export class Refinable {
   public contracts: RefinableContracts;
 
   static async create(
-    provider: ethers.Signer,
+    provider: Signer,
     apiOrBearerToken: string,
     options?: Partial<RefinableOptions>
   ) {
@@ -100,7 +100,7 @@ export class Refinable {
     });
 
     refinable.account = new Account(accountAddress, refinable);
-    refinable.contracts = new RefinableContracts(refinable)
+    refinable.contracts = new RefinableContracts(refinable);
 
     await refinable.contracts.initialize();
 
@@ -108,7 +108,7 @@ export class Refinable {
   }
 
   constructor(
-    public readonly provider: ethers.Signer,
+    public readonly provider: Signer,
     public readonly accountAddress: string,
     options: Partial<RefinableOptions> = {}
   ) {
@@ -147,16 +147,14 @@ export class Refinable {
   }
 
   async personalSign(message: string) {
-    const signature = await this.provider.signMessage(
-      ethers.utils.arrayify(message)
-    );
+    const signature = await this.provider.signMessage(utils.arrayify(message));
 
     // WARNING! DO NOT remove!
     // this piece of code seems strange, but it fixes a lot of signatures that are faulty due to ledgers
     // ethers includes a lot of logic to fix these incorrect signatures
     // incorrect signatures often end on 00 or 01 instead of 1b or 1c, ethers has support for this
-    const pieces = ethers.utils.splitSignature(signature);
-    const reconstructed = ethers.utils.joinSignature(pieces);
+    const pieces = utils.splitSignature(signature);
+    const reconstructed = utils.joinSignature(pieces);
 
     return reconstructed;
   }
@@ -171,8 +169,7 @@ export class Refinable {
   createNft<K extends TokenType>(
     item: PartialNFTItem & { type: SingleKeys<K> }
   ): ClassType<K, AbstractNFT> {
-
-    if(!item) return null;
+    if (!item) return null;
 
     const Class = nftMap[item.type as TokenType];
 

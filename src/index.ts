@@ -15,12 +15,16 @@ import {
   RoyaltySettingsInput,
 } from "./nft/royaltyStrategies/Royalty";
 import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
+import { AuctionOffer } from "./offer/AuctionOffer";
 import { Offer, PartialOffer } from "./offer/Offer";
+import { SaleOffer } from "./offer/SaleOffer";
 import { NftMap, Refinable } from "./Refinable";
 import * as is from "./utils/is";
 export * from "./providers";
 
 export {
+  SaleOffer,
+  AuctionOffer,
   OfferType,
   PartialOffer,
   AbstractNFT,

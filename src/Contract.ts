@@ -1,12 +1,7 @@
-import { ethers, Signer } from "ethers";
-import {
-  ContractOutput,
-  ContractTags,
-  Token,
-  TokenType,
-} from "./@types/graphql";
-import { Refinable } from "./Refinable";
+import { Contract as EthersContract, Signer, providers } from "ethers";
 import semver from "semver";
+import { Refinable } from "./Refinable";
+import { ContractOutput, ContractTags, TokenType } from "./@types/graphql";
 export interface IContract extends Omit<ContractOutput, "__typename"> {
   default?: boolean;
 }
@@ -41,8 +36,8 @@ export class Contract implements IContract {
     });
   }
 
-  toEthersContract(signerOrProvider?: Signer | ethers.providers.Provider) {
-    return new ethers.Contract(
+  toEthersContract(signerOrProvider?: Signer | providers.Provider) {
+    return new EthersContract(
       this.contractAddress,
       this.contractABI,
       signerOrProvider ?? this.refinable.provider
