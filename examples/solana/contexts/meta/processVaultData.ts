@@ -5,7 +5,7 @@ import {
   SafetyDepositBox,
   Vault,
   VaultKey,
-} from '../../actions';
+} from '../../oyster';
 import { VAULT_ID, pubkeyToString } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
 import { ProcessAccountsFunc } from './types';

@@ -14,7 +14,7 @@ import {
   RedeemUnusedWinningConfigItemsAsAuctioneerArgs,
   SCHEMA,
 } from '.';
-import { VAULT_PREFIX } from '../../actions';
+import { VAULT_PREFIX } from '../../oyster';
 import { getAuctionExtended } from '../../oyster';
 import {
   findProgramAddress,

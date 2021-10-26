@@ -8,7 +8,7 @@ import {
   getPrizeTrackingTicket,
   getSafetyDepositConfig,
 } from '.';
-import { VAULT_PREFIX } from '../../actions';
+import { VAULT_PREFIX } from '../../oyster';
 import { AUCTION_PREFIX, EXTENDED } from '../../oyster';
 import {
   findProgramAddress,
