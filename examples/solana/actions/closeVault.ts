@@ -1,5 +1,4 @@
 import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
-import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { StringPublicKey, toPublicKey, WalletSigner } from '../oyster';
 import { createTokenAccount } from '../oyster';
 import {

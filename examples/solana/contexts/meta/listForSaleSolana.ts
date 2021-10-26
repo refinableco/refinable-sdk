@@ -81,7 +81,6 @@ import {
   // programIds,
   Creator,
   getSafetyDepositBoxAddress,
-  createAssociatedTokenAccountInstruction,
   // sendTransactionWithRetry,
   // findProgramAddress,
   IPartialCreateAuctionArgs,
@@ -450,7 +449,6 @@ const loadAccounts = async (connection: Connection) => {
     (a: ParsedAccount<Metadata>, b: ParsedAccount<Metadata>) =>
       a.pubkey === b.pubkey,
   );
-
   // const proc = require('child_process').spawn('pbcopy'); 
   // proc.stdin.write(JSON.stringify(state)); proc.stdin.end();
   // fs.writeFile('data.txt', JSON.stringify(state), ()=>{});
@@ -459,12 +457,35 @@ const loadAccounts = async (connection: Connection) => {
     const mints = []
     for (const [mint, metadata] of Object.entries(state.metadataByMint)) {
       if (metadata.info.data.creators.some(c=>c.address==='2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT')) {
-        // mints.push(metadata)
+        mints.push(metadata)
         // console.log(metadata.info.data.uri);
         // state.metadataByMint
         
       }
     }
+
+    const ownedMetadata = state.metadata.filter(
+      m => {
+        if (state.metadataByMint[m.info.mint] && m.info.primarySaleHappened) return true
+        else return false;
+      }
+      // && (state.metadataByMint?.get(m.info.mint)?.info?.amount?.toNumber() || 0) > 0,
+    );
+
+    if (!ownedMetadata.length) {
+      throw new Error('No items available for sale')
+    }
+
+    console.log('ownedMetadata: ', JSON.stringify(ownedMetadata[0]));
+    
+
+
+
+    
+
+    // console.log('state.metadataByMint: ', JSON.stringify(state.metadataByMint));
+    
+    // return
 
     const byte_array = base58.decode('5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP')
     

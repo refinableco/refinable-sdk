@@ -3,8 +3,9 @@ import { MintInfo } from '@solana/spl-token';
 import { TokenAccount } from './../models';
 import { PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
-import { WAD, ZERO } from '../constants';
+// import { WAD, ZERO } from '../constants';
 import { TokenInfo } from '@solana/spl-token-registry';
+import { WAD, ZERO } from '../../constants';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
