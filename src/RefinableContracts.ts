@@ -1,6 +1,6 @@
 import { Refinable, TokenType } from ".";
 import {
-  ContractTags,
+  ContractTag,
   ContractTypes,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
@@ -48,11 +48,11 @@ export class RefinableContracts {
     >(GET_REFINABLE_CONTRACTS, {
       input: {
         tags: [
-          ContractTags.SaleV3_0_0,
-          ContractTags.AuctionV3_1_0,
-          ContractTags.SaleNonceHolderV1_0_0,
-          ContractTags.TransferProxyV1_0_0,
-          ContractTags.AirdropV1_0_0,
+          ContractTag.SaleV3_0_0,
+          ContractTag.AuctionV3_1_0,
+          ContractTag.SaleNonceHolderV1_0_0,
+          ContractTag.TransferProxyV1_0_0,
+          ContractTag.AirdropV1_0_0,
         ],
       },
     });

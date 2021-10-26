@@ -1,7 +1,7 @@
 import { Contract as EthersContract, Signer, providers } from "ethers";
 import semver from "semver";
 import { Refinable } from "./Refinable";
-import { ContractOutput, ContractTags, TokenType } from "./@types/graphql";
+import { ContractOutput, ContractTag, TokenType } from "./@types/graphql";
 export interface IContract extends Omit<ContractOutput, "__typename"> {
   default?: boolean;
 }
@@ -11,18 +11,18 @@ export class Contract implements IContract {
   contractAddress: string;
   chainId: number;
   contractABI: string;
-  tags: ContractTags[];
+  tags: ContractTag[];
   default: boolean = false;
 
   constructor(private readonly refinable: Refinable, params: IContract) {
     Object.assign(this, params);
   }
 
-  hasTags(tags: ContractTags[]) {
+  hasTags(tags: ContractTag[]) {
     return tags.every((tag) => this.tags.includes(tag));
   }
 
-  hasTag(tag: ContractTags) {
+  hasTag(tag: ContractTag) {
     return this.hasTags([tag]);
   }
 

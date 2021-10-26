@@ -7,7 +7,7 @@ import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
 import {
-  ContractTags,
+  ContractTag,
   CreateOfferForEditionsMutation,
   OfferType,
   Price,
@@ -307,7 +307,7 @@ export abstract class AbstractNFT {
 
     let result: TransactionResponse;
 
-    if (currentAuctionContract.hasTag(ContractTags.AuctionV1_0_0)) {
+    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
       result = await ethersContracts.placeBid(
         this.item.tokenId, //tokenId, // uint256 tokenId
         ownerEthAddress,
@@ -362,7 +362,7 @@ export abstract class AbstractNFT {
 
     const ethersContract = currentAuctionContract.toEthersContract();
 
-    if (currentAuctionContract.hasTag(ContractTags.AuctionV1_0_0)) {
+    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
       return ethersContract.cancelAuction(
         // uint256 tokenId
         this.item.tokenId,
@@ -398,7 +398,7 @@ export abstract class AbstractNFT {
 
     const ethersContract = currentAuctionContract.toEthersContract();
 
-    if (currentAuctionContract.hasTag(ContractTags.AuctionV1_0_0)) {
+    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
       return ethersContract.endAuction(
         // uint256 tokenId
         this.item.tokenId,

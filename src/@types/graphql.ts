@@ -171,11 +171,11 @@ export type ContractOutput = {
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
-  tags: Array<ContractTags>;
+  tags: Array<ContractTag>;
   type: Scalars["String"];
 };
 
-export enum ContractTags {
+export enum ContractTag {
   AirdropV1_0_0 = "AIRDROP_v1_0_0",
   AuctionV1_0_0 = "AUCTION_v1_0_0",
   AuctionV2_0_0 = "AUCTION_v2_0_0",
@@ -295,7 +295,7 @@ export type GetRefinableContractInput = {
 
 export type GetRefinableContractsInput = {
   chainId?: Maybe<Scalars["Float"]>;
-  tags?: Maybe<Array<ContractTags>>;
+  tags?: Maybe<Array<ContractTag>>;
   types?: Maybe<Array<ContractTypes>>;
 };
 
@@ -594,8 +594,10 @@ export type ItemsWithOffersResponse = {
 };
 
 export type LoginInput = {
+  chainId?: Maybe<Scalars["Float"]>;
   ethAddress: Scalars["String"];
   signature: Scalars["String"];
+  walletType?: Maybe<Scalars["String"]>;
 };
 
 export type Mutation = {
@@ -608,7 +610,6 @@ export type Mutation = {
   finishMint: FinishMintOutput;
   hideItem: Item;
   importCollection: Scalars["Boolean"];
-  importCollectionFromTransfers: Scalars["Boolean"];
   importItem: CreateItemOutput;
   login: Auth;
   placeAuctionBid: Scalars["Boolean"];
@@ -646,10 +647,6 @@ export type MutationHideItemArgs = {
 };
 
 export type MutationImportCollectionArgs = {
-  input: ImportCollectionInput;
-};
-
-export type MutationImportCollectionFromTransfersArgs = {
   input: ImportCollectionInput;
 };
 
@@ -965,7 +962,7 @@ export type Token = {
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
-  tags: Array<ContractTags>;
+  tags: Array<ContractTag>;
   type: TokenType;
 };
 
@@ -1097,7 +1094,7 @@ export type RefinableContractQuery = {
         contractAddress: string;
         contractABI: string;
         type: string;
-        tags: Array<ContractTags>;
+        tags: Array<ContractTag>;
         chainId: number;
       }
     | null
@@ -1115,7 +1112,7 @@ export type RefinableContractsQuery = {
     contractAddress: string;
     contractABI: string;
     type: string;
-    tags: Array<ContractTags>;
+    tags: Array<ContractTag>;
     chainId: number;
   }>;
 };
@@ -1135,7 +1132,7 @@ export type GetMintableCollectionsQuery = {
       contractABI: string;
       type: TokenType;
       chainId: number;
-      tags: Array<ContractTags>;
+      tags: Array<ContractTag>;
     }>;
   }>;
 };

@@ -88,7 +88,7 @@ export const UserItemsFragment = gql`
 `;
 
 export const AuctionFragment = gql`
-  fragment AuctionInfo on Auction {
+  fragment Auction on Auction {
     id
     auctionId
     auctionContractAddress
@@ -119,8 +119,9 @@ export const AuctionFragment = gql`
     startPrice
   }
 `;
+
 export const OfferFragment = gql`
-  fragment OfferInfo on Offer {
+  fragment Offer on Offer {
     id
     type
     active
@@ -136,7 +137,7 @@ export const OfferFragment = gql`
     }
     signature
     auction {
-      ...AuctionInfo
+      ...Auction
     }
   }
   ${AuctionFragment}

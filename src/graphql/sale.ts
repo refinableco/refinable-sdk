@@ -4,7 +4,7 @@ import { OfferFragment } from "./fragments";
 export const CREATE_OFFER = gql`
   mutation createOfferForEditions($input: CreateOffersInput!) {
     createOfferForItems(input: $input) {
-      ...OfferInfo
+      ...Offer
     }
   }
   ${OfferFragment}
