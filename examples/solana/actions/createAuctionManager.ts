@@ -25,6 +25,7 @@ import {
   // findProgramAddress,
   IPartialCreateAuctionArgs,
   MetadataKey,
+  createAssociatedTokenAccountInstruction,
   // StringPublicKey,
   // toPublicKey,
   // WalletSigner,
@@ -63,7 +64,8 @@ import { markItemsThatArentMineAsSold } from './markItemsThatArentMineAsSold';
 import { validateSafetyDepositBoxV2 } from '../oyster/models/metaplex/validateSafetyDepositBoxV2';
 import { initAuctionManagerV2 } from '../oyster/models/metaplex/initAuctionManagerV2';
 import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
-import { createAssociatedTokenAccountInstruction } from './account';
+// import { createAssociatedTokenAccountInstruction } from './account';
+
 
 interface normalPattern {
   instructions: TransactionInstruction[];
