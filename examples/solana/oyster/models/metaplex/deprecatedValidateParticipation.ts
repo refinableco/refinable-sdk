@@ -6,7 +6,8 @@ import {
 import { serialize } from 'borsh';
 
 import { SCHEMA } from '.';
-import { programIds, StringPublicKey, toPublicKey } from '../../utils';
+import { programIds } from '../../../utils';
+import { StringPublicKey, toPublicKey } from '../../utils';
 import { DeprecatedValidateParticipationArgs } from './deprecatedStates';
 
 export async function deprecatedValidateParticipation(

@@ -37,12 +37,6 @@
     "@solana/wallet-adapter-react": "^0.7.1",
     "@solana/wallet-adapter-wallets": "^0.6.1",
     "@solana/web3.js": "^1.21.0",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
-    "@testing-library/user-event": "^7.2.1",
-    "@types/chart.js": "^2.9.29",
-    "@types/echarts": "^4.9.0",
-    "@types/react-router-dom": "^5.1.6",
     "@welldone-software/why-did-you-render": "^6.0.5",
     "antd": "^4.16.12",
     "bignumber.js": "^9.0.1",
@@ -55,8 +49,7 @@
     "identicon.js": "^2.3.3",
     "jazzicon": "^1.5.0",
     "lodash": "^4.17.20",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "npm-run-all": "^4.1.5",
     "typescript": "^4.1.3"
   },
   "devDependencies": {
@@ -67,8 +60,6 @@
     "@types/node": "^12.12.62",
     "arweave-deploy": "^1.9.1",
     "gh-pages": "^3.1.0",
-    "less": "^4.1.1",
-    "less-watch-compiler": "v1.14.6",
     "prettier": "^2.1.2"
   },
   "files": [

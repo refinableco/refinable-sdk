@@ -13,7 +13,8 @@ import {
   SCHEMA,
   TupleNumericType,
 } from '.';
-import { programIds, StringPublicKey, toPublicKey } from '../../utils';
+import { programIds } from '../../../utils';
+import { StringPublicKey, toPublicKey } from '../../utils';
 
 export async function initAuctionManagerV2(
   vault: StringPublicKey,

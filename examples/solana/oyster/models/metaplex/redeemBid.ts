@@ -14,10 +14,11 @@ import {
   RedeemUnusedWinningConfigItemsAsAuctioneerArgs,
   SCHEMA,
 } from '.';
+import { programIds } from '../../../utils';
 import { VAULT_PREFIX, getAuctionExtended } from '../../actions';
 import {
   findProgramAddress,
-  programIds,
+  // programIds,
   StringPublicKey,
   toPublicKey,
 } from '../../utils';

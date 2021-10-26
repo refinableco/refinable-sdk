@@ -8,7 +8,8 @@ import {
   WinningConfigType,
   WinningConstraint,
 } from '.';
-import { findProgramAddress, programIds, toPublicKey } from '../../utils';
+import { programIds } from '../../../utils';
+import { findProgramAddress, toPublicKey } from '../../utils';
 
 export const MAX_BID_REDEMPTION_TICKET_V1_SIZE = 3;
 

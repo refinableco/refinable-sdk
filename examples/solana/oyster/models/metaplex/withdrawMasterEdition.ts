@@ -8,10 +8,10 @@ import {
   getPrizeTrackingTicket,
   getSafetyDepositConfig,
 } from '.';
+import { programIds } from '../../../utils';
 import { AUCTION_PREFIX, EXTENDED, VAULT_PREFIX } from '../../actions';
 import {
   findProgramAddress,
-  programIds,
   toPublicKey,
   StringPublicKey,
 } from '../../utils';

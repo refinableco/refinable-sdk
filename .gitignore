@@ -3,3 +3,6 @@ lib
 .env
 .env.mainnet
 .env.local
+solana.zip
+.DS_Store
+.DS_Store?

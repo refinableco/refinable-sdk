@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react';
 import { MintInfo } from '@solana/spl-token';
 
 import { TokenAccount } from './../models';
@@ -6,7 +5,6 @@ import { PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import { WAD, ZERO } from '../constants';
 import { TokenInfo } from '@solana/spl-token-registry';
-import { useLocalStorage } from './useLocalStorage';
 
 export type KnownTokenMap = Map<string, TokenInfo>;
 
@@ -16,45 +14,10 @@ export const formatPriceNumber = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 8,
 });
 
-export function useLocalStorageState(key: string, defaultState?: string) {
-  const localStorage = useLocalStorage();
-  const [state, setState] = useState(() => {
-    // NOTE: Not sure if this is ok
-    const storedState = localStorage.getItem(key);
-    if (storedState) {
-      return JSON.parse(storedState);
-    }
-    return defaultState;
-  });
-
-  const setLocalStorageState = useCallback(
-    newState => {
-      const changed = state !== newState;
-      if (!changed) {
-        return;
-      }
-      setState(newState);
-      if (newState === null) {
-        localStorage.removeItem(key);
-      } else {
-        try {
-          localStorage.setItem(key, JSON.stringify(newState));
-        } catch {
-          // ignore
-        }
-      }
-    },
-    [state, key],
-  );
-
-  return [state, setLocalStorageState];
-}
-
 export const findProgramAddress = async (
   seeds: (Buffer | Uint8Array)[],
   programId: PublicKey,
 ) => {
-  const localStorage = useLocalStorage();
   const key =
     'pda-' +
     seeds.reduce((agg, item) => agg + item.toString('hex'), '') +
@@ -154,12 +117,12 @@ export function isKnownMint(map: KnownTokenMap, mintAddress: string) {
 
 export const STABLE_COINS = new Set(['USDC', 'wUSDC', 'USDT']);
 
-export function chunks<T>(array: T[], size: number): T[][] {
-  return Array.apply<number, T[], T[][]>(
-    0,
-    new Array(Math.ceil(array.length / size)),
-  ).map((_, index) => array.slice(index * size, (index + 1) * size));
-}
+// export function chunks<T>(array: T[], size: number): T[][] {
+//   return Array.apply<number, T[], T[][]>(
+//     0,
+//     new Array(Math.ceil(array.length / size)),
+//   ).map((_, index) => array.slice(index * size, (index + 1) * size));
+// }
 
 export function toLamports(
   account?: TokenAccount | number,

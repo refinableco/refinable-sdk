@@ -4,10 +4,11 @@ import {
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from '@solana/web3.js';
-import { programIds } from '../utils/programIds';
+// import { programIds } from '../utils/programIds';
 import { deserializeUnchecked, serialize } from 'borsh';
 import BN from 'bn.js';
 import { findProgramAddress, StringPublicKey, toPublicKey } from '../utils';
+import { programIds } from '../../utils';
 export const METADATA_PREFIX = 'metadata';
 export const EDITION = 'edition';
 export const RESERVATION = 'reservation';

@@ -16,7 +16,7 @@ import {
 import { AccountParser, ParsedAccount } from '../../contexts';
 import {
   findProgramAddress,
-  programIds,
+  // programIds,
   toPublicKey,
   StringPublicKey,
 } from '../../utils';
@@ -26,6 +26,7 @@ import {
   DEPRECATED_SCHEMA,
   ParticipationConfigV1,
 } from './deprecatedStates';
+import { programIds } from '../../../utils';
 
 export * from './deprecatedInitAuctionManagerV1';
 export * from './redeemBid';

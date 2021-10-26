@@ -1,3 +1,4 @@
+import { cache } from '../../../contexts/accounts';
 import {
   AuctionData,
   AuctionDataExtended,
@@ -13,7 +14,7 @@ import {
 } from '../../actions';
 import { AUCTION_ID, pubkeyToString } from '../../utils';
 import { ParsedAccount } from '../accounts';
-import { cache } from '../accounts';
+// import { cache } from '../accounts';
 import { CheckAccountFunc, ProcessAccountsFunc } from './types';
 
 export const processAuctions: ProcessAccountsFunc = (

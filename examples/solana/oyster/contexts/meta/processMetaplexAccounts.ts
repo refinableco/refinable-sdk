@@ -20,9 +20,11 @@ import {
   SafetyDepositConfig,
 } from '../../models';
 import { ProcessAccountsFunc } from './types';
-import { METAPLEX_ID, programIds, pubkeyToString } from '../../utils';
+import { METAPLEX_ID, pubkeyToString } from '../../utils';
 import { ParsedAccount } from '../accounts';
-import { cache } from '../accounts';
+// import { cache } from '../accounts';
+import { programIds } from '../../../utils';
+import { cache } from '../../../contexts/accounts';
 
 export const processMetaplexAccounts: ProcessAccountsFunc = async (
   { account, pubkey },

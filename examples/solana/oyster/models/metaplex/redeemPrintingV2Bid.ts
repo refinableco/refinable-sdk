@@ -14,13 +14,14 @@ import {
   SCHEMA,
   getSafetyDepositConfig,
 } from '.';
+import { programIds } from '../../../utils';
 import {
   getEdition,
   getEditionMarkPda,
   getMetadata,
   getAuctionExtended,
 } from '../../actions';
-import { programIds, StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../utils';
 
 export async function redeemPrintingV2Bid(
   vault: StringPublicKey,

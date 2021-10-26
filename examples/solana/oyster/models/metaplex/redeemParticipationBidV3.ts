@@ -14,13 +14,14 @@ import {
   getPrizeTrackingTicket,
   getSafetyDepositConfig,
 } from '.';
+import { programIds } from '../../../utils';
 import {
   getAuctionExtended,
   getEdition,
   getEditionMarkPda,
   getMetadata,
 } from '../../actions';
-import { programIds, StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../utils';
 
 export async function redeemParticipationBidV3(
   vault: StringPublicKey,

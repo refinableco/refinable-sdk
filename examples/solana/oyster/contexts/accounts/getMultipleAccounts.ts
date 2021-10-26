@@ -1,5 +1,6 @@
 import { AccountInfo } from '@solana/web3.js';
-import { chunks } from '../../utils/utils';
+import { chunks } from '../../../utils/utils';
+// import { chunks } from '../../utils/utils';
 
 export const getMultipleAccounts = async (
   connection: any,

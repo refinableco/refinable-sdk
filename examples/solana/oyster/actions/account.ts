@@ -11,10 +11,12 @@ import {
   TOKEN_PROGRAM_ID,
   WRAPPED_SOL_MINT,
 } from '../utils/ids';
-import { programIds } from '../utils/programIds';
+// import { programIds } from '../utils/programIds';
 import { TokenAccount } from '../models/account';
-import { cache } from '../contexts/accounts/cache';
+// import { cache } from '../contexts/accounts/cache';
 import { TokenAccountParser } from '../contexts/accounts/parsesrs';
+import { programIds } from '../../utils';
+import { cache } from '../../contexts/accounts';
 
 export function ensureSplAccount(
   instructions: TransactionInstruction[],

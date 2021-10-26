@@ -12,12 +12,16 @@ import {
   Blockhash,
   FeeCalculator,
   PublicKey,
+  Signer,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import { uniqWith } from 'lodash';
 import { WhitelistedCreator } from '../../models/metaplex';
 import { isMetadataPartOfStore } from './isMetadataPartOfStore';
 import { processMetaData } from './processMetaData'
 import { getMultipleAccounts } from '../accounts/getMultipleAccounts';
+import BN from 'bn.js';
 import {
   TokenInfo,
   TokenListProvider,
@@ -61,7 +65,121 @@ import {
   VAULT_ID,
 } from '../../utils/ids';
 
-export type ENV =
+import {createAuctionManager,SafetyDepositDraft} from '../../actions/createAuctionManager'
+
+
+import {
+  Metadata as OysterMetadata,
+  // ParsedAccount as OysterParsedAccount,
+  MasterEditionV1,
+  MasterEditionV2,
+  // SequenceType,
+  // sendTransactions,
+  getSafetyDepositBox,
+  Edition,
+  getEdition as OysterGetEdition,
+  // programIds,
+  Creator,
+  getSafetyDepositBoxAddress,
+  createAssociatedTokenAccountInstruction,
+  // sendTransactionWithRetry,
+  // findProgramAddress,
+  IPartialCreateAuctionArgs,
+  MetadataKey,
+  // StringPublicKey as OysterStringPublicKey,
+  // toPublicKey as OysterToPublicKey,
+  // WalletSigner,
+  WinnerLimit,
+  WinnerLimitType,
+  PriceFloor,
+  PriceFloorType,
+} from '../../oyster';
+import { AccountLayout } from '@solana/spl-token';
+import { createExternalPriceAccount } from '../../actions/createExternalPriceAccount';
+import { createVault } from '../../actions/createVault';
+import {
+  WinningConfigType,
+  AmountRange,
+} from '../../oyster';
+import { QUOTE_MINT } from '../../constants';
+import { NodeWallet } from '../../wallet';
+import base58 from 'bs58';
+
+interface TierDummyEntry {
+  safetyDepositBoxIndex: number;
+  amount: number;
+  winningConfigType: WinningConfigType;
+}
+
+interface Tier {
+  items: (TierDummyEntry | {})[];
+  winningSpots: number[];
+}
+
+interface AuctionState {
+  // Min price required for the item to sell
+  reservationPrice: number;
+
+  // listed NFTs
+  // items: SafetyDepositDraft[];
+  items: any;
+  participationNFT?: SafetyDepositDraft;
+  participationFixedPrice?: number;
+  // number of editions for this auction (only applicable to limited edition)
+  editions?: number;
+
+  // date time when auction should start UTC+0
+  startDate?: Date;
+
+  // suggested date time when auction should end UTC+0
+  endDate?: Date;
+
+  //////////////////
+  category: AuctionCategory;
+
+  price?: number;
+  priceFloor?: number;
+  priceTick?: number;
+
+  startSaleTS?: number;
+  startListTS?: number;
+  endTS?: number;
+
+  auctionDuration?: number;
+  auctionDurationType?: 'days' | 'hours' | 'minutes';
+  gapTime?: number;
+  gapTimeType?: 'days' | 'hours' | 'minutes';
+  tickSizeEndingPhase?: number;
+
+  spots?: number;
+  tiers?: Array<Tier>;
+
+  winnersCount: number;
+
+  instantSalePrice?: number;
+}
+
+enum AuctionCategory {
+  InstantSale,
+  Limited,
+  Single,
+  Open,
+  Tiered,
+}
+interface Wallet {
+  publicKey: PublicKey;
+  signTransaction(tx: Transaction): Promise<Transaction>;
+  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
+}
+// declare class NodeWallet implements Wallet {
+//   readonly payer: Keypair;
+//   constructor(payer: Keypair);
+//   signTransaction(tx: Transaction): Promise<Transaction>;
+//   signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
+//   get publicKey(): PublicKey;
+// }
+
+type ENV =
   | 'mainnet-beta'
   | 'mainnet-beta (Solana)'
   | 'mainnet-beta (Serum)'
@@ -70,7 +188,7 @@ export type ENV =
   | 'localnet'
   | 'lending';
 
-export const ENDPOINTS = [
+const ENDPOINTS = [
   {
     name: 'mainnet-beta' as ENV,
     endpoint: 'https://api.metaplex.solana.com/',
@@ -102,7 +220,7 @@ const DEFAULT = ENDPOINTS[ENDPOINTS.length-1].endpoint;
 
 const connection = new Connection(DEFAULT, 'recent');
 
-export const processingAccounts =
+const processingAccounts =
   (updater: UpdateStateValueFunc) =>
   (fn: ProcessAccountsFunc) =>
   async (accounts: AccountAndPubkey[]) => {
@@ -117,7 +235,7 @@ export const processingAccounts =
     );
   };
 
-export const makeSetter =
+const makeSetter =
   (state: MetaState): UpdateStateValueFunc<MetaState> =>
   (prop, key, value) => {
     if (prop === 'store') {
@@ -130,7 +248,7 @@ export const makeSetter =
     return state;
   };
 
-export const initMetadata = async (
+const initMetadata = async (
   metadata: ParsedAccount<Metadata>,
   whitelistedCreators: Record<string, ParsedAccount<WhitelistedCreator>>,
   setter: UpdateStateValueFunc,
@@ -281,7 +399,7 @@ const pullEditions = async (
   );
 };
 
-export const loadAccounts = async (connection: Connection) => {
+const loadAccounts = async (connection: Connection) => {
   const state: MetaState = getEmptyMetaState();
   const updateState = makeSetter(state);
   const forEachAccount = processingAccounts(updateState);
@@ -335,21 +453,127 @@ export const loadAccounts = async (connection: Connection) => {
 
   // const proc = require('child_process').spawn('pbcopy'); 
   // proc.stdin.write(JSON.stringify(state)); proc.stdin.end();
-  fs.writeFile('data.txt', JSON.stringify(state), ()=>{});
+  // fs.writeFile('data.txt', JSON.stringify(state), ()=>{});
 
     // console.log(state.metadataByMint);
     const mints = []
     for (const [mint, metadata] of Object.entries(state.metadataByMint)) {
       if (metadata.info.data.creators.some(c=>c.address==='2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT')) {
         // mints.push(metadata)
-        console.log(metadata.info.data.uri);
+        // console.log(metadata.info.data.uri);
+        // state.metadataByMint
         
       }
     }
 
-    // console.log(mints);
+    const byte_array = base58.decode('5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP')
     
+    const payer = Keypair.fromSecretKey(
+      byte_array
+    );
 
+    const wallet = new NodeWallet(payer);
+
+    const attributes: AuctionState = {
+      reservationPrice: 0,
+      // items: [{"holding":"JDg3b2jHXf9L3Z9urhZ7vSnnAHLTkQ1aAe3NYmesePxe","masterEdition":{"pubkey":"GYZALqnjnjKKkTBMvK9JUQ9TxLumoSZDG9MLZ9qumbHQ","account":{"executable":false,"lamports":2853600,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","rentEpoch":206,"data":{"type":"Buffer","data":[6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}},"info":{"key":6,"supply":"00"}},"metadata":{"pubkey":"BJs1HrxAeQ4TVDYMZMCXMVAG2439fhaxgFJodWYuYjF3","account":{"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,21,254,162,3,8,76,172,79,36,203,85,27,252,33,74,32,74,132,220,129,248,143,144,4,102,37,232,112,86,182,252,162,32,0,0,0,117,121,106,103,106,103,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,101,75,122,57,82,72,110,97,48,65,85,81,109,113,110,104,83,121,71,70,83,105,98,112,65,89,98,51,65,118,71,86,102,78,85,115,48,48,49,111,105,89,56,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,1,1,254,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"executable":false,"lamports":5616720,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"2Urm6TkUaCo5jkiJNqFXGdGApeVCkCGLJvVmAN3y5kVX","data":{"name":"uyjgjg","symbol":"","uri":"https://arweave.net/eKz9RHna0AUQmqnhSyGFSibpAYb3AvGVfNUs001oiY8","sellerFeeBasisPoints":0,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":1,"editionNonce":null,"edition":"GYZALqnjnjKKkTBMvK9JUQ9TxLumoSZDG9MLZ9qumbHQ","masterEdition":"GYZALqnjnjKKkTBMvK9JUQ9TxLumoSZDG9MLZ9qumbHQ"}},"winningConfigType":4,"amountRanges":[],"participationConfig":{"winnerConstraint":1,"nonWinningConstraint":1,"fixedPrice":"00"}}],
+      items: [{"holding":"8FjdMMFmZtumHS3EF3L6g1ebJuhphYUbHGFZA42bq1ep","edition":{"pubkey":"CQZE98Dy7ubNqRDbrmavr8jDyFxBz1GewsiZm5tWJ2pu","account":{"lamports":2568240,"data":{"type":"Buffer","data":[1,132,116,62,28,3,197,101,51,126,239,186,222,190,84,62,154,123,152,122,26,169,37,157,3,231,218,112,39,37,33,119,48,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","executable":false,"rentEpoch":208},"info":{"key":1,"parent":"9v3d4GoYrmU1RmG5ceEySmjg7TSyuWv9gkNtzxKQvsDy","edition":"01"}},"metadata":{"pubkey":"9aagW9hnX88J9NwCeDtW7TMHuB67cgv82BkHPxghw2gW","account":{"lamports":5616720,"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,155,55,18,47,53,216,235,35,133,49,209,224,160,48,82,249,63,132,79,138,169,175,235,81,224,166,98,30,168,215,58,229,32,0,0,0,49,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,116,85,75,45,101,79,104,117,114,51,84,106,118,95,54,87,117,110,70,85,85,103,106,107,98,121,81,53,87,77,50,81,76,52,75,109,72,81,112,107,90,109,69,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,0,1,251,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","executable":false,"rentEpoch":208},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"BStu6j4kKgby3aVgNQj5MeZsDMb13CcdshBpGyADKZ8Y","data":{"name":"1","symbol":"","uri":"https://arweave.net/tUK-eOhur3Tjv_6WunFUUgjkbyQ5WM2QL4KmHQpkZmE","sellerFeeBasisPoints":100,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":0,"editionNonce":null,"edition":"CQZE98Dy7ubNqRDbrmavr8jDyFxBz1GewsiZm5tWJ2pu","masterEdition":"CQZE98Dy7ubNqRDbrmavr8jDyFxBz1GewsiZm5tWJ2pu"}},"winningConfigType":0,"amountRanges":[]}],
+      category: AuctionCategory.InstantSale,
+      auctionDurationType: 'minutes',
+      gapTimeType: 'minutes',
+      winnersCount: 1,
+      startSaleTS: new Date().getTime(),
+      startListTS: new Date().getTime(),
+      instantSalePrice: 1,
+      priceFloor: 1
+    }
+
+    const isInstantSale =
+    attributes.instantSalePrice &&
+    attributes.priceFloor === attributes.instantSalePrice;
+
+    let winnerLimit: WinnerLimit;
+
+    if (attributes.items.length > 0) {
+      const item = attributes.items[0];
+      if (!attributes.editions) {
+        item.winningConfigType =
+          item.metadata.info.updateAuthority ===
+          (wallet?.publicKey || SystemProgram.programId).toBase58()
+            ? WinningConfigType.FullRightsTransfer
+            : WinningConfigType.TokenOnlyTransfer;
+      }
+      item.amountRanges = [
+        new AmountRange({
+          amount: new BN(1),
+          length: new BN(attributes.editions || 1),
+        }),
+      ];
+    }
+    winnerLimit = new WinnerLimit({
+      type: WinnerLimitType.Capped,
+      usize: new BN(attributes.editions || 1),
+    });
+
+    const auctionSettings: IPartialCreateAuctionArgs = {
+      winners: winnerLimit,
+      endAuctionAt: isInstantSale
+        ? null
+        : new BN(
+            (attributes.auctionDuration || 0) *
+              (attributes.auctionDurationType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.auctionDurationType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ), // endAuctionAt is actually auction duration, poorly named, in seconds
+      auctionGap: isInstantSale
+        ? null
+        : new BN(
+            (attributes.gapTime || 0) *
+              (attributes.gapTimeType == 'days'
+                ? 60 * 60 * 24 // 1 day in seconds
+                : attributes.gapTimeType == 'hours'
+                ? 60 * 60 // 1 hour in seconds
+                : 60), // 1 minute in seconds
+          ),
+      priceFloor: new PriceFloor({
+        // type: attributes.priceFloor
+        //   ? PriceFloorType.Minimum
+        //   : PriceFloorType.None,
+        type: PriceFloorType.Minimum,
+        minPrice: new BN((attributes.priceFloor || 0) * LAMPORTS_PER_SOL),
+      }),
+      tokenMint: QUOTE_MINT.toBase58(),
+      gapTickSizePercentage: attributes.tickSizeEndingPhase || null,
+      tickSize: attributes.priceTick
+        ? new BN(attributes.priceTick * LAMPORTS_PER_SOL)
+        : null,
+      instantSalePrice: attributes.instantSalePrice
+        ? new BN((attributes.instantSalePrice || 0) * LAMPORTS_PER_SOL)
+        : null,
+      name: null,
+    };
+
+    const tieredAttributes = {
+      items: [],
+      tiers: [],
+    }
+
+    const whitelistedCreatorsByCreator = {"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT":{"pubkey":"5MFuPf76NPL5pTBBZiqkDTbVBeekeKvufCWJYTm823BF","account":{"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,0,0,0,0,0,0,0,0,0,0]},"executable":false,"lamports":1197120,"owner":"p1exdMJcjVao65QdewkaZRUnU6VPSXhus9n2GzWfh98"},"info":{"key":4,"activated":1,"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT"}}}
+
+    // const whitelistedCreatorsByCreator: Record<string,ParsedAccount<WhitelistedCreator>> = {'2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT':}
+
+    createAuctionManager(connection,wallet, whitelistedCreatorsByCreator, auctionSettings,       
+      attributes.category === AuctionCategory.Open
+        ? []
+        : attributes.category !== AuctionCategory.Tiered
+        ? attributes.items
+        : tieredAttributes.items,
+      attributes.category === AuctionCategory.Open
+        ? attributes.items[0]
+        : attributes.participationNFT,
+      QUOTE_MINT.toBase58());
 
   return state;
 };

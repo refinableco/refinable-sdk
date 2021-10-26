@@ -15,7 +15,7 @@ export const mintNFT = async (
   // SOL account
   owner: PublicKey,
 ) => {
-  if (!wallet.publicKey) throw new WalletNotConnectedError();
+  if (!wallet.publicKey) throw new Error('Wallet not connected');
 
   const TOKEN_PROGRAM_ID = new PublicKey(
     'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
