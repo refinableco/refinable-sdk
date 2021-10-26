@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
-import { Chain, PriceCurrency, StandardRoyaltyStrategy } from "..";
+import { Chain, PriceCurrency, StandardRoyaltyStrategy } from "../src";
 import { createRefinableClient } from "./shared";
 
 dotenv.config({ path: ".env.testnet" });
