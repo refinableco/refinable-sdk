@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "es2015.promise", "dom", "es2015"],
+    "lib": ["es5", "es2015.promise", "dom", "es2015","es2019"],
     "target": "es5",
     "module": "CommonJS",
-
+    "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "declaration": true,
     "outDir": "lib",
     "sourceMap": true,
-    "rootDir": "src"
+    "rootDir": "src",
   },
   "include": [
     "src"
