@@ -10,7 +10,7 @@ import {
   MasterEditionV2,
   Metadata,
   MetadataKey,
-} from '../../actions';
+} from '../../oyster';
 import { ParsedAccount } from '../accounts/types';
 import { METADATA_PROGRAM_ID, pubkeyToString } from '../../utils';
 

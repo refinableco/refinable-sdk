@@ -1,4 +1,4 @@
-import { Metadata } from '../../actions';
+import { Metadata } from '../../oyster';
 import { Store, WhitelistedCreator } from '../../models/metaplex';
 import { ParsedAccount } from '../accounts/types';
 

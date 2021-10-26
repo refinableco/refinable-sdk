@@ -18,7 +18,7 @@ import {
   getEdition,
   getEditionMarkPda,
   getMetadata,
-} from '../../actions';
+} from '../../oyster';
 import { getAuctionExtended } from '../../oyster';
 import { programIds, StringPublicKey, toPublicKey } from '../../utils';
 
