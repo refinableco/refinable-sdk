@@ -44,7 +44,6 @@ import {
   MAX_URI_LENGTH,
   METADATA_PREFIX,
   decodeMetadata,
-  getAuctionExtended,
 } from '../../actions';
 import {
   AccountAndPubkey,

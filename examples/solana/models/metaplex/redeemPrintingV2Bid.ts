@@ -18,8 +18,8 @@ import {
   getEdition,
   getEditionMarkPda,
   getMetadata,
-  getAuctionExtended,
 } from '../../actions';
+import { getAuctionExtended } from '../../oyster';
 import { programIds, StringPublicKey, toPublicKey } from '../../utils';
 
 export async function redeemPrintingV2Bid(

@@ -12,7 +12,7 @@ import {
   SafetyDepositBox,
   Vault,
   getAuctionExtended,
-} from '../../actions';
+} from '../../oyster';
 import { AccountParser, ParsedAccount } from '../../contexts/accounts';
 import {
   findProgramAddress,

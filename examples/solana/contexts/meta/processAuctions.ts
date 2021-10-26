@@ -10,7 +10,7 @@ import {
   BIDDER_METADATA_LEN,
   BIDDER_POT_LEN,
   MAX_AUCTION_DATA_EXTENDED_SIZE,
-} from '../../actions';
+} from '../../oyster';
 import { AUCTION_ID, pubkeyToString } from '../../utils';
 import { ParsedAccount } from '../accounts/types';
 import { cache } from '../accounts/cache';

@@ -15,11 +15,11 @@ import {
   getSafetyDepositConfig,
 } from '.';
 import {
-  getAuctionExtended,
   getEdition,
   getEditionMarkPda,
   getMetadata,
 } from '../../actions';
+import { getAuctionExtended } from '../../oyster';
 import { programIds, StringPublicKey, toPublicKey } from '../../utils';
 
 export async function redeemParticipationBidV3(
