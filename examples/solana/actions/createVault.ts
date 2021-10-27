@@ -5,7 +5,6 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import {
-  utils,
   createMint,
   WalletSigner,
 } from '../oyster';

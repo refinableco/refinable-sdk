@@ -14,7 +14,6 @@ import {
 import { AccountLayout } from '@solana/spl-token';
 import BN from 'bn.js';
 import { SafetyDepositDraft } from './createAuctionManager';
-import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
 
 export interface SafetyDepositInstructionTemplate {

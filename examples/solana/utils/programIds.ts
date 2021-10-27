@@ -1,6 +1,4 @@
 import { PublicKey } from '@solana/web3.js';
-// import { findProgramAddress } from '../utils';
-
 import {
   METADATA_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -13,25 +11,26 @@ import {
   AUCTION_ID,
   toPublicKey,
 } from './ids';
+import { findProgramAddress } from './utils';
 
-// export const getStoreID = async (storeOwnerAddress?: string) => {
-//   if (!storeOwnerAddress) {
-//     return undefined;
-//   }
+export const getStoreID = async (storeOwnerAddress?: string) => {
+  if (!storeOwnerAddress) {
+    return undefined;
+  }
 
-//   console.log('Store owner', storeOwnerAddress, METAPLEX_ID);
-//   const programs = await findProgramAddress(
-//     [
-//       Buffer.from('metaplex'),
-//       toPublicKey(METAPLEX_ID).toBuffer(),
-//       toPublicKey(storeOwnerAddress).toBuffer(),
-//     ],
-//     toPublicKey(METAPLEX_ID),
-//   );
-//   const storeAddress = programs[0];
+  console.log('Store owner', storeOwnerAddress, METAPLEX_ID);
+  const programs = await findProgramAddress(
+    [
+      Buffer.from('metaplex'),
+      toPublicKey(METAPLEX_ID).toBuffer(),
+      toPublicKey(storeOwnerAddress).toBuffer(),
+    ],
+    toPublicKey(METAPLEX_ID),
+  );
+  const storeAddress = programs[0];
 
-//   return storeAddress;
-// };
+  return storeAddress;
+};
 
 export const setProgramIds = async (store?: string) => {
   STORE = store ? toPublicKey(store) : undefined;

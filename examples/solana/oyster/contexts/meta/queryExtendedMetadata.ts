@@ -3,7 +3,6 @@ import { Connection } from '@solana/web3.js';
 import { cache } from '../../../contexts/accounts';
 import { Metadata } from '../../actions';
 import { ParsedAccount } from '../accounts';
-// import { cache } from '../accounts';
 import { getMultipleAccounts } from '../accounts';
 import { MintParser } from '../accounts';
 

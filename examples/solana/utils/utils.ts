@@ -1,5 +1,4 @@
 import { MintInfo } from '@solana/spl-token';
-
 import { PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import { WAD, ZERO } from '../constants';
@@ -65,16 +64,16 @@ export function getVerboseTokenName(
   return shorten ? `${mintAddress.substring(0, 5)}...` : mintAddress;
 }
 
-// export function getTokenByName(tokenMap: KnownTokenMap, name: string) {
-//   let token: TokenInfo | null = null;
-//   for (const val of tokenMap.values()) {
-//     if (val.symbol === name) {
-//       token = val;
-//       break;
-//     }
-//   }
-//   return token;
-// }
+export function getTokenByName(tokenMap: KnownTokenMap, name: string) {
+  let token: TokenInfo | null = null;
+  for (const val of tokenMap.values()) {
+    if (val.symbol === name) {
+      token = val;
+      break;
+    }
+  }
+  return token;
+}
 
 export function getTokenIcon(
   map: KnownTokenMap,
