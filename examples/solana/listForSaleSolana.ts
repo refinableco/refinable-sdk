@@ -12,7 +12,7 @@ import BN from 'bn.js';
 import {
   ENV as ChainId,
 } from '@solana/spl-token-registry';
-import { createPipelineExecutor } from '../../utils/createPipelineExecutor';
+import { createPipelineExecutor } from './utils/createPipelineExecutor';
 import {
   getEdition,
   Metadata,
@@ -36,10 +36,9 @@ import {
   isMetadataPartOfStore,
   WhitelistedCreator,
   MAX_WHITELISTED_CREATOR_SIZE,
-} from '../../oyster';
+} from './oyster';
 
-import { ParsedAccount } from '../../oyster/contexts/accounts/types';
-import fs from 'fs'
+import { ParsedAccount } from './oyster/contexts/accounts/types';
 import {
   AUCTION_ID,
   METADATA_PROGRAM_ID,
@@ -47,45 +46,27 @@ import {
   StringPublicKey,
   toPublicKey,
   VAULT_ID,
-} from '../../utils/ids';
+} from './utils/ids';
 
-import {createAuctionManager,SafetyDepositDraft} from '../../actions/createAuctionManager'
+import {createAuctionManager,SafetyDepositDraft} from './actions/createAuctionManager'
 
 
 import {
-  Metadata as OysterMetadata,
-  // ParsedAccount as OysterParsedAccount,
-  MasterEditionV1,
-  MasterEditionV2,
-  // SequenceType,
-  // sendTransactions,
-  getSafetyDepositBox,
-  Edition,
-  getEdition as OysterGetEdition,
-  // programIds,
-  Creator,
-  getSafetyDepositBoxAddress,
-  // sendTransactionWithRetry,
-  // findProgramAddress,
   IPartialCreateAuctionArgs,
-  MetadataKey,
-  // StringPublicKey as OysterStringPublicKey,
-  // toPublicKey as OysterToPublicKey,
-  // WalletSigner,
   WinnerLimit,
   WinnerLimitType,
   PriceFloor,
   PriceFloorType,
-} from '../../oyster';
+} from './oyster';
 import {
   WinningConfigType,
   AmountRange,
-} from '../../oyster';
-import { QUOTE_MINT } from '../../constants';
-import { NodeWallet } from '../../wallet';
+} from './oyster';
+import { QUOTE_MINT } from './constants';
+import { NodeWallet } from './wallet';
 import base58 from 'bs58';
-import { getProgramAccounts } from '../../oyster/contexts/meta/web3';
-import { getEmptyMetaState } from '../../oyster/contexts/meta/getEmptyMetaState';
+import { getProgramAccounts } from './oyster/contexts/meta/web3';
+import { getEmptyMetaState } from './oyster/contexts/meta/getEmptyMetaState';
 
 interface TierDummyEntry {
   safetyDepositBoxIndex: number;
