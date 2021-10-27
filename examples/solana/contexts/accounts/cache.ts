@@ -3,7 +3,7 @@ import { MintInfo } from '@solana/spl-token';
 import { TokenAccount } from '../../models';
 import { EventEmitter } from '../../utils/eventEmitter';
 import { ParsedAccountBase, AccountParser } from '../../oyster/contexts/accounts/types';
-import { deserializeMint } from './deserialize';
+import { deserializeMint } from '../../oyster';
 
 export const genericCache = new Map<string, ParsedAccountBase>();
 const mintCache = new Map<string, MintInfo>();
