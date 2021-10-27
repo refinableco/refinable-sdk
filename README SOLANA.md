@@ -9,3 +9,4 @@
 | --------------------------------------- | 
 5. Go to SDK source codes, set MY_SOL_PUBLIC_KEY and MY_SOL_SECRET_KEY accordingly (in listForSaleSolana.ts)
 6. Then go to root folder of the SDK, run `npx ts-node examples/solana/listForSaleSolana.ts`
+7. You can try to buy the item by switching wallet
