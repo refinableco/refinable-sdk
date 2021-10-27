@@ -22,7 +22,6 @@ import {
   MAX_SYMBOL_LENGTH,
   MAX_URI_LENGTH,
   METADATA_PREFIX,
-  decodeMetadata,
   getMultipleAccounts,
   UpdateStateValueFunc,
   ProcessAccountsFunc,
@@ -129,18 +128,6 @@ enum AuctionCategory {
   Open,
   Tiered,
 }
-interface Wallet {
-  publicKey: PublicKey;
-  signTransaction(tx: Transaction): Promise<Transaction>;
-  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
-}
-// declare class NodeWallet implements Wallet {
-//   readonly payer: Keypair;
-//   constructor(payer: Keypair);
-//   signTransaction(tx: Transaction): Promise<Transaction>;
-//   signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
-//   get publicKey(): PublicKey;
-// }
 
 type ENV =
   | 'mainnet-beta'
@@ -238,12 +225,8 @@ const pullMetadataByCreators = (
   
     const setter: UpdateStateValueFunc = async (prop, key, value) => {
       if (prop === 'metadataByMint') {
-        // console.log('1111111');
-        
         await initMetadata(value, state.whitelistedCreatorsByCreator, updater);
       } else {
-        // console.log('1222222');
-
         updater(prop, key, value);
       }
     };
@@ -288,10 +271,6 @@ const pullEditions = async (
   state: MetaState,
 ) => {
   console.log('Pulling editions for optimized metadata');
-
-  
-  // console.log('metadata: ', state.metadata);
-  
 
   type MultipleAccounts = UnPromise<ReturnType<typeof getMultipleAccounts>>;
   let setOf100MetadataEditionKeys: string[] = [];
@@ -341,15 +320,11 @@ const pullEditions = async (
     setOf100MetadataEditionKeys.push(editionKey);
 
     if (setOf100MetadataEditionKeys.length >= 100) {
-      // console.log('setOf100MetadataEditionKeys: ', setOf100MetadataEditionKeys);
-
       loadBatch();
     }
   }
 
   if (setOf100MetadataEditionKeys.length >= 0) {
-    // console.log('setOf100MetadataEditionKeys: ', setOf100MetadataEditionKeys);
-    
     loadBatch();
   }
 
@@ -369,8 +344,6 @@ const loadAccounts = async (connection: Connection) => {
   const forEach =
     (fn: ProcessAccountsFunc) => async (accounts: AccountAndPubkey[]) => {
       for (const account of accounts) {
-        // console.log('account: ', account);
-        
         await fn(account, updateState);
       }
     };
@@ -417,14 +390,12 @@ const loadAccounts = async (connection: Connection) => {
   // proc.stdin.write(JSON.stringify(state)); proc.stdin.end();
   // fs.writeFile('data.txt', JSON.stringify(state), ()=>{});
 
-    // console.log(state.metadataByMint);
     const mints = []
     for (const [mint, metadata] of Object.entries(state.metadataByMint)) {
       if (metadata.info.data.creators.some(c=>c.address==='2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT')) {
         mints.push(metadata)
         // console.log(metadata.info.data.uri);
         // state.metadataByMint
-        
       }
     }
 
@@ -442,11 +413,6 @@ const loadAccounts = async (connection: Connection) => {
 
     console.log('ownedMetadata: ', JSON.stringify(ownedMetadata[0]));
     
-
-
-
-    
-
     // console.log('state.metadataByMint: ', JSON.stringify(state.metadataByMint));
     
     // return
