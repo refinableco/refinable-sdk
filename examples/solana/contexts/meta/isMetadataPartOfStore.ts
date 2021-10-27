@@ -1,6 +1,6 @@
 import { Metadata } from '../../oyster';
 import { Store, WhitelistedCreator } from '../../models/metaplex';
-import { ParsedAccount } from '../accounts/types';
+import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 
 export const isMetadataPartOfStore = (
   m: ParsedAccount<Metadata>,

@@ -12,7 +12,7 @@ import {
   MAX_AUCTION_DATA_EXTENDED_SIZE,
 } from '../../oyster';
 import { AUCTION_ID, pubkeyToString } from '../../utils';
-import { ParsedAccount } from '../accounts/types';
+import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 import { cache } from '../accounts/cache';
 import { CheckAccountFunc, ProcessAccountsFunc } from './types';
 

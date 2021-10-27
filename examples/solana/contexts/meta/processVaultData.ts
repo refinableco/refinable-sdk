@@ -7,7 +7,7 @@ import {
   VaultKey,
 } from '../../oyster';
 import { VAULT_ID, pubkeyToString } from '../../utils';
-import { ParsedAccount } from '../accounts/types';
+import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 import { ProcessAccountsFunc } from './types';
 
 export const processVaultData: ProcessAccountsFunc = (

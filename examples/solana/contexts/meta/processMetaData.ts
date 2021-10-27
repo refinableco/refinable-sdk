@@ -11,7 +11,7 @@ import {
   Metadata,
   MetadataKey,
 } from '../../oyster';
-import { ParsedAccount } from '../accounts/types';
+import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 import { METADATA_PROGRAM_ID, pubkeyToString } from '../../utils';
 
 export const processMetaData: ProcessAccountsFunc = async (

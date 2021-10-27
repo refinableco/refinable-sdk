@@ -21,7 +21,7 @@ import {
 } from '../../models';
 import { ProcessAccountsFunc } from './types';
 import { METAPLEX_ID, programIds, pubkeyToString } from '../../utils';
-import { ParsedAccount } from '../accounts';
+import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 import { cache } from '../accounts';
 
 export const processMetaplexAccounts: ProcessAccountsFunc = async (

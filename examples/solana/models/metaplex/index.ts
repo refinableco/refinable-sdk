@@ -13,7 +13,7 @@ import {
   Vault,
   getAuctionExtended,
 } from '../../oyster';
-import { AccountParser, ParsedAccount } from '../../contexts/accounts';
+import { AccountParser, ParsedAccount } from '../../oyster/contexts/accounts/types';
 import {
   findProgramAddress,
   programIds,

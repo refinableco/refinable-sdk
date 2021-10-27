@@ -2,7 +2,7 @@ import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import { MintInfo } from '@solana/spl-token';
 import { TokenAccount } from '../../models';
 import { EventEmitter } from '../../utils/eventEmitter';
-import { ParsedAccountBase, AccountParser } from '../accounts/types';
+import { ParsedAccountBase, AccountParser } from '../../oyster/contexts/accounts/types';
 import { deserializeMint } from './deserialize';
 
 export const genericCache = new Map<string, ParsedAccountBase>();

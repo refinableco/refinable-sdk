@@ -1,14 +1,10 @@
 import { AccountInfo } from '@solana/web3.js';
-import { chunks } from '../../utils/utils';
 
 export const getMultipleAccounts = async (
   connection: any,
   keys: string[],
   commitment: string,
 ) => {
-
-  // console.log('keys: ', keys);
-  // console.log('metadata: ', state.);
 
   // TODO: split keys into chunks of 100-items array
 
@@ -17,8 +13,6 @@ export const getMultipleAccounts = async (
       getMultipleAccountsCore(connection, chunk, commitment),
     ),
   );
-
-  // const re
 
   const array = result
     .map(

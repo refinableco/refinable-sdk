@@ -53,7 +53,7 @@ import {
   UnPromise,
 } from './types';
 
-import { ParsedAccount } from '../accounts/types';
+import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 import fs from 'fs'
 import {
   AUCTION_ID,
