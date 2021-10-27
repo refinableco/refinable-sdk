@@ -19,7 +19,7 @@ import {
   // programIds,
   toPublicKey,
   StringPublicKey,
-} from '../../utils';
+} from '../../../utils';
 import {
   AuctionManagerV1,
   BidRedemptionTicketV1,

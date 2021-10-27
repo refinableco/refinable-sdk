@@ -7,9 +7,6 @@ import {
 import {
   utils,
   createMint,
-  findProgramAddress,
-  StringPublicKey,
-  toPublicKey,
   WalletSigner,
 } from '../oyster';
 import {
@@ -21,7 +18,7 @@ import { createTokenAccount } from '../oyster';
 
 import { AccountLayout, MintLayout } from '@solana/spl-token';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
-import { programIds } from '../utils';
+import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
 
 // This command creates the external pricing oracle a vault
 // This gets the vault ready for adding the tokens.

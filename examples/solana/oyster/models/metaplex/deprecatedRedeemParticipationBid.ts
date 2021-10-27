@@ -12,7 +12,7 @@ import {
   getSafetyDepositConfig,
 } from '.';
 import { programIds } from '../../../utils';
-import { StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../../utils';
 import { DeprecatedRedeemParticipationBidArgs } from './deprecatedStates';
 
 export async function deprecatedRedeemParticipationBid(

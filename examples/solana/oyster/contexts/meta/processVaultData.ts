@@ -6,7 +6,7 @@ import {
   Vault,
   VaultKey,
 } from '../../actions';
-import { VAULT_ID, pubkeyToString } from '../../utils';
+import { VAULT_ID, pubkeyToString } from '../../../utils';
 import { ParsedAccount } from '../accounts/types';
 import { ProcessAccountsFunc } from './types';
 

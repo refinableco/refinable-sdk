@@ -22,7 +22,7 @@ import {
   Store,
   WhitelistedCreator,
 } from '../../models/metaplex';
-import { PublicKeyStringAndAccount } from '../../utils';
+import { PublicKeyStringAndAccount } from '../../../utils';
 import { ParsedAccount } from '../accounts/types';
 
 export interface MetaState {

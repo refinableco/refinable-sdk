@@ -9,7 +9,7 @@ import {
   WinningConstraint,
 } from '.';
 import { programIds } from '../../../utils';
-import { findProgramAddress, toPublicKey } from '../../utils';
+import { findProgramAddress, toPublicKey } from '../../../utils';
 
 export const MAX_BID_REDEMPTION_TICKET_V1_SIZE = 3;
 

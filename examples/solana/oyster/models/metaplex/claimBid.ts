@@ -3,7 +3,7 @@ import { serialize } from 'borsh';
 
 import { getAuctionKeys, ClaimBidArgs, SCHEMA } from '.';
 import { getBidderPotKey, getAuctionExtended } from '../../actions';
-import { programIds, StringPublicKey, toPublicKey } from '../../utils';
+import { programIds, StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function claimBid(
   acceptPayment: StringPublicKey,

@@ -21,7 +21,7 @@ import {
   // programIds,
   StringPublicKey,
   toPublicKey,
-} from '../../utils';
+} from '../../../utils';
 
 export async function redeemBid(
   vault: StringPublicKey,

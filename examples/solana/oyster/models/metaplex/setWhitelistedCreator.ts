@@ -3,7 +3,7 @@ import { serialize } from 'borsh';
 
 import { getWhitelistedCreator, SCHEMA, SetWhitelistedCreatorArgs } from '.';
 import { programIds } from '../../../utils';
-import { StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function setWhitelistedCreator(
   creator: StringPublicKey,

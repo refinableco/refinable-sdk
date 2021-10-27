@@ -5,7 +5,7 @@ import {
   METAPLEX_ID,
   toPublicKey,
   VAULT_ID,
-} from '../../utils';
+} from '../../../utils';
 import { makeSetter, initMetadata } from './loadAccounts';
 import { onChangeAccount } from './onChangeAccount';
 import { processAuctions } from './processAuctions';

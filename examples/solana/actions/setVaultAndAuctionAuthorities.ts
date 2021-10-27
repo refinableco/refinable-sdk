@@ -2,10 +2,9 @@ import { Keypair, TransactionInstruction } from '@solana/web3.js';
 import {
   setAuctionAuthority,
   setVaultAuthority,
-  StringPublicKey,
   WalletSigner,
 } from '../oyster';
-import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
+import { StringPublicKey } from '../utils';
 
 // This command sets the authorities on the vault and auction to be the newly created auction manager.
 export async function setVaultAndAuctionAuthorities(

@@ -3,7 +3,7 @@ import { serialize } from 'borsh';
 
 import { getAuctionKeys, SCHEMA, StartAuctionArgs } from '.';
 import { programIds } from '../../../utils';
-import { StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function startAuction(
   vault: StringPublicKey,

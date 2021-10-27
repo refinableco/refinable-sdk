@@ -12,7 +12,7 @@ import {
   BIDDER_POT_LEN,
   MAX_AUCTION_DATA_EXTENDED_SIZE,
 } from '../../actions';
-import { AUCTION_ID, pubkeyToString } from '../../utils';
+import { AUCTION_ID, pubkeyToString } from '../../../utils';
 import { ParsedAccount } from '../accounts';
 // import { cache } from '../accounts';
 import { CheckAccountFunc, ProcessAccountsFunc } from './types';

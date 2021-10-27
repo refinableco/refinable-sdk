@@ -4,12 +4,8 @@ import {
   SystemProgram,
   TransactionInstruction,
 } from '@solana/web3.js';
-import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 
 import {
-  utils,
-  StringPublicKey,
-  toPublicKey,
   WalletSigner,
 } from '../oyster';
 import {
@@ -20,7 +16,7 @@ import {
 
 import BN from 'bn.js';
 import { QUOTE_MINT } from '../constants';
-import { programIds } from '../utils';
+import { programIds, StringPublicKey, toPublicKey } from '../utils';
 
 // This command creates the external pricing oracle
 export async function createExternalPriceAccount(

@@ -21,7 +21,7 @@ import {
   getEditionMarkPda,
   getMetadata,
 } from '../../actions';
-import { StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function redeemParticipationBidV3(
   vault: StringPublicKey,

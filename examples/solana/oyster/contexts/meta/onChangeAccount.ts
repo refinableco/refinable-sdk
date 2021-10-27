@@ -1,5 +1,5 @@
 import { ProgramAccountChangeCallback } from '@solana/web3.js';
-import { pubkeyToString } from '../../utils';
+import { pubkeyToString } from '../../../utils';
 import { ProcessAccountsFunc, UpdateStateValueFunc } from './types';
 
 export const onChangeAccount =

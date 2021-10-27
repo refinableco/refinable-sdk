@@ -1,6 +1,6 @@
 import { AccountInfo } from '@solana/web3.js';
 import { ProcessAccountsFunc } from './types';
-import { isValidHttpUrl } from '../../utils/isValidHttpUrl';
+import { isValidHttpUrl } from '../../../utils/isValidHttpUrl';
 import {
   decodeEdition,
   decodeMasterEdition,
@@ -12,7 +12,7 @@ import {
   MetadataKey,
 } from '../../actions';
 import { ParsedAccount } from '../accounts/types';
-import { METADATA_PROGRAM_ID, pubkeyToString } from '../../utils';
+import { METADATA_PROGRAM_ID, pubkeyToString } from '../../../utils';
 
 export const processMetaData: ProcessAccountsFunc = async (
   { account, pubkey },

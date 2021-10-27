@@ -7,7 +7,7 @@ import { serialize } from 'borsh';
 
 import { getAuctionKeys, SCHEMA } from '.';
 import { programIds } from '../../../utils';
-import { StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../../utils';
 import {
   AuctionManagerSettingsV1,
   DeprecatedInitAuctionManagerV1Args,

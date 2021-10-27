@@ -1,10 +1,6 @@
 import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
 import {
-  utils,
-  findProgramAddress,
   MetadataKey,
-  StringPublicKey,
-  toPublicKey,
   WalletSigner,
 } from '../oyster';
 import { SafetyDepositConfig } from '../oyster';
@@ -19,7 +15,7 @@ import { AccountLayout } from '@solana/spl-token';
 import BN from 'bn.js';
 import { SafetyDepositDraft } from './createAuctionManager';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
-import { programIds } from '../utils';
+import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
 
 export interface SafetyDepositInstructionTemplate {
   box: {

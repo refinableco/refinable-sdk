@@ -15,7 +15,7 @@ import {
   ValidateSafetyDepositBoxV2Args,
 } from '.';
 import { programIds } from '../../../utils';
-import { toPublicKey, StringPublicKey } from '../../utils';
+import { toPublicKey, StringPublicKey } from '../../../utils';
 
 export async function validateSafetyDepositBoxV2(
   vault: StringPublicKey,

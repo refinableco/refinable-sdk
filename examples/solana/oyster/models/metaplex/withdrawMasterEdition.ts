@@ -14,7 +14,7 @@ import {
   findProgramAddress,
   toPublicKey,
   StringPublicKey,
-} from '../../utils';
+} from '../../../utils';
 
 export async function withdrawMasterEdition(
   vault: StringPublicKey,

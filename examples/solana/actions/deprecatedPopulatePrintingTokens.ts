@@ -1,19 +1,15 @@
 import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
 import {
-  utils,
   createAssociatedTokenAccountInstruction,
   deprecatedMintPrintingTokens,
-  findProgramAddress,
   MasterEditionV1,
   ParsedAccount,
   MetadataKey,
-  toPublicKey,
   WalletSigner,
 } from '../oyster';
-import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import BN from 'bn.js';
 import { SafetyDepositInstructionTemplate } from './addTokensToVault';
-import { programIds } from '../utils';
+import { findProgramAddress, programIds, toPublicKey } from '../utils';
 
 const BATCH_SIZE = 4;
 // Printing tokens are minted on the fly as needed. We need to pre-mint them to give to the vault

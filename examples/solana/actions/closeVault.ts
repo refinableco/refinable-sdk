@@ -1,5 +1,5 @@
 import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
-import { StringPublicKey, toPublicKey, WalletSigner } from '../oyster';
+import { WalletSigner } from '../oyster';
 import { createTokenAccount } from '../oyster';
 import {
   activateVault,
@@ -9,6 +9,7 @@ import { approve } from '../oyster';
 
 import { AccountLayout } from '@solana/spl-token';
 import BN from 'bn.js';
+import { StringPublicKey, toPublicKey } from '../utils';
 
 // This command "closes" the vault, by activating & combining it in one go, handing it over to the auction manager
 // authority (that may or may not exist yet.)

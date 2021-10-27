@@ -20,7 +20,7 @@ import {
   SafetyDepositConfig,
 } from '../../models';
 import { ProcessAccountsFunc } from './types';
-import { METAPLEX_ID, pubkeyToString } from '../../utils';
+import { METAPLEX_ID, pubkeyToString } from '../../../utils';
 import { ParsedAccount } from '../accounts';
 // import { cache } from '../accounts';
 import { programIds } from '../../../utils';

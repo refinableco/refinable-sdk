@@ -1,4 +1,4 @@
-import { sleep } from '../utils/utils';
+import { sleep } from '../../utils/utils';
 import {
   Keypair,
   clusterApiUrl,

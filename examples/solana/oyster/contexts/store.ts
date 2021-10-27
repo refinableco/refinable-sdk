@@ -1,5 +1,5 @@
 
-import { StringPublicKey } from '../utils';
+import { StringPublicKey } from '../../utils';
 
 interface StoreConfig {
   // Store Address

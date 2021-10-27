@@ -12,7 +12,7 @@ import {
   getSafetyDepositConfig,
   SCHEMA,
 } from '.';
-import { programIds, StringPublicKey, toPublicKey } from '../../utils';
+import { programIds, StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function emptyPaymentAccount(
   acceptPayment: StringPublicKey,

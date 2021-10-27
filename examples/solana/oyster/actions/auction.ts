@@ -10,7 +10,7 @@ import { deserializeUnchecked, serialize } from 'borsh';
 import BN from 'bn.js';
 import { AccountParser } from '../contexts/accounts/types';
 import moment from 'moment';
-import { findProgramAddress, StringPublicKey, toPublicKey } from '../utils';
+import { findProgramAddress, StringPublicKey, toPublicKey } from '../../utils';
 import { programIds } from '../../utils';
 export const AUCTION_PREFIX = 'auction';
 export const METADATA = 'metadata';

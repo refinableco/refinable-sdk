@@ -7,7 +7,7 @@ import {
   findProgramAddress,
   StringPublicKey,
   toPublicKey,
-} from '../../utils';
+} from '../../../utils';
 import { DeprecatedPopulateParticipationPrintingAccountArgs } from './deprecatedStates';
 
 export async function deprecatedPopulateParticipationPrintingAccount(

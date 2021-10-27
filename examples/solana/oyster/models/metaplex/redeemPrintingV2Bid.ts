@@ -21,7 +21,7 @@ import {
   getMetadata,
   getAuctionExtended,
 } from '../../actions';
-import { StringPublicKey, toPublicKey } from '../../utils';
+import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function redeemPrintingV2Bid(
   vault: StringPublicKey,

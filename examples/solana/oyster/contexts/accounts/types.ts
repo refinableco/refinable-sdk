@@ -1,5 +1,5 @@
 import { AccountInfo } from '@solana/web3.js';
-import { StringPublicKey } from '../../utils';
+import { StringPublicKey } from '../../../utils';
 
 export interface ParsedAccountBase {
   pubkey: StringPublicKey;

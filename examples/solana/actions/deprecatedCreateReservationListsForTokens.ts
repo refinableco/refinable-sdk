@@ -1,12 +1,12 @@
 import { Keypair, TransactionInstruction } from '@solana/web3.js';
 import {
   deprecatedCreateReservationList,
-  StringPublicKey,
   WalletSigner,
 } from '../oyster';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { SafetyDepositInstructionTemplate } from './addTokensToVault';
 import { WinningConfigType } from '../oyster';
+import { StringPublicKey } from '../utils';
 
 const BATCH_SIZE = 10;
 // This command batches out creating reservation lists for those tokens who are being sold in PrintingV1 mode.

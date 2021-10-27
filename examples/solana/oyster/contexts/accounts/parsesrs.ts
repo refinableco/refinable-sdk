@@ -2,7 +2,7 @@ import { AccountInfo } from '@solana/web3.js';
 import { TokenAccount } from '../../models';
 import { ParsedAccountBase } from './types';
 import { deserializeMint, deserializeAccount } from './deserialize';
-import { StringPublicKey } from '../../utils';
+import { StringPublicKey } from '../../../utils';
 
 export const MintParser = (
   pubKey: StringPublicKey,
