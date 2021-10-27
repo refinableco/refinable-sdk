@@ -81,13 +81,11 @@ import base58 from 'bs58';
 import { getProgramAccounts } from './oyster/contexts/meta/web3';
 import { getEmptyMetaState } from './oyster/contexts/meta/getEmptyMetaState';
 import { cache } from './contexts/accounts';
-
 interface TierDummyEntry {
   safetyDepositBoxIndex: number;
   amount: number;
   winningConfigType: WinningConfigType;
 }
-
 interface Tier {
   items: (TierDummyEntry | {})[];
   winningSpots: number[];
@@ -184,6 +182,9 @@ const ENDPOINTS = [
 const DEFAULT = ENDPOINTS[ENDPOINTS.length-1].endpoint;
 
 const connection = new Connection(DEFAULT, 'recent');
+
+const MY_SOL_PUBLIC_KEY = '2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT'
+const MY_SOL_SECRET_KEY = '5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP'
 
 const processingAccounts =
   (updater: UpdateStateValueFunc) =>
@@ -352,7 +353,7 @@ const pullEditions = async (
   );
 };
 
-const loadAccounts = async (connection: Connection) => {
+const getItemsAndPutOnSale = async (connection: Connection) => {
   const state: MetaState = getEmptyMetaState();
   const updateState = makeSetter(state);
   const forEachAccount = processingAccounts(updateState);
@@ -403,12 +404,11 @@ const loadAccounts = async (connection: Connection) => {
   );
   // const proc = require('child_process').spawn('pbcopy'); 
   // proc.stdin.write(JSON.stringify(state)); proc.stdin.end();
-    await precacheUserTokenAccounts(connection, new PublicKey('2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT'))
-    const userAccounts = cache.byParser(TokenAccountParser)
+  await precacheUserTokenAccounts(connection, new PublicKey(MY_SOL_PUBLIC_KEY))
+  const userAccounts = cache.byParser(TokenAccountParser)
     .map(id => cache.get(id))
-    .filter(a => a && a.info.owner.toBase58() === '2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT')
+    .filter(a => a && a.info.owner.toBase58() === MY_SOL_PUBLIC_KEY)
     .map(a => a as TokenAccount);
-
 
   const accountByMint = userAccounts.reduce((prev, acc) => {
     prev.set(acc.info.mint.toBase58(), acc);
@@ -465,7 +465,7 @@ const loadAccounts = async (connection: Connection) => {
     items = [items[0]] // for now only sell 1 item at a time
     console.log('items to sell: ', JSON.stringify(items));
 
-    const byte_array = base58.decode('5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP')
+    const byte_array = base58.decode(MY_SOL_SECRET_KEY)
     
     const payer = Keypair.fromSecretKey(
       byte_array
@@ -572,4 +572,4 @@ const loadAccounts = async (connection: Connection) => {
   return state;
 };
 
-loadAccounts(connection)
+getItemsAndPutOnSale(connection)
