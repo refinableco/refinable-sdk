@@ -9,20 +9,11 @@ import {
 } from '@solana/web3.js';
 import { uniqWith } from 'lodash';
 import { WhitelistedCreator } from '../../models/metaplex';
-import { isMetadataPartOfStore } from './isMetadataPartOfStore';
-import { processMetaData } from './processMetaData'
 import BN from 'bn.js';
 import {
-  TokenInfo,
-  TokenListProvider,
   ENV as ChainId,
 } from '@solana/spl-token-registry';
-import { getEmptyMetaState } from './getEmptyMetaState';
-import { getProgramAccounts } from './web3';
 import { createPipelineExecutor } from '../../utils/createPipelineExecutor';
-import { processVaultData } from './processVaultData';
-import { processAuctions } from './processAuctions';
-import { processMetaplexAccounts } from './processMetaplexAccounts'
 import { MAX_WHITELISTED_CREATOR_SIZE } from '../../models';
 import {
   getEdition,
@@ -35,14 +26,17 @@ import {
   METADATA_PREFIX,
   decodeMetadata,
   getMultipleAccounts,
-} from '../../oyster';
-import {
+  UpdateStateValueFunc,
+  ProcessAccountsFunc,
   AccountAndPubkey,
   MetaState,
-  ProcessAccountsFunc,
-  UpdateStateValueFunc,
+  processMetaData,
   UnPromise,
-} from './types';
+  processMetaplexAccounts,
+  processVaultData,
+  processAuctions,
+  isMetadataPartOfStore,
+} from '../../oyster';
 
 import { ParsedAccount } from '../../oyster/contexts/accounts/types';
 import fs from 'fs'
@@ -90,6 +84,8 @@ import {
 import { QUOTE_MINT } from '../../constants';
 import { NodeWallet } from '../../wallet';
 import base58 from 'bs58';
+import { getProgramAccounts } from '../../oyster/contexts/meta/web3';
+import { getEmptyMetaState } from '../../oyster/contexts/meta/getEmptyMetaState';
 
 interface TierDummyEntry {
   safetyDepositBoxIndex: number;
