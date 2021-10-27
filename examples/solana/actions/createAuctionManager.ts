@@ -110,11 +110,10 @@ export interface SafetyDepositDraft {
 export async function createAuctionManager(
   connection: Connection,
   wallet: WalletSigner,
-  // whitelistedCreatorsByCreator: Record<
-  //   string,
-  //   ParsedAccount<WhitelistedCreator>
-  // >,
-  whitelistedCreatorsByCreator: any,
+  whitelistedCreatorsByCreator: Record<
+    string,
+    ParsedAccount<WhitelistedCreator>
+  >,
   auctionSettings: IPartialCreateAuctionArgs,
   safetyDepositDrafts: SafetyDepositDraft[],
   participationSafetyDepositDraft: SafetyDepositDraft | undefined,

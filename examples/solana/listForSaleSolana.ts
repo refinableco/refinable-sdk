@@ -462,7 +462,7 @@ const loadAccounts = async (connection: Connection) => {
     i++;
   })
 
-    items = [items[0]]
+    items = [items[0]] // for now only sell 1 item at a time
     console.log('items to sell: ', JSON.stringify(items));
 
     const byte_array = base58.decode('5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP')
@@ -475,9 +475,7 @@ const loadAccounts = async (connection: Connection) => {
 
     const attributes: AuctionState = {
       reservationPrice: 0,
-      // items: [{"holding":"ABLj17hFzoQVpzj9iMu1yKfBCxNoetBpwE3AKFaqr29b","masterEdition":{"pubkey":"9nVY2XmKbBXdxnW6F6Nqv8SM4P4dzZ8SGzsfbc6BMQsf","account":{"executable":false,"lamports":2853600,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","rentEpoch":208,"data":{"type":"Buffer","data":[6,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}},"info":{"key":6,"supply":"00","maxSupply":"01"}},"metadata":{"pubkey":"6pMnEsNacqJksckvbjqHMGnNLpdJv36auSnsmrc9hWBM","account":{"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,180,47,126,186,129,193,96,241,173,40,223,158,216,213,170,64,197,65,245,159,152,117,61,168,68,29,141,207,113,29,217,185,32,0,0,0,51,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,53,73,100,97,51,57,45,86,102,112,67,100,98,48,53,72,53,70,69,50,90,84,45,73,83,97,117,51,56,109,102,76,70,83,79,116,88,103,87,51,74,67,81,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,1,1,254,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"executable":false,"lamports":5616720,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"D8NPeTZkPog5M69JQ7ZEDjHWitBjvNM4jB1Vamz6o1Eg","data":{"name":"3","symbol":"","uri":"https://arweave.net/5Ida39-VfpCdb05H5FE2ZT-ISau38mfLFSOtXgW3JCQ","sellerFeeBasisPoints":100,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":1,"editionNonce":null,"edition":"9nVY2XmKbBXdxnW6F6Nqv8SM4P4dzZ8SGzsfbc6BMQsf","masterEdition":"9nVY2XmKbBXdxnW6F6Nqv8SM4P4dzZ8SGzsfbc6BMQsf"}},"winningConfigType":3,"amountRanges":[]}],
       items,
-
       category: AuctionCategory.InstantSale,
       auctionDurationType: 'minutes',
       gapTimeType: 'minutes',
@@ -497,12 +495,11 @@ const loadAccounts = async (connection: Connection) => {
     if (attributes.items.length > 0) {
       const item = attributes.items[0];
       if (!attributes.editions) {
-        // item.winningConfigType =
-        //   item.metadata.info.updateAuthority ===
-        //   (wallet?.publicKey || SystemProgram.programId).toBase58()
-        //     ? WinningConfigType.FullRightsTransfer
-        //     : WinningConfigType.TokenOnlyTransfer;
-        item.winningConfigType = WinningConfigType.TokenOnlyTransfer
+        item.winningConfigType =
+          item.metadata.info.updateAuthority ===
+          (wallet?.publicKey || SystemProgram.programId).toBase58()
+            ? WinningConfigType.FullRightsTransfer
+            : WinningConfigType.TokenOnlyTransfer;
       }
       item.amountRanges = [
         new AmountRange({
@@ -561,11 +558,7 @@ const loadAccounts = async (connection: Connection) => {
       tiers: [],
     }
 
-    const whitelistedCreatorsByCreator = {"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT":{"pubkey":"5MFuPf76NPL5pTBBZiqkDTbVBeekeKvufCWJYTm823BF","account":{"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,0,0,0,0,0,0,0,0,0,0]},"executable":false,"lamports":1197120,"owner":"p1exdMJcjVao65QdewkaZRUnU6VPSXhus9n2GzWfh98"},"info":{"key":4,"activated":1,"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT"}}}
-
-    // const whitelistedCreatorsByCreator: Record<string,ParsedAccount<WhitelistedCreator>> = {'2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT':}
-
-    createAuctionManager(connection,wallet, whitelistedCreatorsByCreator, auctionSettings,       
+    createAuctionManager(connection,wallet, state.whitelistedCreatorsByCreator, auctionSettings,       
       attributes.category === AuctionCategory.Open
         ? []
         : attributes.category !== AuctionCategory.Tiered
