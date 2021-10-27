@@ -68,7 +68,6 @@ export const cache = {
   ) => {
     const address = typeof id === 'string' ? id : id?.toBase58();
     const deserialize = parser ? parser : keyToAccountParser.get(address);
-    // console.log('deserialize: ', deserialize);
     
     if (!deserialize) {
       throw new Error(

@@ -36,7 +36,7 @@ function wrapNativeAccount(
 }
 
 const PRECACHED_OWNERS = new Set<string>();
-const precacheUserTokenAccounts = async (
+export const precacheUserTokenAccounts = async (
   connection: Connection,
   owner?: PublicKey,
 ) => {

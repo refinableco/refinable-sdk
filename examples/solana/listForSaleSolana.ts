@@ -12,6 +12,8 @@ import BN from 'bn.js';
 import {
   ENV as ChainId,
 } from '@solana/spl-token-registry';
+const fs = import('fs')
+import { precacheUserTokenAccounts } from './oyster/contexts/accounts'
 import { createPipelineExecutor } from './utils/createPipelineExecutor';
 import {
   getEdition,
@@ -22,7 +24,6 @@ import {
   MAX_SYMBOL_LENGTH,
   MAX_URI_LENGTH,
   METADATA_PREFIX,
-  getMultipleAccounts,
   UpdateStateValueFunc,
   ProcessAccountsFunc,
   AccountAndPubkey,
@@ -35,17 +36,30 @@ import {
   isMetadataPartOfStore,
   WhitelistedCreator,
   MAX_WHITELISTED_CREATOR_SIZE,
+  TokenAccount,
+  MetadataKey,
 } from './oyster';
 
+import {TokenAccountParser} from './oyster/contexts/accounts/parsesrs'
+
+import {getMultipleAccounts} from './oyster/contexts/accounts/getMultipleAccounts'
+
 import { ParsedAccount } from './oyster/contexts/accounts/types';
+
+
+
+
+
 import {
   AUCTION_ID,
-  METADATA_PROGRAM_ID,
+  // METADATA_PROGRAM_ID,
   METAPLEX_ID,
   StringPublicKey,
   toPublicKey,
   VAULT_ID,
 } from './utils/ids';
+
+import {METADATA_PROGRAM_ID} from './utils/ids'
 
 import {createAuctionManager,SafetyDepositDraft} from './actions/createAuctionManager'
 
@@ -66,6 +80,7 @@ import { NodeWallet } from './wallet';
 import base58 from 'bs58';
 import { getProgramAccounts } from './oyster/contexts/meta/web3';
 import { getEmptyMetaState } from './oyster/contexts/meta/getEmptyMetaState';
+import { cache } from './contexts/accounts';
 
 interface TierDummyEntry {
   safetyDepositBoxIndex: number;
@@ -388,34 +403,67 @@ const loadAccounts = async (connection: Connection) => {
   );
   // const proc = require('child_process').spawn('pbcopy'); 
   // proc.stdin.write(JSON.stringify(state)); proc.stdin.end();
-  // fs.writeFile('data.txt', JSON.stringify(state), ()=>{});
+    await precacheUserTokenAccounts(connection, new PublicKey('2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT'))
+    const userAccounts = cache.byParser(TokenAccountParser)
+    .map(id => cache.get(id))
+    .filter(a => a && a.info.owner.toBase58() === '2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT')
+    .map(a => a as TokenAccount);
 
-    const mints = []
-    for (const [mint, metadata] of Object.entries(state.metadataByMint)) {
-      if (metadata.info.data.creators.some(c=>c.address==='2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT')) {
-        mints.push(metadata)
-        // console.log(metadata.info.data.uri);
-        // state.metadataByMint
-      }
-    }
 
-    const ownedMetadata = state.metadata.filter(
-      m => {
-        if (state.metadataByMint[m.info.mint] && m.info.primarySaleHappened) return true
-        else return false;
-      }
-      // && (state.metadataByMint?.get(m.info.mint)?.info?.amount?.toNumber() || 0) > 0,
+  const accountByMint = userAccounts.reduce((prev, acc) => {
+    prev.set(acc.info.mint.toBase58(), acc);
+    return prev;
+  }, new Map<string, TokenAccount>());
+
+  const _ownedMetadata = state.metadata.filter(
+    m =>
+      accountByMint.has(m.info.mint) &&
+      (accountByMint?.get(m.info.mint)?.info?.amount?.toNumber() || 0) > 0,
+  );
+
+  let items = [];
+  let i = 0;
+
+  const possibleEditions = _ownedMetadata.map(m =>
+    m.info.edition ? state.editions[m.info.edition] : undefined,
+  );
+  const possibleMasterEditions = _ownedMetadata.map(m =>
+    m.info.masterEdition ? state.masterEditions[m.info.masterEdition] : undefined,
     );
 
-    if (!ownedMetadata.length) {
-      throw new Error('No items available for sale')
+  _ownedMetadata.forEach(m => {
+    const a = accountByMint.get(m.info.mint);
+
+    const masterEdition = possibleMasterEditions[i];
+
+    let winningConfigType: WinningConfigType;
+    if (masterEdition?.info.key == MetadataKey.MasterEditionV1) {
+      winningConfigType = WinningConfigType.PrintingV1;
+    } else if (masterEdition?.info.key == MetadataKey.MasterEditionV2) {
+      if (masterEdition.info.maxSupply) {
+        winningConfigType = WinningConfigType.PrintingV2;
+      } else {
+        winningConfigType = WinningConfigType.Participation;
+      }
+    } else {
+      winningConfigType = WinningConfigType.TokenOnlyTransfer;
     }
 
-    console.log('ownedMetadata: ', JSON.stringify(ownedMetadata[0]));
-    
-    // console.log('state.metadataByMint: ', JSON.stringify(state.metadataByMint));
-    
-    // return
+    if (a) {
+      items.push({
+        holding: a.pubkey,
+        // edition: possibleEditions[i],
+        masterEdition: possibleMasterEditions[i],
+        winningConfigType,
+        metadata: m,
+        amountRanges: [],
+      })
+    }
+    i++;
+  })
+
+    items = [items[0]]
+    console.log('items to sell: ', JSON.stringify(items));
 
     const byte_array = base58.decode('5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP')
     
@@ -427,9 +475,8 @@ const loadAccounts = async (connection: Connection) => {
 
     const attributes: AuctionState = {
       reservationPrice: 0,
-      // items: [{"holding":"JDg3b2jHXf9L3Z9urhZ7vSnnAHLTkQ1aAe3NYmesePxe","masterEdition":{"pubkey":"GYZALqnjnjKKkTBMvK9JUQ9TxLumoSZDG9MLZ9qumbHQ","account":{"executable":false,"lamports":2853600,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","rentEpoch":206,"data":{"type":"Buffer","data":[6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}},"info":{"key":6,"supply":"00"}},"metadata":{"pubkey":"BJs1HrxAeQ4TVDYMZMCXMVAG2439fhaxgFJodWYuYjF3","account":{"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,21,254,162,3,8,76,172,79,36,203,85,27,252,33,74,32,74,132,220,129,248,143,144,4,102,37,232,112,86,182,252,162,32,0,0,0,117,121,106,103,106,103,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,101,75,122,57,82,72,110,97,48,65,85,81,109,113,110,104,83,121,71,70,83,105,98,112,65,89,98,51,65,118,71,86,102,78,85,115,48,48,49,111,105,89,56,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,1,1,254,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"executable":false,"lamports":5616720,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"2Urm6TkUaCo5jkiJNqFXGdGApeVCkCGLJvVmAN3y5kVX","data":{"name":"uyjgjg","symbol":"","uri":"https://arweave.net/eKz9RHna0AUQmqnhSyGFSibpAYb3AvGVfNUs001oiY8","sellerFeeBasisPoints":0,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":1,"editionNonce":null,"edition":"GYZALqnjnjKKkTBMvK9JUQ9TxLumoSZDG9MLZ9qumbHQ","masterEdition":"GYZALqnjnjKKkTBMvK9JUQ9TxLumoSZDG9MLZ9qumbHQ"}},"winningConfigType":4,"amountRanges":[],"participationConfig":{"winnerConstraint":1,"nonWinningConstraint":1,"fixedPrice":"00"}}],
-      // items: [{"holding":"8FjdMMFmZtumHS3EF3L6g1ebJuhphYUbHGFZA42bq1ep","edition":{"pubkey":"CQZE98Dy7ubNqRDbrmavr8jDyFxBz1GewsiZm5tWJ2pu","account":{"lamports":2568240,"data":{"type":"Buffer","data":[1,132,116,62,28,3,197,101,51,126,239,186,222,190,84,62,154,123,152,122,26,169,37,157,3,231,218,112,39,37,33,119,48,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","executable":false,"rentEpoch":208},"info":{"key":1,"parent":"9v3d4GoYrmU1RmG5ceEySmjg7TSyuWv9gkNtzxKQvsDy","edition":"01"}},"metadata":{"pubkey":"9aagW9hnX88J9NwCeDtW7TMHuB67cgv82BkHPxghw2gW","account":{"lamports":5616720,"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,155,55,18,47,53,216,235,35,133,49,209,224,160,48,82,249,63,132,79,138,169,175,235,81,224,166,98,30,168,215,58,229,32,0,0,0,49,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,116,85,75,45,101,79,104,117,114,51,84,106,118,95,54,87,117,110,70,85,85,103,106,107,98,121,81,53,87,77,50,81,76,52,75,109,72,81,112,107,90,109,69,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,0,1,251,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","executable":false,"rentEpoch":208},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"BStu6j4kKgby3aVgNQj5MeZsDMb13CcdshBpGyADKZ8Y","data":{"name":"1","symbol":"","uri":"https://arweave.net/tUK-eOhur3Tjv_6WunFUUgjkbyQ5WM2QL4KmHQpkZmE","sellerFeeBasisPoints":100,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":0,"editionNonce":null,"edition":"CQZE98Dy7ubNqRDbrmavr8jDyFxBz1GewsiZm5tWJ2pu","masterEdition":"CQZE98Dy7ubNqRDbrmavr8jDyFxBz1GewsiZm5tWJ2pu"}},"winningConfigType":0,"amountRanges":[]}],
-      items: [{"holding":"FJSA7N2FBGpHJN4nAEtxYRzLQp7V57WCEvXrZryFmE2M","masterEdition":{"pubkey":"8XVon7bKZeUP6ZsmwHtihsCBY2dJmm3bwjAVnq2FwwjK","account":{"lamports":2853600,"data":{"type":"Buffer","data":[6,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","executable":false,"rentEpoch":208},"info":{"key":6,"supply":"00","maxSupply":"01"}},"metadata":{"pubkey":"CM9hZL9qwoFmWXVvpUPRqB8uHua3YXDnhpZKuE7NPX3p","account":{"lamports":5616720,"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,44,81,199,39,32,252,206,5,144,144,231,251,66,221,142,119,162,164,14,174,5,209,220,199,203,241,242,166,86,226,212,42,32,0,0,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,68,48,72,110,106,108,109,114,52,122,121,75,72,75,108,121,73,57,57,99,104,56,110,56,78,99,121,98,122,80,104,111,57,77,100,116,104,50,97,115,78,51,99,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,1,1,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","executable":false,"rentEpoch":208},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"3z1GHWGDpYXXrXgWyN28roCE7FuAo4p2Tki4SJkUJrZF","data":{"name":"2","symbol":"","uri":"https://arweave.net/D0Hnjlmr4zyKHKlyI99ch8n8NcybzPho9Mdth2asN3c","sellerFeeBasisPoints":100,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":1,"editionNonce":null,"edition":"8XVon7bKZeUP6ZsmwHtihsCBY2dJmm3bwjAVnq2FwwjK","masterEdition":"8XVon7bKZeUP6ZsmwHtihsCBY2dJmm3bwjAVnq2FwwjK"}},"winningConfigType":3,"amountRanges":[]}],
+      // items: [{"holding":"ABLj17hFzoQVpzj9iMu1yKfBCxNoetBpwE3AKFaqr29b","masterEdition":{"pubkey":"9nVY2XmKbBXdxnW6F6Nqv8SM4P4dzZ8SGzsfbc6BMQsf","account":{"executable":false,"lamports":2853600,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s","rentEpoch":208,"data":{"type":"Buffer","data":[6,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}},"info":{"key":6,"supply":"00","maxSupply":"01"}},"metadata":{"pubkey":"6pMnEsNacqJksckvbjqHMGnNLpdJv36auSnsmrc9hWBM","account":{"data":{"type":"Buffer","data":[4,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,180,47,126,186,129,193,96,241,173,40,223,158,216,213,170,64,197,65,245,159,152,117,61,168,68,29,141,207,113,29,217,185,32,0,0,0,51,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,104,116,116,112,115,58,47,47,97,114,119,101,97,118,101,46,110,101,116,47,53,73,100,97,51,57,45,86,102,112,67,100,98,48,53,72,53,70,69,50,90,84,45,73,83,97,117,51,56,109,102,76,70,83,79,116,88,103,87,51,74,67,81,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,1,1,0,0,0,28,184,136,170,74,33,40,136,127,181,104,233,195,7,31,138,16,68,104,177,78,56,28,61,231,98,107,79,238,179,108,206,1,100,0,1,1,254,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"executable":false,"lamports":5616720,"owner":"metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"},"info":{"key":4,"updateAuthority":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","mint":"D8NPeTZkPog5M69JQ7ZEDjHWitBjvNM4jB1Vamz6o1Eg","data":{"name":"3","symbol":"","uri":"https://arweave.net/5Ida39-VfpCdb05H5FE2ZT-ISau38mfLFSOtXgW3JCQ","sellerFeeBasisPoints":100,"creators":[{"address":"2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT","verified":1,"share":100}]},"primarySaleHappened":0,"isMutable":1,"editionNonce":null,"edition":"9nVY2XmKbBXdxnW6F6Nqv8SM4P4dzZ8SGzsfbc6BMQsf","masterEdition":"9nVY2XmKbBXdxnW6F6Nqv8SM4P4dzZ8SGzsfbc6BMQsf"}},"winningConfigType":3,"amountRanges":[]}],
+      items,
 
       category: AuctionCategory.InstantSale,
       auctionDurationType: 'minutes',
@@ -450,11 +497,12 @@ const loadAccounts = async (connection: Connection) => {
     if (attributes.items.length > 0) {
       const item = attributes.items[0];
       if (!attributes.editions) {
-        item.winningConfigType =
-          item.metadata.info.updateAuthority ===
-          (wallet?.publicKey || SystemProgram.programId).toBase58()
-            ? WinningConfigType.FullRightsTransfer
-            : WinningConfigType.TokenOnlyTransfer;
+        // item.winningConfigType =
+        //   item.metadata.info.updateAuthority ===
+        //   (wallet?.publicKey || SystemProgram.programId).toBase58()
+        //     ? WinningConfigType.FullRightsTransfer
+        //     : WinningConfigType.TokenOnlyTransfer;
+        item.winningConfigType = WinningConfigType.TokenOnlyTransfer
       }
       item.amountRanges = [
         new AmountRange({
