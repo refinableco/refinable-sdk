@@ -2,17 +2,13 @@ import {
   Keypair,
   clusterApiUrl,
   Connection,
-  Transaction,
   PublicKey,
   SystemProgram,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import { uniqWith } from 'lodash';
 import BN from 'bn.js';
-import {
-  ENV as ChainId,
-} from '@solana/spl-token-registry';
-const fs = import('fs')
+import { ENV as ChainId } from '@solana/spl-token-registry';
 import { precacheUserTokenAccounts } from './oyster/contexts/accounts'
 import { createPipelineExecutor } from './utils/createPipelineExecutor';
 import {
@@ -40,15 +36,9 @@ import {
   MetadataKey,
 } from './oyster';
 
-import {TokenAccountParser} from './oyster/contexts/accounts/parsesrs'
-
-import {getMultipleAccounts} from './oyster/contexts/accounts/getMultipleAccounts'
-
+import { TokenAccountParser } from './oyster/contexts/accounts/parsesrs'
+import { getMultipleAccounts } from './oyster/contexts/accounts/getMultipleAccounts'
 import { ParsedAccount } from './oyster/contexts/accounts/types';
-
-
-
-
 
 import {
   AUCTION_ID,
