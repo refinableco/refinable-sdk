@@ -132,50 +132,6 @@ enum AuctionCategory {
   Tiered,
 }
 
-type ENV =
-  | 'mainnet-beta'
-  | 'mainnet-beta (Solana)'
-  | 'mainnet-beta (Serum)'
-  | 'testnet'
-  | 'devnet'
-  | 'localnet'
-  | 'lending';
-
-const ENDPOINTS = [
-  {
-    name: 'mainnet-beta' as ENV,
-    endpoint: 'https://api.metaplex.solana.com/',
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: 'mainnet-beta (Solana)' as ENV,
-    endpoint: 'https://api.mainnet-beta.solana.com',
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: 'mainnet-beta (Serum)' as ENV,
-    endpoint: 'https://solana-api.projectserum.com/',
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: 'testnet' as ENV,
-    endpoint: clusterApiUrl('testnet'),
-    ChainId: ChainId.Testnet,
-  },
-  {
-    name: 'devnet' as ENV,
-    endpoint: clusterApiUrl('devnet'),
-    ChainId: ChainId.Devnet,
-  },
-];
-
-const DEFAULT = ENDPOINTS[ENDPOINTS.length-1].endpoint;
-
-const connection = new Connection(DEFAULT, 'recent');
-
-const MY_SOL_PUBLIC_KEY = '2w7cres1zQ8yNBHpxfLWw9EaJAHfDThHnJkLNwvJQ9XT'
-const MY_SOL_SECRET_KEY = '5G94Azn6n9VMjVPpop6oyAj21ZvL27oY89TGhhGx7qbWoQ9mKcku7Qo4sL2qbsgvabNsFqa7iU8TSp2vGN5XcyZP'
-
 const processingAccounts =
   (updater: UpdateStateValueFunc) =>
   (fn: ProcessAccountsFunc) =>
@@ -343,7 +299,7 @@ const pullEditions = async (
   );
 };
 
-const getItemsAndPutOnSale = async (connection: Connection) => {
+export const getItemsAndPutFirstItemOnSale = async (connection: Connection, publicKey: string, secretKey: string) => {
   const state: MetaState = getEmptyMetaState();
   const updateState = makeSetter(state);
   const forEachAccount = processingAccounts(updateState);
@@ -394,10 +350,10 @@ const getItemsAndPutOnSale = async (connection: Connection) => {
   );
   // const proc = require('child_process').spawn('pbcopy'); 
   // proc.stdin.write(JSON.stringify(state)); proc.stdin.end();
-  await precacheUserTokenAccounts(connection, new PublicKey(MY_SOL_PUBLIC_KEY))
+  await precacheUserTokenAccounts(connection, new PublicKey(publicKey))
   const userAccounts = cache.byParser(TokenAccountParser)
     .map(id => cache.get(id))
-    .filter(a => a && a.info.owner.toBase58() === MY_SOL_PUBLIC_KEY)
+    .filter(a => a && a.info.owner.toBase58() === publicKey)
     .map(a => a as TokenAccount);
 
   const accountByMint = userAccounts.reduce((prev, acc) => {
@@ -451,115 +407,117 @@ const getItemsAndPutOnSale = async (connection: Connection) => {
     }
     i++;
   })
+  if (!items.length) {
+    console.log('No items to sell');
+    return;
+  }
 
-    items = [items[0]] // for now only sell 1 item at a time
-    console.log('items to sell: ', JSON.stringify(items));
+  items = [items[0]] // for now only sell 1 item at a time
+  console.log('items to sell: ', JSON.stringify(items));
 
-    const byte_array = base58.decode(MY_SOL_SECRET_KEY)
-    
-    const payer = Keypair.fromSecretKey(
-      byte_array
-    );
+  const byte_array = base58.decode(secretKey)
+  
+  const payer = Keypair.fromSecretKey(
+    byte_array
+  );
 
-    const wallet = new NodeWallet(payer);
+  const wallet = new NodeWallet(payer);
 
-    const attributes: AuctionState = {
-      reservationPrice: 0,
-      items,
-      category: AuctionCategory.InstantSale,
-      auctionDurationType: 'minutes',
-      gapTimeType: 'minutes',
-      winnersCount: 1,
-      startSaleTS: new Date().getTime(),
-      startListTS: new Date().getTime(),
-      instantSalePrice: 1,
-      priceFloor: 1
+  const attributes: AuctionState = {
+    reservationPrice: 0,
+    items,
+    category: AuctionCategory.InstantSale,
+    auctionDurationType: 'minutes',
+    gapTimeType: 'minutes',
+    winnersCount: 1,
+    startSaleTS: new Date().getTime(),
+    startListTS: new Date().getTime(),
+    instantSalePrice: 1,
+    priceFloor: 1
+  }
+
+  const isInstantSale =
+  attributes.instantSalePrice &&
+  attributes.priceFloor === attributes.instantSalePrice;
+
+  let winnerLimit: WinnerLimit;
+
+  if (attributes.items.length > 0) {
+    const item = attributes.items[0];
+    if (!attributes.editions) {
+      item.winningConfigType =
+        item.metadata.info.updateAuthority ===
+        (wallet?.publicKey || SystemProgram.programId).toBase58()
+          ? WinningConfigType.FullRightsTransfer
+          : WinningConfigType.TokenOnlyTransfer;
     }
-
-    const isInstantSale =
-    attributes.instantSalePrice &&
-    attributes.priceFloor === attributes.instantSalePrice;
-
-    let winnerLimit: WinnerLimit;
-
-    if (attributes.items.length > 0) {
-      const item = attributes.items[0];
-      if (!attributes.editions) {
-        item.winningConfigType =
-          item.metadata.info.updateAuthority ===
-          (wallet?.publicKey || SystemProgram.programId).toBase58()
-            ? WinningConfigType.FullRightsTransfer
-            : WinningConfigType.TokenOnlyTransfer;
-      }
-      item.amountRanges = [
-        new AmountRange({
-          amount: new BN(1),
-          length: new BN(attributes.editions || 1),
-        }),
-      ];
-    }
-    winnerLimit = new WinnerLimit({
-      type: WinnerLimitType.Capped,
-      usize: new BN(attributes.editions || 1),
-    });
-
-    const auctionSettings: IPartialCreateAuctionArgs = {
-      winners: winnerLimit,
-      endAuctionAt: isInstantSale
-        ? null
-        : new BN(
-            (attributes.auctionDuration || 0) *
-              (attributes.auctionDurationType == 'days'
-                ? 60 * 60 * 24 // 1 day in seconds
-                : attributes.auctionDurationType == 'hours'
-                ? 60 * 60 // 1 hour in seconds
-                : 60), // 1 minute in seconds
-          ), // endAuctionAt is actually auction duration, poorly named, in seconds
-      auctionGap: isInstantSale
-        ? null
-        : new BN(
-            (attributes.gapTime || 0) *
-              (attributes.gapTimeType == 'days'
-                ? 60 * 60 * 24 // 1 day in seconds
-                : attributes.gapTimeType == 'hours'
-                ? 60 * 60 // 1 hour in seconds
-                : 60), // 1 minute in seconds
-          ),
-      priceFloor: new PriceFloor({
-        // type: attributes.priceFloor
-        //   ? PriceFloorType.Minimum
-        //   : PriceFloorType.None,
-        type: PriceFloorType.Minimum,
-        minPrice: new BN((attributes.priceFloor || 0) * LAMPORTS_PER_SOL),
+    item.amountRanges = [
+      new AmountRange({
+        amount: new BN(1),
+        length: new BN(attributes.editions || 1),
       }),
-      tokenMint: QUOTE_MINT.toBase58(),
-      gapTickSizePercentage: attributes.tickSizeEndingPhase || null,
-      tickSize: attributes.priceTick
-        ? new BN(attributes.priceTick * LAMPORTS_PER_SOL)
-        : null,
-      instantSalePrice: attributes.instantSalePrice
-        ? new BN((attributes.instantSalePrice || 0) * LAMPORTS_PER_SOL)
-        : null,
-      name: null,
-    };
+    ];
+  }
+  winnerLimit = new WinnerLimit({
+    type: WinnerLimitType.Capped,
+    usize: new BN(attributes.editions || 1),
+  });
 
-    const tieredAttributes = {
-      items: [],
-      tiers: [],
-    }
+  const auctionSettings: IPartialCreateAuctionArgs = {
+    winners: winnerLimit,
+    endAuctionAt: isInstantSale
+      ? null
+      : new BN(
+          (attributes.auctionDuration || 0) *
+            (attributes.auctionDurationType == 'days'
+              ? 60 * 60 * 24 // 1 day in seconds
+              : attributes.auctionDurationType == 'hours'
+              ? 60 * 60 // 1 hour in seconds
+              : 60), // 1 minute in seconds
+        ), // endAuctionAt is actually auction duration, poorly named, in seconds
+    auctionGap: isInstantSale
+      ? null
+      : new BN(
+          (attributes.gapTime || 0) *
+            (attributes.gapTimeType == 'days'
+              ? 60 * 60 * 24 // 1 day in seconds
+              : attributes.gapTimeType == 'hours'
+              ? 60 * 60 // 1 hour in seconds
+              : 60), // 1 minute in seconds
+        ),
+    priceFloor: new PriceFloor({
+      // type: attributes.priceFloor
+      //   ? PriceFloorType.Minimum
+      //   : PriceFloorType.None,
+      type: PriceFloorType.Minimum,
+      minPrice: new BN((attributes.priceFloor || 0) * LAMPORTS_PER_SOL),
+    }),
+    tokenMint: QUOTE_MINT.toBase58(),
+    gapTickSizePercentage: attributes.tickSizeEndingPhase || null,
+    tickSize: attributes.priceTick
+      ? new BN(attributes.priceTick * LAMPORTS_PER_SOL)
+      : null,
+    instantSalePrice: attributes.instantSalePrice
+      ? new BN((attributes.instantSalePrice || 0) * LAMPORTS_PER_SOL)
+      : null,
+    name: null,
+  };
 
-    createAuctionManager(connection,wallet, state.whitelistedCreatorsByCreator, auctionSettings,       
-      attributes.category === AuctionCategory.Open
-        ? []
-        : attributes.category !== AuctionCategory.Tiered
-        ? attributes.items
-        : tieredAttributes.items,
-      attributes.category === AuctionCategory.Open
-        ? attributes.items[0]
-        : attributes.participationNFT,
-      QUOTE_MINT.toBase58());
+  const tieredAttributes = {
+    items: [],
+    tiers: [],
+  }
+
+  createAuctionManager(connection,wallet, state.whitelistedCreatorsByCreator, auctionSettings,       
+    attributes.category === AuctionCategory.Open
+      ? []
+      : attributes.category !== AuctionCategory.Tiered
+      ? attributes.items
+      : tieredAttributes.items,
+    attributes.category === AuctionCategory.Open
+      ? attributes.items[0]
+      : attributes.participationNFT,
+    QUOTE_MINT.toBase58());
 
   return state;
 };
-
-getItemsAndPutOnSale(connection)
