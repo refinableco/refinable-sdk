@@ -11,6 +11,7 @@ import {
 import Account from "./Account";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
+import { RefinableOptions } from "./interfaces";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
@@ -59,11 +60,6 @@ export type AllContractTypes =
   | "RefinableERC721WhiteListedToken"
   | "RefinableERC721WhiteListedTokenV2";
 
-interface RefinableOptions {
-  waitConfirmations?: number;
-  apiUrl?: string;
-}
-
 enum OfferType {
   Sale = "SALE",
   Auction = "AUCTION",
@@ -72,6 +68,7 @@ export enum UserItemFilterType {
   Created = "CREATED",
   Owned = "OWNED",
 }
+
 export class Refinable {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
