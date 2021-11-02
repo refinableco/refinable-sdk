@@ -48,13 +48,15 @@ import { getEmptyMetaState } from './solana/oyster/contexts/meta/getEmptyMetaSta
 import { cache } from './solana/contexts/accounts';
 import { SOLNFT } from "./nft/SOLNFT";
 import { RefinableBase, RefinableOptions } from "./RefinableBase";
+import { QUOTE_MINT } from "./solana/constants";
 
-export interface NFTItem {
+export interface SolNFTItem {
   holding: string,
   masterEdition: ParsedAccount<MasterEditionV1|MasterEditionV2>,
   winningConfigType: WinningConfigType,
   metadata: ParsedAccount<Metadata>,
   amountRanges: [],
+  tokenId: StringPublicKey,
 }
 
 export class RefinableSolana extends RefinableBase {
@@ -331,7 +333,7 @@ export class RefinableSolana extends RefinableBase {
         (accountByMint?.get(m.info.mint)?.info?.amount?.toNumber() || 0) > 0,
     );
   
-    let items: NFTItem[] = [];
+    let items: SolNFTItem[] = [];
     let i = 0;
   
     const possibleEditions = _ownedMetadata.map(m =>
@@ -342,7 +344,7 @@ export class RefinableSolana extends RefinableBase {
       );
   
     _ownedMetadata.forEach(m => {
-      const a = accountByMint.get(m.info.mint);
+      const tokenAccount = accountByMint.get(m.info.mint);
   
       const masterEdition = possibleMasterEditions[i];
   
@@ -359,14 +361,15 @@ export class RefinableSolana extends RefinableBase {
         winningConfigType = WinningConfigType.TokenOnlyTransfer;
       }
   
-      if (a) {
+      if (tokenAccount) {
         items.push({
-          holding: a.pubkey,
+          holding: tokenAccount.pubkey,
           // edition: possibleEditions[i],
           masterEdition: possibleMasterEditions[i],
           winningConfigType,
           metadata: m,
           amountRanges: [],
+          tokenId: QUOTE_MINT.toBase58()
         })
       }
       i++;
@@ -378,7 +381,7 @@ export class RefinableSolana extends RefinableBase {
     };
   };
 
-  createNft(item: NFTItem ): SOLNFT {
+  createNft(item: SolNFTItem ): SOLNFT {
     if (!item) return null;
     return new SOLNFT(this, item);
   }
