@@ -426,7 +426,6 @@ export async function sendSignedTransaction({
   })();
   try {
     const res = await connection.confirmTransaction(txid,'recent')
-    // console.log('----------aaaaa');
     const confirmation = await awaitTransactionSignatureConfirmation(
       txid,
       timeout,
@@ -435,15 +434,8 @@ export async function sendSignedTransaction({
       true,
     );
 
-    console.log('=====res: ', res);
-    
-
     if (res.value.err)
-      console.log('======res.value.err: ', res.value.err);
-      
-    
-    // console.log('----------bbbbbb');
-    // res.context.slot
+      console.log('res.value.err: ', res.value.err);
 
     if (!confirmation)
       throw new Error('Timed out awaiting confirmation on transaction');
@@ -507,7 +499,6 @@ async function simulateTransaction(
 
   // @ts-ignore
   const res = await connection._rpcRequest('simulateTransaction', args);
-  // console.log('+++++++res: ', res);
   
   if (res.error) {
     throw new Error('failed to simulate transaction: ' + res.error.message);

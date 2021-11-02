@@ -4,6 +4,7 @@ import {
   TokenType,
   OfferType,
 } from "./@types/graphql";
+import { NftMap } from "./interfaces";
 import { Chain } from "./interfaces/Network";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder } from "./nft/builder/NFTBuilder";
@@ -18,7 +19,7 @@ import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyalty
 import { AuctionOffer } from "./offer/AuctionOffer";
 import { Offer, PartialOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
-import { NftMap, Refinable } from "./Refinable";
+import { Refinable } from "./Refinable";
 import * as is from "./utils/is";
 export * from "./providers";
 

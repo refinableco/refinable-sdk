@@ -1,14 +1,9 @@
 import { Connection } from "@solana/web3.js";
 import { GraphQLClient } from "graphql-request";
-import { RefinableOptions } from "./interfaces";
+import { RefinableBase, RefinableOptions } from "./interfaces";
 import { NodeWallet } from "./solana/wallet";
-import {
-  PublicKey,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
-} from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { uniqWith } from 'lodash';
-import BN from 'bn.js';
 import { precacheUserTokenAccounts } from './solana/oyster/contexts/accounts'
 import { createPipelineExecutor } from './solana/utils/createPipelineExecutor';
 import {
@@ -34,13 +29,9 @@ import {
   MAX_WHITELISTED_CREATOR_SIZE,
   TokenAccount,
   MetadataKey,
-  IPartialCreateAuctionArgs,
-  WinnerLimit,
-  WinnerLimitType,
-  PriceFloor,
-  PriceFloorType,
   WinningConfigType,
-  AmountRange,
+  MasterEditionV1,
+  MasterEditionV2,
 } from './solana/oyster';
 import { TokenAccountParser } from './solana/oyster/contexts/accounts/parsesrs'
 import { getMultipleAccounts } from './solana/oyster/contexts/accounts/getMultipleAccounts'
@@ -53,74 +44,20 @@ import {
   toPublicKey,
   VAULT_ID,
 } from './solana/utils/ids';
-import { createAuctionManager, SafetyDepositDraft } from './solana/actions/createAuctionManager'
-import { QUOTE_MINT } from './solana/constants';
 import { getProgramAccounts } from './solana/oyster/contexts/meta/web3';
 import { getEmptyMetaState } from './solana/oyster/contexts/meta/getEmptyMetaState';
 import { cache } from './solana/contexts/accounts';
+import { SOLNFT } from "./nft/SOLNFT";
 
-interface TierDummyEntry {
-  safetyDepositBoxIndex: number;
-  amount: number;
-  winningConfigType: WinningConfigType;
-}
-interface Tier {
-  items: (TierDummyEntry | {})[];
-  winningSpots: number[];
-}
-
-interface AuctionState {
-  // Min price required for the item to sell
-  reservationPrice: number;
-
-  // listed NFTs
-  // items: SafetyDepositDraft[];
-  items: any;
-  participationNFT?: SafetyDepositDraft;
-  participationFixedPrice?: number;
-  // number of editions for this auction (only applicable to limited edition)
-  editions?: number;
-
-  // date time when auction should start UTC+0
-  startDate?: Date;
-
-  // suggested date time when auction should end UTC+0
-  endDate?: Date;
-
-  //////////////////
-  category: AuctionCategory;
-
-  price?: number;
-  priceFloor?: number;
-  priceTick?: number;
-
-  startSaleTS?: number;
-  startListTS?: number;
-  endTS?: number;
-
-  auctionDuration?: number;
-  auctionDurationType?: 'days' | 'hours' | 'minutes';
-  gapTime?: number;
-  gapTimeType?: 'days' | 'hours' | 'minutes';
-  tickSizeEndingPhase?: number;
-
-  spots?: number;
-  tiers?: Array<Tier>;
-
-  winnersCount: number;
-
-  instantSalePrice?: number;
+export interface NFTItem {
+  holding: string,
+  masterEdition: ParsedAccount<MasterEditionV1|MasterEditionV2>,
+  winningConfigType: WinningConfigType,
+  metadata: ParsedAccount<Metadata>,
+  amountRanges: [],
 }
 
-enum AuctionCategory {
-  InstantSale,
-  Limited,
-  Single,
-  Open,
-  Tiered,
-}
-
-export class RefinableSolana {
+export class RefinableSolana extends RefinableBase {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
   private _apiKey: string;
@@ -156,6 +93,7 @@ export class RefinableSolana {
     public readonly accountAddress: string,
     options: Partial<RefinableOptions> = {}
   ) {
+    super();
     const { waitConfirmations = 3 } = options;
 
     this._options = {
@@ -169,6 +107,10 @@ export class RefinableSolana {
 
   get options() {
     return this._options;
+  }
+
+  get connection() {
+    return this._connection;
   }
 
   get apiClient() {
@@ -349,7 +291,7 @@ export class RefinableSolana {
     );
   };
 
-  getItemsAndPutFirstItemOnSale = async () => {
+  getItemsFromChain = async () => {
     const state: MetaState = getEmptyMetaState();
     const updateState = this.makeSetter(state);
     const forEachAccount = this.processingAccounts(updateState);
@@ -416,7 +358,7 @@ export class RefinableSolana {
         (accountByMint?.get(m.info.mint)?.info?.amount?.toNumber() || 0) > 0,
     );
   
-    let items = [];
+    let items: NFTItem[] = [];
     let i = 0;
   
     const possibleEditions = _ownedMetadata.map(m =>
@@ -456,110 +398,15 @@ export class RefinableSolana {
       }
       i++;
     })
-    if (!items.length) {
-      console.log('No items to sell');
-      return;
-    }
-  
-    items = [items[0]] // for now only sell 1 item at a time
-    console.log('items to sell: ', JSON.stringify(items));
-  
-    const attributes: AuctionState = {
-      reservationPrice: 0,
+
+    return {
       items,
-      category: AuctionCategory.InstantSale,
-      auctionDurationType: 'minutes',
-      gapTimeType: 'minutes',
-      winnersCount: 1,
-      startSaleTS: new Date().getTime(),
-      startListTS: new Date().getTime(),
-      instantSalePrice: 1,
-      priceFloor: 1
-    }
-  
-    const isInstantSale =
-    attributes.instantSalePrice &&
-    attributes.priceFloor === attributes.instantSalePrice;
-  
-    let winnerLimit: WinnerLimit;
-  
-    if (attributes.items.length > 0) {
-      const item = attributes.items[0];
-      if (!attributes.editions) {
-        item.winningConfigType =
-          item.metadata.info.updateAuthority ===
-          (this.provider?.publicKey || SystemProgram.programId).toBase58()
-            ? WinningConfigType.FullRightsTransfer
-            : WinningConfigType.TokenOnlyTransfer;
-      }
-      item.amountRanges = [
-        new AmountRange({
-          amount: new BN(1),
-          length: new BN(attributes.editions || 1),
-        }),
-      ];
-    }
-    winnerLimit = new WinnerLimit({
-      type: WinnerLimitType.Capped,
-      usize: new BN(attributes.editions || 1),
-    });
-  
-    const auctionSettings: IPartialCreateAuctionArgs = {
-      winners: winnerLimit,
-      endAuctionAt: isInstantSale
-        ? null
-        : new BN(
-            (attributes.auctionDuration || 0) *
-              (attributes.auctionDurationType == 'days'
-                ? 60 * 60 * 24 // 1 day in seconds
-                : attributes.auctionDurationType == 'hours'
-                ? 60 * 60 // 1 hour in seconds
-                : 60), // 1 minute in seconds
-          ), // endAuctionAt is actually auction duration, poorly named, in seconds
-      auctionGap: isInstantSale
-        ? null
-        : new BN(
-            (attributes.gapTime || 0) *
-              (attributes.gapTimeType == 'days'
-                ? 60 * 60 * 24 // 1 day in seconds
-                : attributes.gapTimeType == 'hours'
-                ? 60 * 60 // 1 hour in seconds
-                : 60), // 1 minute in seconds
-          ),
-      priceFloor: new PriceFloor({
-        // type: attributes.priceFloor
-        //   ? PriceFloorType.Minimum
-        //   : PriceFloorType.None,
-        type: PriceFloorType.Minimum,
-        minPrice: new BN((attributes.priceFloor || 0) * LAMPORTS_PER_SOL),
-      }),
-      tokenMint: QUOTE_MINT.toBase58(),
-      gapTickSizePercentage: attributes.tickSizeEndingPhase || null,
-      tickSize: attributes.priceTick
-        ? new BN(attributes.priceTick * LAMPORTS_PER_SOL)
-        : null,
-      instantSalePrice: attributes.instantSalePrice
-        ? new BN((attributes.instantSalePrice || 0) * LAMPORTS_PER_SOL)
-        : null,
-      name: null,
+      whitelistedCreators: state.whitelistedCreatorsByCreator
     };
-  
-    const tieredAttributes = {
-      items: [],
-      tiers: [],
-    }
-  
-    createAuctionManager(this._connection, this.provider, state.whitelistedCreatorsByCreator, auctionSettings,       
-      attributes.category === AuctionCategory.Open
-        ? []
-        : attributes.category !== AuctionCategory.Tiered
-        ? attributes.items
-        : tieredAttributes.items,
-      attributes.category === AuctionCategory.Open
-        ? attributes.items[0]
-        : attributes.participationNFT,
-      QUOTE_MINT.toBase58());
-  
-    return state;
   };
+
+  createNft(item: NFTItem ): SOLNFT {
+    if (!item) return null;
+    return new SOLNFT(this, item);
+  }
 }

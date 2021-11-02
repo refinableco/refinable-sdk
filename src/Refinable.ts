@@ -11,7 +11,7 @@ import {
 import Account from "./Account";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
-import { RefinableOptions } from "./interfaces";
+import { ClassType, nftMap, RefinableBase, RefinableOptions, SingleKeys } from "./interfaces";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
@@ -21,19 +21,19 @@ import { OfferFactory } from "./offer/OfferFactory";
 import { RefinableContracts } from "./RefinableContracts";
 import { limit } from "./utils/limitItems";
 
-export const nftMap = {
-  [TokenType.Erc721]: ERC721NFT,
-  [TokenType.Erc1155]: ERC1155NFT,
-};
+// export const nftMap = {
+//   [TokenType.Erc721]: ERC721NFT,
+//   [TokenType.Erc1155]: ERC1155NFT,
+// };
 
-export type NftMap = typeof nftMap;
-type Tuples<T, F> = T extends TokenType ? [T, InstanceType<NftMap[T]>] : F;
-type SingleKeys<K> = [K] extends (K extends TokenType ? [K] : string)
-  ? K
-  : string;
-type ClassType<A extends TokenType, F extends AbstractNFT> =
-  | Extract<Tuples<TokenType, F>, [A, any]>[1]
-  | F;
+// export type NftMap = typeof nftMap;
+// type Tuples<T, F> = T extends TokenType ? [T, InstanceType<NftMap[T]>] : F;
+// type SingleKeys<K> = [K] extends (K extends TokenType ? [K] : string)
+//   ? K
+//   : string;
+// type ClassType<A extends TokenType, F extends AbstractNFT> =
+//   | Extract<Tuples<TokenType, F>, [A, any]>[1]
+//   | F;
 
 export type ContractType =
   | "ERC721_TOKEN"
@@ -69,7 +69,7 @@ export enum UserItemFilterType {
   Owned = "OWNED",
 }
 
-export class Refinable {
+export class Refinable extends RefinableBase {
   private _apiClient?: GraphQLClient;
   private _options: RefinableOptions;
   private _apiKey: string;
@@ -109,6 +109,7 @@ export class Refinable {
     public readonly accountAddress: string,
     options: Partial<RefinableOptions> = {}
   ) {
+    super();
     const { waitConfirmations = 3 } = options;
 
     this._options = {
