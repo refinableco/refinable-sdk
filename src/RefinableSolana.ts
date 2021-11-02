@@ -1,6 +1,5 @@
 import { Connection } from "@solana/web3.js";
 import { GraphQLClient } from "graphql-request";
-import { RefinableBase, RefinableOptions } from "./interfaces";
 import { NodeWallet } from "./solana/wallet";
 import { PublicKey } from '@solana/web3.js';
 import { uniqWith } from 'lodash';
@@ -48,6 +47,7 @@ import { getProgramAccounts } from './solana/oyster/contexts/meta/web3';
 import { getEmptyMetaState } from './solana/oyster/contexts/meta/getEmptyMetaState';
 import { cache } from './solana/contexts/accounts';
 import { SOLNFT } from "./nft/SOLNFT";
+import { RefinableBase, RefinableOptions } from "./RefinableBase";
 
 export interface NFTItem {
   holding: string,
@@ -58,9 +58,6 @@ export interface NFTItem {
 }
 
 export class RefinableSolana extends RefinableBase {
-  private _apiClient?: GraphQLClient;
-  private _options: RefinableOptions;
-  private _apiKey: string;
   private _connection: Connection;
 
   static async create(
@@ -94,34 +91,10 @@ export class RefinableSolana extends RefinableBase {
     options: Partial<RefinableOptions> = {}
   ) {
     super();
-    const { waitConfirmations = 3 } = options;
-
-    this._options = {
-      waitConfirmations,
-    };
-  }
-
-  get apiKey() {
-    return this._apiKey;
-  }
-
-  get options() {
-    return this._options;
   }
 
   get connection() {
     return this._connection;
-  }
-
-  get apiClient() {
-    if (!this._apiClient) {
-      throw new Error("Api Client was not initialized");
-    }
-    return this._apiClient;
-  }
-
-  set apiClient(apiClient) {
-    this._apiClient = apiClient;
   }
 
   private processingAccounts =

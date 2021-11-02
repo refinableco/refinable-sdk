@@ -1,17 +1,12 @@
+import { GraphQLClient } from "graphql-request";
 import { TokenType } from "./@types/graphql";
+import Account from "./Account";
 import { AbstractNFT } from "./nft/AbstractNFT";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
+import { RefinableContracts } from "./RefinableContracts";
 import { SafetyDepositDraft } from "./solana/actions/createAuctionManager";
 import { WinningConfigType } from "./solana/oyster";
-
-export class RefinableBase {
-
-}
-export interface RefinableOptions {
-    waitConfirmations?: number;
-    apiUrl?: string;
-}
 
 export const nftMap = {
     [TokenType.Erc721]: ERC721NFT,

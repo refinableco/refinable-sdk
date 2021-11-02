@@ -11,29 +11,14 @@ import {
 import Account from "./Account";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
-import { ClassType, nftMap, RefinableBase, RefinableOptions, SingleKeys } from "./interfaces";
+import { ClassType, nftMap, SingleKeys } from "./interfaces";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
-import { ERC1155NFT } from "./nft/ERC1155NFT";
-import { ERC721NFT } from "./nft/ERC721NFT";
 import { PartialOffer } from "./offer/Offer";
 import { OfferFactory } from "./offer/OfferFactory";
+import { RefinableBase, RefinableOptions } from "./RefinableBase";
 import { RefinableContracts } from "./RefinableContracts";
 import { limit } from "./utils/limitItems";
-
-// export const nftMap = {
-//   [TokenType.Erc721]: ERC721NFT,
-//   [TokenType.Erc1155]: ERC1155NFT,
-// };
-
-// export type NftMap = typeof nftMap;
-// type Tuples<T, F> = T extends TokenType ? [T, InstanceType<NftMap[T]>] : F;
-// type SingleKeys<K> = [K] extends (K extends TokenType ? [K] : string)
-//   ? K
-//   : string;
-// type ClassType<A extends TokenType, F extends AbstractNFT> =
-//   | Extract<Tuples<TokenType, F>, [A, any]>[1]
-//   | F;
 
 export type ContractType =
   | "ERC721_TOKEN"
@@ -70,9 +55,6 @@ export enum UserItemFilterType {
 }
 
 export class Refinable extends RefinableBase {
-  private _apiClient?: GraphQLClient;
-  private _options: RefinableOptions;
-  private _apiKey: string;
   public account: Account;
   public contracts: RefinableContracts;
 
@@ -115,25 +97,6 @@ export class Refinable extends RefinableBase {
     this._options = {
       waitConfirmations,
     };
-  }
-
-  get apiKey() {
-    return this._apiKey;
-  }
-
-  get options() {
-    return this._options;
-  }
-
-  get apiClient() {
-    if (!this._apiClient) {
-      throw new Error("Api Client was not initialized");
-    }
-    return this._apiClient;
-  }
-
-  set apiClient(apiClient) {
-    this._apiClient = apiClient;
   }
 
   nftBuilder(params?: NftBuilderParams) {
