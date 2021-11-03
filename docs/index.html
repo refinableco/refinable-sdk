@@ -1,0 +1,412 @@
+<!DOCTYPE html><html class="default no-js"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@refinableco/refinable-sdk</title><meta name="description" content="Documentation for @refinableco/refinable-sdk"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@refinableco/refinable-sdk</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>@refinableco/refinable-sdk</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#refinable-sdk" id="refinable-sdk" style="color: inherit; text-decoration: none;">
+  <h1>refinable-sdk</h1>
+</a>
+<p><code>refinable-sdk</code> is a NPM package that can be added to the project to work with Refinable contracts.</p>
+
+<a href="#get-started" id="get-started" style="color: inherit; text-decoration: none;">
+  <h2>Get started</h2>
+</a>
+
+<a href="#tldr---run-the-examples-against-testnet" id="tldr---run-the-examples-against-testnet" style="color: inherit; text-decoration: none;">
+  <h2>TL;DR - Run the examples against testnet</h2>
+</a>
+<p>We have created some examples inside of the <a href="./examples"><code>examples</code></a> directory. These illustrate the functionality of the SDK and are easily executable.</p>
+<p><strong>How to run the 721 mint example</strong></p>
+<ol>
+<li><code>yarn install</code></li>
+<li><code>PRIVATE_KEY=&lt;your private key&gt; API_KEY=&lt;refinable api key&gt; npx ts-node ./examples/mint/mint721.ts</code></li>
+</ol>
+<p>After executing this, you can view your nft at <a href="https://app-testnet.refinable.com/">https://app-testnet.refinable.com/</a>.</p>
+<blockquote>
+<p>These are just example scripts we wrote, the <code>PRIVATE_KEY</code> is only to initialize the ethers provider. We do not send or save your private key anywhere. Please view the example script for the details on this.</p>
+</blockquote>
+
+<a href="#how-to-configure-everything" id="how-to-configure-everything" style="color: inherit; text-decoration: none;">
+  <h2>How to configure everything</h2>
+</a>
+<p>To get started, create an instance of the refinable sdk.</p>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">Refinable</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">refinable</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">Refinable</span><span class="hl-1">.</span><span class="hl-6">create</span><span class="hl-1">(</span><span class="hl-2">wallet</span><span class="hl-1">, </span><span class="hl-3">&quot;API_KEY&quot;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-7">// Optional options</span><br/><span class="hl-1">});</span>
+</code></pre>
+<p>Where there are some arguments
+|Argument|Description|Values|
+|---|---|---|
+|wallet | The Provider that is allowed to call functions. | Ethers Signer |
+|Api Key|The API key, obtained from Refinable|string|
+|options|Options for customizing the SDK|RefinableOptions|</p>
+
+<a href="#initialize-wallet" id="initialize-wallet" style="color: inherit; text-decoration: none;">
+  <h2>Initialize wallet</h2>
+</a>
+<p>To write scripts with our SDK, you&#39;ll need to initialize a wallet. When you&#39;re doing this from a user-facing platform like a browser. You do not need this as you&#39;ll be able to pass the provider injected by metamask.
+For initializing the wallet you can rely on the added helper factories. When initializing your wallet, please select a chain you want to connect to. Currently the supported chains are <code>BscTestnet</code>, <code>BscMainnet</code>, <code>PolygonTestnet</code>, <code>PolygonMainnet</code>, <code>Ethereum</code>, <code>EthereumRinkeby</code>.</p>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">initializeWallet</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">wallet</span><span class="hl-1"> = </span><span class="hl-6">initializeWallet</span><span class="hl-1">(</span><span class="hl-5">PRIVATE_KEY</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><span class="hl-1">);</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">address</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">wallet</span><span class="hl-1">.</span><span class="hl-6">getAddress</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#methods" id="methods" style="color: inherit; text-decoration: none;">
+  <h2>Methods</h2>
+</a>
+
+<a href="#minting-a-new-nft" id="minting-a-new-nft" style="color: inherit; text-decoration: none;">
+  <h3>Minting a new NFT</h3>
+</a>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">StandardRoyaltyStrategy</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-4">*</span><span class="hl-1"> </span><span class="hl-0">as</span><span class="hl-1"> </span><span class="hl-2">fs</span><span class="hl-1"> </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;fs&quot;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-4">*</span><span class="hl-1"> </span><span class="hl-0">as</span><span class="hl-1"> </span><span class="hl-2">path</span><span class="hl-1"> </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;path&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">// ...</span><br/><br/><span class="hl-7">// Upload the file</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">fileStream</span><span class="hl-1"> = </span><span class="hl-2">fs</span><span class="hl-1">.</span><span class="hl-6">createReadStream</span><span class="hl-1">(</span><span class="hl-2">path</span><span class="hl-1">.</span><span class="hl-6">join</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">, </span><span class="hl-3">&quot;./image.jpg&quot;</span><span class="hl-1">));</span><br/><br/><span class="hl-7">// SDK: mint nft</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">nft</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">refinable</span><br/><span class="hl-1">  .</span><span class="hl-6">nftBuilder</span><span class="hl-1">()</span><br/><span class="hl-1">  .</span><span class="hl-6">erc721</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">// We accept any type of filestream here, you can also just download it and pass that steam</span><br/><span class="hl-1">    </span><span class="hl-2">nftFile:</span><span class="hl-1"> </span><span class="hl-2">fileStream</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">description:</span><span class="hl-1"> </span><span class="hl-3">&quot;some test description&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">name:</span><span class="hl-1"> </span><span class="hl-3">&quot;The Test NFT&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">royalty:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">StandardRoyaltyStrategy</span><span class="hl-1">([]),</span><br/><span class="hl-1">    </span><span class="hl-2">chainId:</span><span class="hl-1"> </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><span class="hl-1">,</span><br/><span class="hl-1">  })</span><br/><span class="hl-1">  .</span><span class="hl-6">createAndMint</span><span class="hl-1">();</span>
+</code></pre>
+<p>more detailed examples can be found in <a href="./examples/mint">the examples folder</a></p>
+
+<a href="#listing-for-sale" id="listing-for-sale" style="color: inherit; text-decoration: none;">
+  <h3>Listing for sale</h3>
+</a>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">TokenType</span><span class="hl-1">, </span><span class="hl-2">PriceCurrency</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">// ...</span><br/><br/><span class="hl-7">// This is not needed if you just called the previous mint function</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">nft</span><span class="hl-1"> = </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">createNft</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">type:</span><span class="hl-1"> </span><span class="hl-2">TokenType</span><span class="hl-1">.</span><span class="hl-2">Erc721</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">chainId:</span><span class="hl-1"> </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><br/><span class="hl-1">  </span><span class="hl-2">contractAddress</span><span class="hl-1">: </span><span class="hl-3">&quot;&lt;your NFTs contract address&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">tokenId:</span><span class="hl-1"> </span><span class="hl-3">&quot;2&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-7">// optional, mostly for ERC1155</span><br/><span class="hl-1">  </span><span class="hl-2">supply:</span><span class="hl-1"> </span><span class="hl-8">1</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-7">// Put for sale</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">putForSale</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">amount:</span><span class="hl-1"> </span><span class="hl-8">1</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">currency:</span><span class="hl-1"> </span><span class="hl-2">PriceCurrency</span><span class="hl-1">.</span><span class="hl-2">Bnb</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
+</code></pre>
+
+<a href="#putforsaleprice-price-supply-number-promiseltsaleoffergt" id="putforsaleprice-price-supply-number-promiseltsaleoffergt" style="color: inherit; text-decoration: none;">
+  <h4><code>putForSale(price: Price, supply?: number): Promise&lt;SaleOffer&gt;</code></h4>
+</a>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>price.amount</td>
+<td>The price that you want to list the NFT for sale for</td>
+<td><code>number</code></td>
+</tr>
+<tr>
+<td>price.currency</td>
+<td>The currency you want to use</td>
+<td><a href="#supported-currencies">View supported currencies</a></td>
+</tr>
+<tr>
+<td>supply</td>
+<td><em>optional (erc1155)</em> - Only when putting for sale multiple editions</td>
+<td><code>number</code></td>
+</tr>
+</tbody></table>
+
+<a href="#cancelling-sale" id="cancelling-sale" style="color: inherit; text-decoration: none;">
+  <h3>Cancelling sale</h3>
+</a>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">TokenType</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">// ...</span><br/><br/><span class="hl-7">// Initialize the existing NFT you want to cancel for sale</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">nft</span><span class="hl-1"> = </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">createNft</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">type:</span><span class="hl-1"> </span><span class="hl-2">TokenType</span><span class="hl-1">.</span><span class="hl-2">Erc721</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">chainId:</span><span class="hl-1"> </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><br/><span class="hl-1">  </span><span class="hl-2">contractAddress</span><span class="hl-1">: </span><span class="hl-3">&quot;&lt;your NFTs contract address&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">tokenId:</span><span class="hl-1"> </span><span class="hl-3">&quot;2&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-7">// optional, mostly for ERC1155</span><br/><span class="hl-1">  </span><span class="hl-2">supply:</span><span class="hl-1"> </span><span class="hl-8">1</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-7">// Cancel sale</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">cancelSale</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#cancelsale-promiselttransactionresponsegt" id="cancelsale-promiselttransactionresponsegt" style="color: inherit; text-decoration: none;">
+  <h4><code>cancelSale(): Promise&lt;TransactionResponse&gt;</code></h4>
+</a>
+<p>No parameters</p>
+
+<a href="#transfering-an-item" id="transfering-an-item" style="color: inherit; text-decoration: none;">
+  <h3>Transfering an item</h3>
+</a>
+<p>Transfering an item requires you to call the <code>transfer</code> method on the NFT object.</p>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">TokenType</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">// ...</span><br/><br/><span class="hl-7">// Initialize the existing NFT you want to transfer</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">nft</span><span class="hl-1"> = </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">createNft</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">type:</span><span class="hl-1"> </span><span class="hl-2">TokenType</span><span class="hl-1">.</span><span class="hl-2">Erc721</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">chainId:</span><span class="hl-1"> </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><br/><span class="hl-1">  </span><span class="hl-2">contractAddress</span><span class="hl-1">: </span><span class="hl-3">&quot;&lt;your NFTs contract address&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">tokenId:</span><span class="hl-1"> </span><span class="hl-3">&quot;2&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-7">// optional, mostly for ERC1155</span><br/><span class="hl-1">  </span><span class="hl-2">supply:</span><span class="hl-1"> </span><span class="hl-8">1</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-7">// Example for 721</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">transfer</span><span class="hl-1">(</span><span class="hl-3">&quot;&lt;Owner Wallet Address&gt;&quot;</span><span class="hl-1">, </span><span class="hl-3">&quot;&lt;Recipient Wallet Address&gt;&quot;</span><span class="hl-1">);</span><br/><br/><span class="hl-7">// Example for ERC1155</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">transfer</span><span class="hl-1">(</span><span class="hl-3">&quot;&lt;Owner Wallet Address&gt;&quot;</span><span class="hl-1">, </span><span class="hl-3">&quot;&lt;Recipient Wallet Address&gt;&quot;</span><span class="hl-1">, </span><span class="hl-8">2</span><span class="hl-1">);</span>
+</code></pre>
+
+<a href="#transferownerethaddress-string-recipientethaddress-string-promiselttransactionresponsegt" id="transferownerethaddress-string-recipientethaddress-string-promiselttransactionresponsegt" style="color: inherit; text-decoration: none;">
+  <h4><code>transfer(ownerEthAddress: string, recipientEthAddress: string): Promise&lt;TransactionResponse&gt;</code></h4>
+</a>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Owner Wallet Address</td>
+<td>The Wallet address that currently owns the NFT, 0x....</td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td>Recipient Wallet Address</td>
+<td>The Recipient wallet address that should receive the NFT, 0x...</td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td>Amount</td>
+<td><em>optional (erc1155)</em> - The amount of editions of that nft you want to send</td>
+<td><code>number</code></td>
+</tr>
+</tbody></table>
+
+<a href="#burning-an-item" id="burning-an-item" style="color: inherit; text-decoration: none;">
+  <h3>Burning an item</h3>
+</a>
+<p>For burning an item you need to call <code>burn</code> method on NFT object.</p>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">TokenType</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">// ...</span><br/><br/><span class="hl-7">// Initialize the existing NFT you want to transfer</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">nft</span><span class="hl-1"> = </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">createNft</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">type:</span><span class="hl-1"> </span><span class="hl-2">TokenType</span><span class="hl-1">.</span><span class="hl-2">Erc721</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">chainId:</span><span class="hl-1"> </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><br/><span class="hl-1">  </span><span class="hl-2">contractAddress</span><span class="hl-1">: </span><span class="hl-3">&quot;&lt;your NFTs contract address&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">tokenId:</span><span class="hl-1"> </span><span class="hl-3">&quot;2&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-7">// optional, mostly for ERC1155</span><br/><span class="hl-1">  </span><span class="hl-2">supply:</span><span class="hl-1"> </span><span class="hl-8">1</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-7">// Example for 721</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">burn</span><span class="hl-1">();</span><br/><br/><span class="hl-7">// Example for ERC1155</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">burn</span><span class="hl-1">(</span><span class="hl-8">2</span><span class="hl-1">, </span><span class="hl-3">&quot;&lt;Owner Wallet Address&gt;&quot;</span><span class="hl-1">);</span>
+</code></pre>
+
+<a href="#burnsupply-number-ownerethaddress-string-promiselttransactionresponsegt" id="burnsupply-number-ownerethaddress-string-promiselttransactionresponsegt" style="color: inherit; text-decoration: none;">
+  <h4><code>burn(supply?: number, ownerEthAddress?: string): Promise&lt;TransactionResponse&gt;</code></h4>
+</a>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Supply</td>
+<td><em>optional (erc1155)</em> - The amount of editions of that nft you want to burn</td>
+<td><code>number</code></td>
+</tr>
+<tr>
+<td>OwnerEthAddress</td>
+<td><em>optional (erc1155)</em> - The address of the user owning the token</td>
+<td><code>string</code></td>
+</tr>
+</tbody></table>
+
+<a href="#listing-for-auction" id="listing-for-auction" style="color: inherit; text-decoration: none;">
+  <h3>Listing for Auction</h3>
+</a>
+<pre><code class="language-javascript"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">TokenType</span><span class="hl-1">, </span><span class="hl-2">PriceCurrency</span><span class="hl-1">, </span><span class="hl-2">Chain</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@refinableco/refinable-sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">// ...</span><br/><br/><span class="hl-7">// Initialize the existing NFT you want to transfer</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">nft</span><span class="hl-1"> = </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">createNft</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">type:</span><span class="hl-1"> </span><span class="hl-2">TokenType</span><span class="hl-1">.</span><span class="hl-2">Erc721</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">chainId:</span><span class="hl-1"> </span><span class="hl-2">Chain</span><span class="hl-1">.</span><span class="hl-2">BscTestnet</span><br/><span class="hl-1">  </span><span class="hl-2">contractAddress</span><span class="hl-1">: </span><span class="hl-3">&quot;&lt;your NFTs contract address&gt;&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-2">tokenId:</span><span class="hl-1"> </span><span class="hl-3">&quot;2&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-7">// optional, mostly for ERC1155</span><br/><span class="hl-1">  </span><span class="hl-2">supply:</span><span class="hl-1"> </span><span class="hl-8">1</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-7">// Put for auction</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">response</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">putForAuction</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">auctionStartDate:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-9">Date</span><span class="hl-1">(</span><span class="hl-9">Date</span><span class="hl-1">.</span><span class="hl-6">now</span><span class="hl-1">() + </span><span class="hl-8">300000</span><span class="hl-1">),</span><br/><span class="hl-1">  </span><span class="hl-2">auctionEndDate:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-9">Date</span><span class="hl-1">(</span><span class="hl-9">Date</span><span class="hl-1">.</span><span class="hl-6">now</span><span class="hl-1">() + </span><span class="hl-8">900000</span><span class="hl-1">),</span><br/><span class="hl-1">  </span><span class="hl-2">price:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">amount:</span><span class="hl-1"> </span><span class="hl-8">1</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">currency:</span><span class="hl-1"> </span><span class="hl-2">PriceCurrency</span><span class="hl-1">.</span><span class="hl-2">Bnb</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>auctionStartDate</code></td>
+<td>The date when the auction is supposed to start</td>
+<td><code>Date</code></td>
+</tr>
+<tr>
+<td><code>auctionEndDate</code></td>
+<td>The date when the auction is supposed to end</td>
+<td><code>Date</code></td>
+</tr>
+<tr>
+<td><code>price.amount</code></td>
+<td>The price that you want to list the NFT for sale for</td>
+<td><code>number</code></td>
+</tr>
+<tr>
+<td><code>price.currency</code></td>
+<td>The currency you want to use</td>
+<td><a href="#supported-currencies">View supported currencies</a></td>
+</tr>
+</tbody></table>
+
+<a href="#cancelling-an-auction" id="cancelling-an-auction" style="color: inherit; text-decoration: none;">
+  <h3>Cancelling an Auction</h3>
+</a>
+<p>Cancels an auction, without transfering the NFT.</p>
+<p><a href="./examples/cancelAuction.ts">Example</a></p>
+<pre><code class="language-ts"><span class="hl-7">// Continuation from create auction ...</span><br/><br/><span class="hl-7">// Put for auction</span><br/><span class="hl-4">const</span><span class="hl-1"> { </span><span class="hl-5">offer</span><span class="hl-1"> } = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">putForAuction</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">auctionStartDate:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-9">Date</span><span class="hl-1">(</span><span class="hl-9">Date</span><span class="hl-1">.</span><span class="hl-6">now</span><span class="hl-1">() + </span><span class="hl-8">300000</span><span class="hl-1">),</span><br/><span class="hl-1">  </span><span class="hl-2">auctionEndDate:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-9">Date</span><span class="hl-1">(</span><span class="hl-9">Date</span><span class="hl-1">.</span><span class="hl-6">now</span><span class="hl-1">() + </span><span class="hl-8">900000</span><span class="hl-1">),</span><br/><span class="hl-1">  </span><span class="hl-2">price:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">amount:</span><span class="hl-1"> </span><span class="hl-8">1</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">currency:</span><span class="hl-1"> </span><span class="hl-2">PriceCurrency</span><span class="hl-1">.</span><span class="hl-2">Bnb</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">offer</span><span class="hl-1">.</span><span class="hl-6">cancelAuction</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#ending-an-auction" id="ending-an-auction" style="color: inherit; text-decoration: none;">
+  <h3>Ending an auction</h3>
+</a>
+<p>Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.</p>
+<p><a href="./examples/cancelAuction.ts">Example</a></p>
+<pre><code class="language-ts"><span class="hl-7">// Continuation from create auction ...</span><br/><br/><span class="hl-7">// Put for auction</span><br/><span class="hl-4">const</span><span class="hl-1"> { </span><span class="hl-5">offer</span><span class="hl-1"> } = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">nft</span><span class="hl-1">.</span><span class="hl-6">putForAuction</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-2">auctionStartDate:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-9">Date</span><span class="hl-1">(</span><span class="hl-9">Date</span><span class="hl-1">.</span><span class="hl-6">now</span><span class="hl-1">() + </span><span class="hl-8">300000</span><span class="hl-1">),</span><br/><span class="hl-1">  </span><span class="hl-2">auctionEndDate:</span><span class="hl-1"> </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-9">Date</span><span class="hl-1">(</span><span class="hl-9">Date</span><span class="hl-1">.</span><span class="hl-6">now</span><span class="hl-1">() + </span><span class="hl-8">900000</span><span class="hl-1">),</span><br/><span class="hl-1">  </span><span class="hl-2">price:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">amount:</span><span class="hl-1"> </span><span class="hl-8">1</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">currency:</span><span class="hl-1"> </span><span class="hl-2">PriceCurrency</span><span class="hl-1">.</span><span class="hl-2">Bnb</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">offer</span><span class="hl-1">.</span><span class="hl-6">endAuction</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#fetching-data" id="fetching-data" style="color: inherit; text-decoration: none;">
+  <h3>Fetching data</h3>
+</a>
+
+<a href="#getting-items-for-sale" id="getting-items-for-sale" style="color: inherit; text-decoration: none;">
+  <h4>Getting items for sale</h4>
+</a>
+<p>Get all items for-sale of a user</p>
+<p><a href="./examples/item/itemsOnSale.ts">Example</a></p>
+<pre><code class="language-javascript"><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">getItemsOnSale</span><span class="hl-1">(</span><span class="hl-10">&lt;</span><span class="hl-11">paging</span><span class="hl-1"> </span><span class="hl-12">number</span><span class="hl-10">&gt;</span><span class="hl-1"> ,</span><span class="hl-10">&lt;</span><span class="hl-11">after</span><span class="hl-1"> </span><span class="hl-12">string</span><span class="hl-10">&gt;</span><span class="hl-1">);</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>paging</code></td>
+<td>Number of items you want to fetch at a time</td>
+<td><code>Number (default=30 &amp; max=100 ) </code></td>
+</tr>
+<tr>
+<td><code>after</code></td>
+<td>Cursor you want to fetch after (endCursor)</td>
+<td><code>String (Optional)</code></td>
+</tr>
+</tbody></table>
+
+<a href="#getting-items-on-auction" id="getting-items-on-auction" style="color: inherit; text-decoration: none;">
+  <h4>Getting items on auction</h4>
+</a>
+<p>Get all items on auction of a user</p>
+<p><a href="./examples/item/itemsOnAuction.ts">Example</a></p>
+<pre><code class="language-javascript"><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">getItemsOnAuction</span><span class="hl-1">(</span><span class="hl-10">&lt;</span><span class="hl-11">paging</span><span class="hl-1"> </span><span class="hl-12">number</span><span class="hl-10">&gt;</span><span class="hl-1">, </span><span class="hl-10">&lt;</span><span class="hl-11">after</span><span class="hl-1"> </span><span class="hl-12">string</span><span class="hl-10">&gt;</span><span class="hl-1">);</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>paging</code></td>
+<td>Number of items you want to fetch at a time</td>
+<td><code>Number (default=30 &amp; max=100 ) </code></td>
+</tr>
+<tr>
+<td><code>after</code></td>
+<td>Cursor you want to fetch after (endCursor)</td>
+<td><code>String (Optional)</code></td>
+</tr>
+</tbody></table>
+
+<a href="#getting-owned-items-for-a-user" id="getting-owned-items-for-a-user" style="color: inherit; text-decoration: none;">
+  <h4>Getting owned items for a user</h4>
+</a>
+<p>Get all owned items by a user</p>
+<p><a href="./examples/item/getOwnedItems.ts">Example</a></p>
+<pre><code class="language-typescript"><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">getOwnedItems</span><span class="hl-1">(&lt;</span><span class="hl-9">paging</span><span class="hl-1">&gt;,&lt;</span><span class="hl-9">after</span><span class="hl-1">&gt;)</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>paging</code></td>
+<td>Number of items you want to fetch at a time</td>
+<td><code>Number (default=30 &amp; max=100) </code></td>
+</tr>
+<tr>
+<td><code>after</code></td>
+<td>Cursor you want to fetch after (endCursor)</td>
+<td><code>String (Optional) </code></td>
+</tr>
+</tbody></table>
+
+<a href="#getting-created-items-by-a-user" id="getting-created-items-by-a-user" style="color: inherit; text-decoration: none;">
+  <h4>Getting created items by a user</h4>
+</a>
+<p>Get all items created by a user</p>
+<p><a href="./examples/item/getCreatedItems.ts">Example</a></p>
+<pre><code class="language-typescript"><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">refinable</span><span class="hl-1">.</span><span class="hl-6">getCreatedItems</span><span class="hl-1">(&lt;</span><span class="hl-9">paging</span><span class="hl-1">&gt;,&lt;</span><span class="hl-9">after</span><span class="hl-1">&gt;)</span><br/>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>paging</code></td>
+<td>Number of items you want to fetch at a time</td>
+<td><code>Number (default=30 &amp; max=100) </code></td>
+</tr>
+<tr>
+<td><code>after</code></td>
+<td>Cursor you want to fetch after (endCursor)</td>
+<td><code>String (Optional) </code></td>
+</tr>
+</tbody></table>
+
+<a href="#supported-networks" id="supported-networks" style="color: inherit; text-decoration: none;">
+  <h2>Supported Networks</h2>
+</a>
+<p>Refinable currently supports the following networks:</p>
+<ul>
+<li><code>56</code>: Binance Smart Chain (BSC) Mainnet</li>
+<li><code>97</code>: Binance Smart Chain (BSC) Testnet</li>
+<li><code>137</code>: Polygon Mainnet</li>
+<li><code>80001</code>: Polygon Mumbai Testnet</li>
+<li><code>1</code>: Ethereum</li>
+<li><code>4</code>: Ethereum Rinkeby Testnet</li>
+</ul>
+
+<a href="#supported-currencies" id="supported-currencies" style="color: inherit; text-decoration: none;">
+  <h2>Supported currencies</h2>
+</a>
+<table>
+<thead>
+<tr>
+<th>Network</th>
+<th>Currencies</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BscMainnet</td>
+<td>BNB, USDT, BUSD</td>
+</tr>
+<tr>
+<td>BscTestnet</td>
+<td>BNB, USDT, BUSD</td>
+</tr>
+<tr>
+<td>PolygonMainnet</td>
+<td>MATIC, USDT, WETH</td>
+</tr>
+<tr>
+<td>PolygonTestnet</td>
+<td>MATIC</td>
+</tr>
+<tr>
+<td>Ethereum</td>
+<td>ETH, USDT, WETH, USDC</td>
+</tr>
+<tr>
+<td>EthereumRinkeby</td>
+<td>ETH, USDT, WETH, USDC</td>
+</tr>
+</tbody></table>
+
+<a href="#requesting-an-api-key" id="requesting-an-api-key" style="color: inherit; text-decoration: none;">
+  <h2>Requesting an API Key</h2>
+</a>
+<p>In order to obtain an API key, please email us at <code>sdk@refinable.com</code> and use the following template:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Project Name</td>
+<td>The name of your project</td>
+</tr>
+<tr>
+<td>User address</td>
+<td>The public wallet address that the API key will be attached to, This user should have connected to the Refinable site at least once</td>
+</tr>
+<tr>
+<td>Est. Calls per month</td>
+<td>The amount of estimated calls per month</td>
+</tr>
+<tr>
+<td>Description</td>
+<td>Tell us a bit more about your project, why do you have to use an SDK?</td>
+</tr>
+</tbody></table>
+
+<a href="#jobs" id="jobs" style="color: inherit; text-decoration: none;">
+  <h2>Jobs</h2>
+</a>
+<p>Interested in joining us? We&#39;re always on the lookout for good talent. Feel free to send us your most up-to-date resume at <a href="mailto:careers@refinable.com">careers@refinable.com</a></p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-type-alias"><a href="modules.html#AllContractTypes" class="tsd-kind-icon">All<wbr/>Contract<wbr/>Types</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ContractType" class="tsd-kind-icon">Contract<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#NftMap" class="tsd-kind-icon">Nft<wbr/>Map</a></li><li class="tsd-kind-class"><a href="classes/Refinable.html" class="tsd-kind-icon">Refinable</a></li><li class="tsd-kind-enum"><a href="enums/UserItemFilterType.html" class="tsd-kind-icon">User<wbr/>Item<wbr/>Filter<wbr/>Type</a></li><li class="tsd-kind-variable"><a href="modules.html#nftMap" class="tsd-kind-icon">nft<wbr/>Map</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li><li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

@@ -2,7 +2,7 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
 import { BigNumber, constants, Contract, utils } from "ethers";
-import {soliditySha3} from "web3-utils";
+import { soliditySha3 } from "web3-utils";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";

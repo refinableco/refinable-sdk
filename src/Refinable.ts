@@ -106,7 +106,13 @@ export class Refinable {
 
     return refinable;
   }
-
+  /**
+   * Creates an instance of Refinable.
+   * @param {Signer} provider
+   * @param {string} accountAddress
+   * @param {Partial<RefinableOptions>} [options={@link RefinableOptions}]
+   * @memberof Refinable
+   */
   constructor(
     public readonly provider: Signer,
     public readonly accountAddress: string,
@@ -118,35 +124,67 @@ export class Refinable {
       waitConfirmations,
     };
   }
-
+  /**
+   * @readonly
+   * @memberof Refinable
+   *
+   */
   get apiKey() {
     return this._apiKey;
   }
-
+  /**
+   *
+   *
+   * @readonly
+   * @memberof Refinable
+   */
   get options() {
     return this._options;
   }
-
+  /**
+   *
+   * @readonly
+   * @memberof Refinable
+   */
   get apiClient() {
     if (!this._apiClient) {
       throw new Error("Api Client was not initialized");
     }
     return this._apiClient;
   }
-
+  /**
+   *
+   *
+   * @memberof Refinable
+   */
   set apiClient(apiClient) {
     this._apiClient = apiClient;
   }
-
-  nftBuilder(params?: NftBuilderParams) {
+  /**
+   *
+   *
+   * @param {NftBuilderParams} [params]
+   * @return {*}
+   * @memberof Refinable
+   */
+  nftBuilder(params?: NftBuilderParams): any {
     return new NFTBuilder(this, params);
   }
-
+  /**
+   *
+   *
+   * @param {GraphQLClient} client
+   * @memberof Refinable
+   */
   setApiClient(client: GraphQLClient) {
     this.apiClient = client;
   }
-
-  async personalSign(message: string) {
+  /**
+   * @param {string} message
+   * @return {*}
+   * @memberof Refinable
+   */
+  async personalSign(message: string): Promise<string> {
     const signature = await this.provider.signMessage(utils.arrayify(message));
 
     // WARNING! DO NOT remove!
@@ -158,14 +196,29 @@ export class Refinable {
 
     return reconstructed;
   }
-
+  /**
+   *
+   *
+   * @template K
+   * @param {(PartialOffer & { type: K })} offer
+   * @param {AbstractNFT} nft
+   * @return {*}
+   * @memberof Refinable
+   */
   createOffer<K extends OfferType>(
     offer: PartialOffer & { type: K },
     nft: AbstractNFT
-  ) {
+  ): any {
     return OfferFactory.createOffer<K>(this, offer, nft);
   }
-
+  /**
+   *
+   *
+   * @template K
+   * @param {(PartialNFTItem & { type: SingleKeys<K> })} item
+   * @return {*}  {ClassType<K, AbstractNFT>}
+   * @memberof Refinable
+   */
   createNft<K extends TokenType>(
     item: PartialNFTItem & { type: SingleKeys<K> }
   ): ClassType<K, AbstractNFT> {
@@ -177,9 +230,18 @@ export class Refinable {
 
     return new Class(this, item).build();
   }
-
+  /**
+   *
+   *
+   * @private
+   * @param {number} [paging=30]
+   * @param {string} [after]
+   * @param {OfferType} [type]
+   * @returns {Promise} list of items with offers
+   * @memberof Refinable
+   */
   private async getItemsWithOffer(
-    paging = 30,
+    paging: number = 30,
     after?: string,
     type?: OfferType
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
@@ -197,23 +259,43 @@ export class Refinable {
     });
     return queryResponse?.user?.itemsOnOffer ?? [];
   }
-
+  /**
+   *
+   * Gets all items on sale
+   * @param {number}
+   * @param  {string} [after]
+   * @returns devesh rawat
+   * @memberof Refinable
+   */
   async getItemsOnSale(
-    paging = 30,
+    paging: number = 30,
     after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     return this.getItemsWithOffer(paging, after, OfferType.Sale);
   }
-
+  /**
+   * Gets a list of items on auction.
+   * @param {number}
+   * @param {string} [after]
+   * @returns {Promise} a list of all items on auction
+   * @memberof Refinable
+   */
   async getItemsOnAuction(
-    paging = 30,
+    paging: number = 30,
     after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     return this.getItemsWithOffer(paging, after, OfferType.Auction);
   }
-
+  /**
+   * @private
+   * @param {number} [paging=30]
+   * @param {UserItemFilterType} filter
+   * @param {string} [after]
+   * @returns A list of all items
+   * @memberof Refinable
+   */
   private async getItems(
-    paging = 30,
+    paging: number = 30,
     filter: UserItemFilterType,
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
@@ -231,24 +313,43 @@ export class Refinable {
     });
     return queryResponse?.user?.items ?? [];
   }
-
+  /**
+   *
+   *
+   * @param {number} [paging=30]
+   * @param {string} [after]
+   * @return {*}  {(Promise<GetUserItemsQuery["user"]["items"] | []>)}
+   * @memberof Refinable
+   */
   async getCreatedItems(
-    paging = 30,
+    paging: number = 30,
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const filter = UserItemFilterType.Created;
     return this.getItems(paging, filter, after);
   }
-
+  /**
+   *
+   *
+   * @param {number} [paging=30]
+   * @param {string} [after]
+   * @return {*}  {(Promise<GetUserItemsQuery["user"]["items"] | []>)}
+   * @memberof Refinable
+   */
   async getOwnedItems(
-    paging = 30,
+    paging: number = 30,
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const filter = UserItemFilterType.Owned;
     return this.getItems(paging, filter, after);
   }
 
-  // Upload image / video
+  /**
+   * @param {Stream} file
+   * @return {*}  {Promise<string>}
+   * @memberof Refinable
+   */
+
   public async uploadFile(file: Stream): Promise<string> {
     const { uploadFile: uploadedFileName } = await uploadFile(
       this.apiClient,

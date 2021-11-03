@@ -1,0 +1,10 @@
+{
+  "entryPoints": ["src/doc-index.ts"],
+  "out": "docs",
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "sort": "alphabetical",
+  "cleanOutputDir": true,
+  "watch": true
+}
