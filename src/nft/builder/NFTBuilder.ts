@@ -105,7 +105,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
         marketingDescription,
         name,
         supply,
-        royaltySettings: this.royaltySettings,
+        royaltySettings: this.buildData.royalty,
         tags,
         airdropAddresses,
         file,
@@ -139,12 +139,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
       // bytes memory _signature
       this.signature,
       // RoyaltyLibrary.RoyaltyShareDetails[] memory _royaltyShares
-      this.royaltySettings?.shares
-        ? this.royaltySettings.shares.map((share) => [
-            share.recipient,
-            share.value,
-          ])
-        : [],
+      this.royaltySettings?.shares,
       // uint256 _supply - Only for ERC1155
       ...optionalParam(
         this.item.type === TokenType.Erc1155,
