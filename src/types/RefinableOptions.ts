@@ -1,6 +1,7 @@
 export enum Environment {
   Mainnet = "mainnet",
   Testnet = "testnet",
+  Local = "local",
 }
 
 export interface RefinableOptions {
