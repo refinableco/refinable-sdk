@@ -9,6 +9,7 @@ import {
   TokenType,
 } from "./@types/graphql";
 import Account from "./Account";
+import { apiUrl } from "./config/sdk";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
@@ -18,6 +19,7 @@ import { ERC721NFT } from "./nft/ERC721NFT";
 import { PartialOffer } from "./offer/Offer";
 import { OfferFactory } from "./offer/OfferFactory";
 import { RefinableContracts } from "./RefinableContracts";
+import { Environment, RefinableOptions } from "./types/RefinableOptions";
 import { limit } from "./utils/limitItems";
 
 export const nftMap = {
@@ -59,11 +61,6 @@ export type AllContractTypes =
   | "RefinableERC721WhiteListedToken"
   | "RefinableERC721WhiteListedTokenV2";
 
-interface RefinableOptions {
-  waitConfirmations?: number;
-  apiUrl?: string;
-}
-
 enum OfferType {
   Sale = "SALE",
   Auction = "AUCTION",
@@ -87,9 +84,9 @@ export class Refinable {
     const accountAddress = await provider.getAddress();
     const refinable = new Refinable(provider, accountAddress, options);
 
-    const graphqlUrl = options.apiUrl ?? "https://api.refinable.com/graphql";
-
     if (!apiOrBearerToken) throw new Error("No authentication key present");
+
+    const graphqlUrl = apiUrl[refinable._options.environment];
 
     refinable._apiKey = apiOrBearerToken;
     refinable.apiClient = new GraphQLClient(graphqlUrl, {
@@ -112,10 +109,12 @@ export class Refinable {
     public readonly accountAddress: string,
     options: Partial<RefinableOptions> = {}
   ) {
-    const { waitConfirmations = 3 } = options;
+    const { waitConfirmations = 3, environment = Environment.Mainnet } =
+      options;
 
     this._options = {
       waitConfirmations,
+      environment,
     };
   }
 

@@ -1,6 +1,5 @@
 import { Refinable, TokenType } from ".";
 import {
-  ContractTag,
   ContractTypes,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
@@ -10,6 +9,7 @@ import {
   RefinableContractsQueryVariables,
   Token,
 } from "./@types/graphql";
+import { contractsTags } from "./config/sdk";
 import { Contract, IContract } from "./Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
@@ -42,18 +42,14 @@ export class RefinableContracts {
       return this.baseContracts[chainId];
     }
 
+    const tags = contractsTags[this.refinable.options.environment];
+
     const { refinableContracts } = await this.refinable.apiClient.request<
       RefinableContractsQuery,
       RefinableContractsQueryVariables
     >(GET_REFINABLE_CONTRACTS, {
       input: {
-        tags: [
-          ContractTag.SaleV3_0_0,
-          ContractTag.AuctionV3_1_0,
-          ContractTag.SaleNonceHolderV1_0_0,
-          ContractTag.TransferProxyV1_0_0,
-          ContractTag.AirdropV1_0_0,
-        ],
+        tags,
       },
     });
 

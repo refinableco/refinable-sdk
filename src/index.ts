@@ -5,6 +5,7 @@ import {
   OfferType,
 } from "./@types/graphql";
 import { Chain } from "./interfaces/Network";
+import { Environment } from "./types/RefinableOptions";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
@@ -44,4 +45,5 @@ export {
   PartialNFTItem,
   is,
   Offer,
+  Environment,
 };

@@ -147,8 +147,22 @@ export type CollectionItemsArgs = {
   sort?: Maybe<SortInput>;
 };
 
+export type CollectionEdge = {
+  __typename?: "CollectionEdge";
+  cursor: Scalars["String"];
+  node: Collection;
+};
+
 export type CollectionItemFilterInput = {
   type?: Maybe<ItemWithOfferFilterType>;
+};
+
+export type CollectionPageInfo = {
+  __typename?: "CollectionPageInfo";
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export type CollectionStatistics = {
@@ -159,6 +173,17 @@ export type CollectionStatistics = {
   floorPrice: Scalars["Float"];
   itemCount: Scalars["Float"];
   ownerCount: Scalars["Float"];
+};
+
+export type CollectionsFilterInput = {
+  chainIds?: Maybe<Array<Scalars["Float"]>>;
+};
+
+export type CollectionsResponse = {
+  __typename?: "CollectionsResponse";
+  edges?: Maybe<Array<CollectionEdge>>;
+  pageInfo?: Maybe<CollectionPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
 };
 
 export enum ContentType {
@@ -181,10 +206,12 @@ export enum ContractTag {
   AuctionV2_0_0 = "AUCTION_v2_0_0",
   AuctionV3_0_0 = "AUCTION_v3_0_0",
   AuctionV3_1_0 = "AUCTION_v3_1_0",
+  AuctionV3_1_1 = "AUCTION_v3_1_1",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
   SaleV1_0_0 = "SALE_v1_0_0",
   SaleV2_0_0 = "SALE_v2_0_0",
   SaleV3_0_0 = "SALE_v3_0_0",
+  SaleV3_0_1 = "SALE_v3_0_1",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
   TokenV3_0_0 = "TOKEN_v3_0_0",
@@ -324,16 +351,24 @@ export type HottestTagsFilterInput = {
 };
 
 export type ImportCollectionInput = {
-  chainId?: Maybe<Scalars["Float"]>;
-  contractABI: Scalars["String"];
+  chainId: Scalars["Float"];
+  contractABI?: Maybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
   description: Scalars["String"];
   iconUrl: Scalars["String"];
   metadataUrlTemplate?: Maybe<Scalars["String"]>;
   name: Scalars["String"];
   slug: Scalars["String"];
-  type: TokenType;
-  userId: Scalars["String"];
+  type?: Maybe<TokenType>;
+};
+
+export type ImportCollectionOutput = {
+  __typename?: "ImportCollectionOutput";
+  isValid?: Maybe<Scalars["Boolean"]>;
+  metadataUrlTemplate?: Maybe<Scalars["String"]>;
+  randomTokenUrl?: Maybe<Scalars["String"]>;
+  tokenABI?: Maybe<Scalars["String"]>;
+  tokenType?: Maybe<TokenType>;
 };
 
 export type ImportItemInput = {
@@ -429,6 +464,7 @@ export type ItemHistory = {
   externalTxUrl?: Maybe<Scalars["String"]>;
   from?: Maybe<User>;
   id: Scalars["String"];
+  price?: Maybe<Price>;
   to?: Maybe<User>;
   transactionHash?: Maybe<Scalars["String"]>;
   type?: Maybe<ItemHistoryType>;
@@ -460,6 +496,7 @@ export enum ItemHistoryType {
   AuctionCancelled = "AUCTION_CANCELLED",
   AuctionClosed = "AUCTION_CLOSED",
   AuctionCreated = "AUCTION_CREATED",
+  Bid = "BID",
   Burn = "BURN",
   Minted = "MINTED",
   Purchase = "PURCHASE",
@@ -608,8 +645,9 @@ export type Mutation = {
   createPurchase: Purchase;
   dismissReport: ItemReport;
   finishMint: FinishMintOutput;
+  generateVerificationToken: Scalars["Int"];
   hideItem: Item;
-  importCollection: Scalars["Boolean"];
+  importCollection: ImportCollectionOutput;
   importItem: CreateItemOutput;
   login: Auth;
   placeAuctionBid: Scalars["Boolean"];
@@ -640,6 +678,10 @@ export type MutationDismissReportArgs = {
 
 export type MutationFinishMintArgs = {
   input: FinishMintInput;
+};
+
+export type MutationGenerateVerificationTokenArgs = {
+  data: VerificationTokenInput;
 };
 
 export type MutationHideItemArgs = {
@@ -748,8 +790,9 @@ export type Query = {
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
   collection?: Maybe<Collection>;
-  collections: Array<Collection>;
+  collections: CollectionsResponse;
   getUploadUrl: GetUploadUrlOutput;
+  hotCollections: CollectionsResponse;
   hotItems: HotItemsResponse;
   hottestTags: Array<Tag>;
   importPreview: ImportItemPreview;
@@ -769,6 +812,7 @@ export type Query = {
   user?: Maybe<User>;
   /** @deprecated User consent is beeing given directly on the frontend */
   userConsent: UserConsent;
+  /** @deprecated Query verification token was replaced by the mutation generateVerificationToken */
   verificationToken: Scalars["Int"];
 };
 
@@ -778,6 +822,12 @@ export type QueryAuctionArgs = {
 
 export type QueryCollectionArgs = {
   slug: Scalars["String"];
+};
+
+export type QueryCollectionsArgs = {
+  filter?: Maybe<CollectionsFilterInput>;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type QueryGetUploadUrlArgs = {
@@ -889,9 +939,11 @@ export type Subscription = {
   auctionCancelled: Offer;
   auctionEnded: Offer;
   bidPlaced: Offer;
+  historyInserted: ItemHistory;
   itemBurned: Item;
   itemMinted: ItemMinted;
   itemPurchased: Item;
+  itemTransfered: Item;
   offerUpdated?: Maybe<Offer>;
   saleCancelled: Offer;
 };
@@ -908,6 +960,10 @@ export type SubscriptionBidPlacedArgs = {
   offerId: Scalars["ID"];
 };
 
+export type SubscriptionHistoryInsertedArgs = {
+  itemId: Scalars["ID"];
+};
+
 export type SubscriptionItemBurnedArgs = {
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
@@ -920,6 +976,11 @@ export type SubscriptionItemMintedArgs = {
 };
 
 export type SubscriptionItemPurchasedArgs = {
+  contractAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+};
+
+export type SubscriptionItemTransferedArgs = {
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
 };
