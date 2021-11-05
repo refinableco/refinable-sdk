@@ -151,11 +151,14 @@ export class RefinableContracts {
     return code !== "0x0";
   }
 
-  getBaseContract(chainId: Chain, type: string, failOnNotFound = true) {
+  getBaseContract(chainId: Chain, type: string) {
+    if (!this.baseContracts[chainId])
+      throw new Error(`No contract of type ${{type}} for this chain ${chainId}`);
+
     const contract = this.baseContracts[chainId][type];
 
-    if (!contract && failOnNotFound)
-      throw new Error(`Unable to initialize contract for type ${type}`);
+    if (!contract)
+      throw new Error(`Unable to initialize contract for type ${type} on chain ${chainId}`);
 
     return contract;
   }

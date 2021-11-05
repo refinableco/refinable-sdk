@@ -2,7 +2,7 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
 import { BigNumber, constants, Contract, utils } from "ethers";
-import {soliditySha3} from "web3-utils";
+import { soliditySha3 } from "web3-utils";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
@@ -29,16 +29,10 @@ export interface PartialNFTItem {
   totalSupply?: number;
 }
 export abstract class AbstractNFT {
-  protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
 
-  protected saleContract: Contract;
   private nftTokenContract: Contract | null;
-  protected nonceContract: Contract;
-  protected auctionContract: Contract;
-  protected airdropContract: Contract | null;
-  protected transferProxyContract: Contract;
 
   constructor(
     protected type: TokenType,
@@ -57,51 +51,49 @@ export abstract class AbstractNFT {
     return this.saleContract.address;
   }
 
-  public build() {
-    // Sale contract
+  get saleContract(): Contract {
     const sale = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_SALE`
     );
 
-    this.saleContract = sale.toEthersContract();
+    return sale.toEthersContract();
+  }
 
-    // Auction contract
+  get auctionContract(): Contract {
     const auction = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_AUCTION`
     );
 
-    this.auctionContract = auction.toEthersContract();
+    return auction.toEthersContract();
+  }
 
-    // Nonce contract
+  get nonceContract(): Contract {
     const saleNonceHolder = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_SALE_NONCE_HOLDER`
     );
 
-    this.nonceContract = saleNonceHolder.toEthersContract();
+    return saleNonceHolder.toEthersContract();
+  }
 
-    // transfer proxy
+  get transferProxyContract(): Contract {
     const transferProxy = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `TRANSFER_PROXY`
     );
 
-    this.transferProxyContract = transferProxy.toEthersContract();
+    return transferProxy.toEthersContract();
+  }
 
-    // Airdrop contract
+  get airdropContract(): Contract | null {
     const airdrop = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      `${this.type}_AIRDROP`,
-      false // Should not fail if not found as airdrop is not supported yet for ETH
+      `${this.type}_AIRDROP`
     );
 
-    this.airdropContract = airdrop?.toEthersContract();
-
-    this._initialized = true;
-
-    return this;
+    return airdrop?.toEthersContract();
   }
 
   public async getTokenContract() {
@@ -417,9 +409,6 @@ export abstract class AbstractNFT {
 
   async airdrop(recipients: string[]): Promise<TransactionResponse> {
     this.verifyItem();
-
-    if (!this.airdropContract)
-      throw new Error(`Airdrop not supported for ${this.item.chainId}`);
 
     await this.approveIfNeeded(this.airdropContract.address);
 
