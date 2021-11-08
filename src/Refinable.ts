@@ -174,7 +174,7 @@ export class Refinable {
 
     if (!Class) throw new Error("Item type not supported");
 
-    return new Class(this, item).build();
+    return new Class(this, item)
   }
 
   private async getItemsWithOffer(
