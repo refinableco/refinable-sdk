@@ -43,9 +43,8 @@ export default class Account {
         this.refinable.provider
       );
       const balance = await token.balanceOf(this.ethAddress);
-      result = BigNumber.from(balance)
-        .div(10 ** decimals)
-        .toString();
+      const exp = BigNumber.from(10).pow(decimals);
+      result = BigNumber.from(balance).div(exp).toString();
     } catch (e) {
       console.error(`ERROR: Failed to get the balance: ${e.message}`);
     }
