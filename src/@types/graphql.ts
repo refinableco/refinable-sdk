@@ -125,6 +125,8 @@ export type Brand = {
 export type Collection = {
   __typename?: "Collection";
   bannerUrl?: Maybe<Scalars["String"]>;
+  chainId: Scalars["Float"];
+  collectionIds: Array<Scalars["String"]>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
@@ -135,7 +137,7 @@ export type Collection = {
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
-  tokens: Array<Token>;
+  tokens?: Maybe<Array<Token>>;
   twitter?: Maybe<Scalars["String"]>;
   verified: Scalars["Boolean"];
   website?: Maybe<Scalars["String"]>;
@@ -156,7 +158,6 @@ export type CollectionEdge = {
 export type CollectionMetadataFilterInput = {
   auctionType?: Maybe<AuctionType>;
   chainIds?: Maybe<Array<Scalars["String"]>>;
-  collection?: Maybe<Scalars["String"]>;
   collectionSlugs?: Maybe<Array<Scalars["String"]>>;
   contentType?: Maybe<ContentType>;
   currencies?: Maybe<Array<PriceCurrency>>;
@@ -177,7 +178,8 @@ export type CollectionMetadataValues = {
 };
 
 export type CollectionMetadataValuesInput = {
-  contractAddresses: Array<Scalars["String"]>;
+  collectionIds: Array<Scalars["String"]>;
+  contractAddresses?: Maybe<Array<Scalars["String"]>>;
 };
 
 export type CollectionPageInfo = {
@@ -661,7 +663,6 @@ export type ItemWithOfferPageInfo = {
 export type ItemsFilterInput = {
   auctionType?: Maybe<AuctionType>;
   chainIds?: Maybe<Array<Scalars["String"]>>;
-  collection?: Maybe<Scalars["String"]>;
   collectionSlugs?: Maybe<Array<Scalars["String"]>>;
   contentType?: Maybe<ContentType>;
   currencies?: Maybe<Array<PriceCurrency>>;
@@ -688,6 +689,7 @@ export type LoginInput = {
   chainId?: Maybe<Scalars["Float"]>;
   ethAddress: Scalars["String"];
   signature: Scalars["String"];
+  type?: Maybe<UserType>;
   walletType?: Maybe<Scalars["String"]>;
 };
 
@@ -713,7 +715,6 @@ export type Mutation = {
   login: Auth;
   placeAuctionBid: Scalars["Boolean"];
   reportItem: ItemReport;
-  updateNotificationSeenStatus: Notification;
   updateUser: User;
   uploadFile: Scalars["String"];
 };
@@ -774,65 +775,12 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
-export type MutationUpdateNotificationSeenStatusArgs = {
-  id: Scalars["String"];
-};
-
 export type MutationUpdateUserArgs = {
   data: UpdateUserInput;
 };
 
 export type MutationUploadFileArgs = {
   file: Scalars["Upload"];
-};
-
-export type Notification = {
-  __typename?: "Notification";
-  createdAt?: Maybe<Scalars["DateTime"]>;
-  id: Scalars["String"];
-  item?: Maybe<Item>;
-  notificationType: NotificationType;
-  seen: Scalars["Boolean"];
-  seenAt?: Maybe<Scalars["DateTime"]>;
-};
-
-export type NotificationEdge = {
-  __typename?: "NotificationEdge";
-  cursor: Scalars["String"];
-  node: Notification;
-};
-
-export type NotificationPageInfo = {
-  __typename?: "NotificationPageInfo";
-  endCursor?: Maybe<Scalars["String"]>;
-  hasNextPage: Scalars["Boolean"];
-  hasPreviousPage: Scalars["Boolean"];
-  startCursor?: Maybe<Scalars["String"]>;
-};
-
-export type NotificationResponse = {
-  __typename?: "NotificationResponse";
-  edges?: Maybe<Array<NotificationEdge>>;
-  pageInfo?: Maybe<NotificationPageInfo>;
-  totalCount?: Maybe<Scalars["Float"]>;
-};
-
-export enum NotificationType {
-  AuctionCancelledNotification = "AUCTION_CANCELLED_NOTIFICATION",
-  AuctionClosedNotification = "AUCTION_CLOSED_NOTIFICATION",
-  AuctionConcludedNotification = "AUCTION_CONCLUDED_NOTIFICATION",
-  AuctionEndedWithoutBidNotification = "AUCTION_ENDED_WITHOUT_BID_NOTIFICATION",
-  AuctionEndedWithBidNotification = "AUCTION_ENDED_WITH_BID_NOTIFICATION",
-  BidderWithHighestBidNotification = "BIDDER_WITH_HIGHEST_BID_NOTIFICATION",
-  BidderWonAuctionNotification = "BIDDER_WON_AUCTION_NOTIFICATION",
-  BidOutbidHighestBidderNotification = "BID_OUTBID_HIGHEST_BIDDER_NOTIFICATION",
-  BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
-  ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
-  ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
-}
-
-export type NotificationsFilterInput = {
-  status?: Maybe<NotificationsFilterInput>;
 };
 
 export type Offer = {
@@ -877,6 +825,7 @@ export enum PriceCurrency {
   Bnb = "BNB",
   Busd = "BUSD",
   Eth = "ETH",
+  Fine = "FINE",
   Matic = "MATIC",
   Usdt = "USDT",
   Weth = "WETH",
@@ -922,7 +871,6 @@ export type Query = {
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
   mintableCollections: Array<Collection>;
-  notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   refinableContract?: Maybe<ContractOutput>;
   refinableContracts: Array<ContractOutput>;
@@ -934,8 +882,6 @@ export type Query = {
   tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
-  /** @deprecated Query verification token was replaced by the mutation generateVerificationToken */
-  verificationToken: Scalars["Int"];
 };
 
 export type QueryAuctionArgs = {
@@ -991,11 +937,6 @@ export type QueryItemsOnOfferArgs = {
   sort?: Maybe<SortInput>;
 };
 
-export type QueryNotificationsArgs = {
-  filter?: Maybe<NotificationsFilterInput>;
-  paging: PagingInput;
-};
-
 export type QueryOfferArgs = {
   id?: Maybe<Scalars["ID"]>;
 };
@@ -1035,10 +976,6 @@ export type QueryTopUsersArgs = {
 
 export type QueryUserArgs = {
   ethAddress: Scalars["String"];
-};
-
-export type QueryVerificationTokenArgs = {
-  data: VerificationTokenInput;
 };
 
 export type RoyaltiesInput = {
@@ -1104,7 +1041,6 @@ export type Subscription = {
   itemMinted: ItemMinted;
   itemPurchased: Item;
   itemTransfered: Item;
-  newNotification: Notification;
   offerUpdated?: Maybe<Offer>;
   saleCancelled: Offer;
 };
@@ -1191,6 +1127,7 @@ export type Token = {
 export enum TokenType {
   Erc721 = "ERC721",
   Erc1155 = "ERC1155",
+  Spl = "SPL",
 }
 
 export type TopUser = {
@@ -1282,8 +1219,14 @@ export enum UserRoles {
   User = "USER",
 }
 
+export enum UserType {
+  Evm = "Evm",
+  Solana = "Solana",
+}
+
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
+  type?: Maybe<UserType>;
 };
 
 export type PlaceAuctionBidMutationVariables = Exact<{
@@ -1339,14 +1282,17 @@ export type GetMintableCollectionsQuery = {
   mintableCollections: Array<{
     __typename?: "Collection";
     default: boolean;
-    tokens: Array<{
-      __typename?: "Token";
-      contractAddress: string;
-      contractABI: string;
-      type: TokenType;
-      chainId: number;
-      tags: Array<ContractTag>;
-    }>;
+    tokens?:
+      | Array<{
+          __typename?: "Token";
+          contractAddress: string;
+          contractABI: string;
+          type: TokenType;
+          chainId: number;
+          tags: Array<ContractTag>;
+        }>
+      | null
+      | undefined;
   }>;
 };
 
