@@ -125,8 +125,6 @@ export type Brand = {
 export type Collection = {
   __typename?: "Collection";
   bannerUrl?: Maybe<Scalars["String"]>;
-  chainId: Scalars["Float"];
-  collectionIds: Array<Scalars["String"]>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
@@ -137,7 +135,7 @@ export type Collection = {
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
-  tokens?: Maybe<Array<Token>>;
+  tokens: Array<Token>;
   twitter?: Maybe<Scalars["String"]>;
   verified: Scalars["Boolean"];
   website?: Maybe<Scalars["String"]>;
@@ -158,6 +156,7 @@ export type CollectionEdge = {
 export type CollectionMetadataFilterInput = {
   auctionType?: Maybe<AuctionType>;
   chainIds?: Maybe<Array<Scalars["String"]>>;
+  collection?: Maybe<Scalars["String"]>;
   collectionSlugs?: Maybe<Array<Scalars["String"]>>;
   contentType?: Maybe<ContentType>;
   currencies?: Maybe<Array<PriceCurrency>>;
@@ -178,8 +177,7 @@ export type CollectionMetadataValues = {
 };
 
 export type CollectionMetadataValuesInput = {
-  collectionIds: Array<Scalars["String"]>;
-  contractAddresses?: Maybe<Array<Scalars["String"]>>;
+  contractAddresses: Array<Scalars["String"]>;
 };
 
 export type CollectionPageInfo = {
@@ -663,6 +661,7 @@ export type ItemWithOfferPageInfo = {
 export type ItemsFilterInput = {
   auctionType?: Maybe<AuctionType>;
   chainIds?: Maybe<Array<Scalars["String"]>>;
+  collection?: Maybe<Scalars["String"]>;
   collectionSlugs?: Maybe<Array<Scalars["String"]>>;
   contentType?: Maybe<ContentType>;
   currencies?: Maybe<Array<PriceCurrency>>;
@@ -689,7 +688,6 @@ export type LoginInput = {
   chainId?: Maybe<Scalars["Float"]>;
   ethAddress: Scalars["String"];
   signature: Scalars["String"];
-  type?: Maybe<UserType>;
   walletType?: Maybe<Scalars["String"]>;
 };
 
@@ -882,6 +880,8 @@ export type Query = {
   tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
+  /** @deprecated Query verification token was replaced by the mutation generateVerificationToken */
+  verificationToken: Scalars["Int"];
 };
 
 export type QueryAuctionArgs = {
@@ -976,6 +976,10 @@ export type QueryTopUsersArgs = {
 
 export type QueryUserArgs = {
   ethAddress: Scalars["String"];
+};
+
+export type QueryVerificationTokenArgs = {
+  data: VerificationTokenInput;
 };
 
 export type RoyaltiesInput = {
@@ -1127,7 +1131,6 @@ export type Token = {
 export enum TokenType {
   Erc721 = "ERC721",
   Erc1155 = "ERC1155",
-  Spl = "SPL",
 }
 
 export type TopUser = {
@@ -1219,14 +1222,8 @@ export enum UserRoles {
   User = "USER",
 }
 
-export enum UserType {
-  Evm = "Evm",
-  Solana = "Solana",
-}
-
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
-  type?: Maybe<UserType>;
 };
 
 export type PlaceAuctionBidMutationVariables = Exact<{
@@ -1282,17 +1279,14 @@ export type GetMintableCollectionsQuery = {
   mintableCollections: Array<{
     __typename?: "Collection";
     default: boolean;
-    tokens?:
-      | Array<{
-          __typename?: "Token";
-          contractAddress: string;
-          contractABI: string;
-          type: TokenType;
-          chainId: number;
-          tags: Array<ContractTag>;
-        }>
-      | null
-      | undefined;
+    tokens: Array<{
+      __typename?: "Token";
+      contractAddress: string;
+      contractABI: string;
+      type: TokenType;
+      chainId: number;
+      tags: Array<ContractTag>;
+    }>;
   }>;
 };
 
