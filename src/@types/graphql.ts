@@ -713,6 +713,7 @@ export type Mutation = {
   login: Auth;
   placeAuctionBid: Scalars["Boolean"];
   reportItem: ItemReport;
+  updateNotificationSeenStatus: Notification;
   updateUser: User;
   uploadFile: Scalars["String"];
 };
@@ -773,12 +774,65 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
+export type MutationUpdateNotificationSeenStatusArgs = {
+  id: Scalars["String"];
+};
+
 export type MutationUpdateUserArgs = {
   data: UpdateUserInput;
 };
 
 export type MutationUploadFileArgs = {
   file: Scalars["Upload"];
+};
+
+export type Notification = {
+  __typename?: "Notification";
+  createdAt?: Maybe<Scalars["DateTime"]>;
+  id: Scalars["String"];
+  item?: Maybe<Item>;
+  notificationType: NotificationType;
+  seen: Scalars["Boolean"];
+  seenAt?: Maybe<Scalars["DateTime"]>;
+};
+
+export type NotificationEdge = {
+  __typename?: "NotificationEdge";
+  cursor: Scalars["String"];
+  node: Notification;
+};
+
+export type NotificationPageInfo = {
+  __typename?: "NotificationPageInfo";
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type NotificationResponse = {
+  __typename?: "NotificationResponse";
+  edges?: Maybe<Array<NotificationEdge>>;
+  pageInfo?: Maybe<NotificationPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
+};
+
+export enum NotificationType {
+  AuctionCancelledNotification = "AUCTION_CANCELLED_NOTIFICATION",
+  AuctionClosedNotification = "AUCTION_CLOSED_NOTIFICATION",
+  AuctionConcludedNotification = "AUCTION_CONCLUDED_NOTIFICATION",
+  AuctionEndedWithoutBidNotification = "AUCTION_ENDED_WITHOUT_BID_NOTIFICATION",
+  AuctionEndedWithBidNotification = "AUCTION_ENDED_WITH_BID_NOTIFICATION",
+  BidderWithHighestBidNotification = "BIDDER_WITH_HIGHEST_BID_NOTIFICATION",
+  BidderWonAuctionNotification = "BIDDER_WON_AUCTION_NOTIFICATION",
+  BidOutbidHighestBidderNotification = "BID_OUTBID_HIGHEST_BIDDER_NOTIFICATION",
+  BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
+  ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
+  ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
+}
+
+export type NotificationsFilterInput = {
+  status?: Maybe<NotificationsFilterInput>;
 };
 
 export type Offer = {
@@ -823,7 +877,6 @@ export enum PriceCurrency {
   Bnb = "BNB",
   Busd = "BUSD",
   Eth = "ETH",
-  Fine = "FINE",
   Matic = "MATIC",
   Usdt = "USDT",
   Weth = "WETH",
@@ -869,6 +922,7 @@ export type Query = {
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
   mintableCollections: Array<Collection>;
+  notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   refinableContract?: Maybe<ContractOutput>;
   refinableContracts: Array<ContractOutput>;
@@ -935,6 +989,11 @@ export type QueryItemsOnOfferArgs = {
   filter?: Maybe<ItemsFilterInput>;
   paging: PagingInput;
   sort?: Maybe<SortInput>;
+};
+
+export type QueryNotificationsArgs = {
+  filter?: Maybe<NotificationsFilterInput>;
+  paging: PagingInput;
 };
 
 export type QueryOfferArgs = {
@@ -1045,6 +1104,7 @@ export type Subscription = {
   itemMinted: ItemMinted;
   itemPurchased: Item;
   itemTransfered: Item;
+  newNotification: Notification;
   offerUpdated?: Maybe<Offer>;
   saleCancelled: Offer;
 };

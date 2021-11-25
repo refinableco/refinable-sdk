@@ -37,6 +37,12 @@ export const chainMap: Record<Chain, IChainConfig> = {
         decimals: 18,
         address: "0x0000000000000000000000000000000000000000",
       },
+      {
+        name: "FINE",
+        symbol: "FINE",
+        decimals: 18,
+        address: "0x0000000000000000000000000000000000000000",
+      },
     ],
   },
   [Chain.BscMainnet]: {
@@ -124,7 +130,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
         name: "FINE",
         symbol: "FINE",
         decimals: 18,
-        address: "0x4e6415a5727ea08aae4580057187923aec331227",
+        address: "0xe6fb07265195b4525d4925f6fc8347ae05ca5470",
       },
     ],
   },
