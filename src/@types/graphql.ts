@@ -74,7 +74,7 @@ export type Auth = {
 export type AuthUser = {
   __typename?: "AuthUser";
   description?: Maybe<Scalars["String"]>;
-  email: Scalars["String"];
+  email?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
   fineHolderBenefits?: Maybe<FineHolderBenefits>;
   id: Scalars["String"];
@@ -142,7 +142,7 @@ export type Collection = {
 };
 
 export type CollectionItemsArgs = {
-  filter?: Maybe<CollectionItemFilterInput>;
+  filter?: Maybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
   sort?: Maybe<SortInput>;
 };
@@ -153,8 +153,31 @@ export type CollectionEdge = {
   node: Collection;
 };
 
-export type CollectionItemFilterInput = {
-  type?: Maybe<ItemWithOfferFilterType>;
+export type CollectionMetadataFilterInput = {
+  auctionType?: Maybe<AuctionType>;
+  chainIds?: Maybe<Array<Scalars["String"]>>;
+  collection?: Maybe<Scalars["String"]>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
+  contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
+  metadata: Scalars["JSON"];
+  offerTypes?: Maybe<Array<OfferType>>;
+  tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
+};
+
+export type CollectionMetadataValues = {
+  __typename?: "CollectionMetadataValues";
+  displayType?: Maybe<Scalars["String"]>;
+  max: Scalars["String"];
+  min: Scalars["String"];
+  possibilities: Array<MetadataValuePossibility>;
+  traitType: Scalars["String"];
+  type: Scalars["String"];
+};
+
+export type CollectionMetadataValuesInput = {
+  contractAddresses: Array<Scalars["String"]>;
 };
 
 export type CollectionPageInfo = {
@@ -167,12 +190,19 @@ export type CollectionPageInfo = {
 
 export type CollectionStatistics = {
   __typename?: "CollectionStatistics";
-  avgSellPrice: Scalars["Float"];
-  avgVolumeTraded: Scalars["Float"];
-  ceilPrice: Scalars["Float"];
+  /** @deprecated deprecate this to avoid breaking APIs */
+  avgSellPrice?: Maybe<Scalars["Float"]>;
+  /** @deprecated deprecate this to avoid breaking APIs */
+  avgVolumeTraded?: Maybe<Scalars["Float"]>;
+  /** @deprecated deprecate this to avoid breaking APIs */
+  ceilPrice?: Maybe<Scalars["Float"]>;
+  countPurchases: Scalars["Float"];
   floorPrice: Scalars["Float"];
   itemCount: Scalars["Float"];
+  mainToken: Scalars["String"];
   ownerCount: Scalars["Float"];
+  totalEditionsForSale: Scalars["Float"];
+  totalVolumeTraded: Scalars["Float"];
 };
 
 export type CollectionsFilterInput = {
@@ -190,6 +220,12 @@ export enum ContentType {
   CommunityContent = "COMMUNITY_CONTENT",
   VerifiedContent = "VERIFIED_CONTENT",
 }
+
+export type ContractCount = {
+  __typename?: "ContractCount";
+  minted: Scalars["Int"];
+  transfered: Scalars["Int"];
+};
 
 export type ContractOutput = {
   __typename?: "ContractOutput";
@@ -276,6 +312,24 @@ export type CreatePurchaseInput = {
   amount: Scalars["Int"];
   offerId: Scalars["String"];
   transactionHash: Scalars["String"];
+};
+
+export type CreateStoreInput = {
+  backgroundColor: Scalars["String"];
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  description: Scalars["String"];
+  discord?: Maybe<Scalars["String"]>;
+  domain: Scalars["String"];
+  email: Scalars["String"];
+  favicon: Scalars["String"];
+  instagram?: Maybe<Scalars["String"]>;
+  logo: Scalars["String"];
+  name: Scalars["String"];
+  primaryColor: Scalars["String"];
+  telegram?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type EventInput = {
@@ -596,10 +650,6 @@ export type ItemWithOfferEdge = {
   node: ItemWithOffer;
 };
 
-export enum ItemWithOfferFilterType {
-  OnSale = "OnSale",
-}
-
 export type ItemWithOfferPageInfo = {
   __typename?: "ItemWithOfferPageInfo";
   endCursor?: Maybe<Scalars["String"]>;
@@ -612,8 +662,12 @@ export type ItemsFilterInput = {
   auctionType?: Maybe<AuctionType>;
   chainIds?: Maybe<Array<Scalars["String"]>>;
   collection?: Maybe<Scalars["String"]>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
   contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
+  offerTypes?: Maybe<Array<OfferType>>;
   tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
 };
 
 export type ItemsResponse = {
@@ -637,12 +691,19 @@ export type LoginInput = {
   walletType?: Maybe<Scalars["String"]>;
 };
 
+export type MetadataValuePossibility = {
+  __typename?: "MetadataValuePossibility";
+  count: Scalars["Float"];
+  value?: Maybe<Scalars["String"]>;
+};
+
 export type Mutation = {
   __typename?: "Mutation";
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
   createOfferForItems: Offer;
   createPurchase: Purchase;
+  createStore: Store;
   dismissReport: ItemReport;
   finishMint: FinishMintOutput;
   generateVerificationToken: Scalars["Int"];
@@ -652,6 +713,7 @@ export type Mutation = {
   login: Auth;
   placeAuctionBid: Scalars["Boolean"];
   reportItem: ItemReport;
+  updateNotificationSeenStatus: Notification;
   updateUser: User;
   uploadFile: Scalars["String"];
 };
@@ -670,6 +732,10 @@ export type MutationCreateOfferForItemsArgs = {
 
 export type MutationCreatePurchaseArgs = {
   input: CreatePurchaseInput;
+};
+
+export type MutationCreateStoreArgs = {
+  data: CreateStoreInput;
 };
 
 export type MutationDismissReportArgs = {
@@ -708,12 +774,65 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
+export type MutationUpdateNotificationSeenStatusArgs = {
+  id: Scalars["String"];
+};
+
 export type MutationUpdateUserArgs = {
   data: UpdateUserInput;
 };
 
 export type MutationUploadFileArgs = {
   file: Scalars["Upload"];
+};
+
+export type Notification = {
+  __typename?: "Notification";
+  createdAt?: Maybe<Scalars["DateTime"]>;
+  id: Scalars["String"];
+  item?: Maybe<Item>;
+  notificationType: NotificationType;
+  seen: Scalars["Boolean"];
+  seenAt?: Maybe<Scalars["DateTime"]>;
+};
+
+export type NotificationEdge = {
+  __typename?: "NotificationEdge";
+  cursor: Scalars["String"];
+  node: Notification;
+};
+
+export type NotificationPageInfo = {
+  __typename?: "NotificationPageInfo";
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type NotificationResponse = {
+  __typename?: "NotificationResponse";
+  edges?: Maybe<Array<NotificationEdge>>;
+  pageInfo?: Maybe<NotificationPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
+};
+
+export enum NotificationType {
+  AuctionCancelledNotification = "AUCTION_CANCELLED_NOTIFICATION",
+  AuctionClosedNotification = "AUCTION_CLOSED_NOTIFICATION",
+  AuctionConcludedNotification = "AUCTION_CONCLUDED_NOTIFICATION",
+  AuctionEndedWithoutBidNotification = "AUCTION_ENDED_WITHOUT_BID_NOTIFICATION",
+  AuctionEndedWithBidNotification = "AUCTION_ENDED_WITH_BID_NOTIFICATION",
+  BidderWithHighestBidNotification = "BIDDER_WITH_HIGHEST_BID_NOTIFICATION",
+  BidderWonAuctionNotification = "BIDDER_WON_AUCTION_NOTIFICATION",
+  BidOutbidHighestBidderNotification = "BID_OUTBID_HIGHEST_BIDDER_NOTIFICATION",
+  BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
+  ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
+  ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
+}
+
+export type NotificationsFilterInput = {
+  status?: Maybe<NotificationsFilterInput>;
 };
 
 export type Offer = {
@@ -751,6 +870,7 @@ export type Price = {
   __typename?: "Price";
   amount: Scalars["Float"];
   currency: PriceCurrency;
+  priceInUSD?: Maybe<Scalars["Float"]>;
 };
 
 export enum PriceCurrency {
@@ -790,7 +910,9 @@ export type Query = {
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
   collection?: Maybe<Collection>;
+  collectionMetadataValues: Array<CollectionMetadataValues>;
   collections: CollectionsResponse;
+  contractCount: ContractCount;
   getUploadUrl: GetUploadUrlOutput;
   hotCollections: CollectionsResponse;
   hotItems: HotItemsResponse;
@@ -800,18 +922,18 @@ export type Query = {
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
   mintableCollections: Array<Collection>;
+  notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   refinableContract?: Maybe<ContractOutput>;
   refinableContracts: Array<ContractOutput>;
   reports: ItemReportResponse;
   search: SearchResponse;
   searchTag: Array<Tag>;
+  store?: Maybe<Store>;
   /** @deprecated tag creation limit is not supported anymore */
   tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
-  /** @deprecated User consent is beeing given directly on the frontend */
-  userConsent: UserConsent;
   /** @deprecated Query verification token was replaced by the mutation generateVerificationToken */
   verificationToken: Scalars["Int"];
 };
@@ -824,10 +946,19 @@ export type QueryCollectionArgs = {
   slug: Scalars["String"];
 };
 
+export type QueryCollectionMetadataValuesArgs = {
+  input: CollectionMetadataValuesInput;
+};
+
 export type QueryCollectionsArgs = {
   filter?: Maybe<CollectionsFilterInput>;
   paging: PagingInput;
   sort?: Maybe<SortInput>;
+};
+
+export type QueryContractCountArgs = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
 };
 
 export type QueryGetUploadUrlArgs = {
@@ -860,6 +991,11 @@ export type QueryItemsOnOfferArgs = {
   sort?: Maybe<SortInput>;
 };
 
+export type QueryNotificationsArgs = {
+  filter?: Maybe<NotificationsFilterInput>;
+  paging: PagingInput;
+};
+
 export type QueryOfferArgs = {
   id?: Maybe<Scalars["ID"]>;
 };
@@ -887,6 +1023,10 @@ export type QuerySearchArgs = {
 export type QuerySearchTagArgs = {
   limit?: Maybe<Scalars["Int"]>;
   query: Scalars["String"];
+};
+
+export type QueryStoreArgs = {
+  domain: Scalars["String"];
 };
 
 export type QueryTopUsersArgs = {
@@ -934,6 +1074,26 @@ export enum SortOrder {
   Desc = "DESC",
 }
 
+export type Store = {
+  __typename?: "Store";
+  backgroundColor: Scalars["String"];
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  creator: Scalars["String"];
+  description: Scalars["String"];
+  discord: Scalars["String"];
+  domain: Scalars["String"];
+  email: Scalars["String"];
+  favicon: Scalars["String"];
+  instagram: Scalars["String"];
+  logo: Scalars["String"];
+  name: Scalars["String"];
+  primaryColor: Scalars["String"];
+  telegram: Scalars["String"];
+  twitter: Scalars["String"];
+  website: Scalars["String"];
+};
+
 export type Subscription = {
   __typename?: "Subscription";
   auctionCancelled: Offer;
@@ -944,6 +1104,7 @@ export type Subscription = {
   itemMinted: ItemMinted;
   itemPurchased: Item;
   itemTransfered: Item;
+  newNotification: Notification;
   offerUpdated?: Maybe<Offer>;
   saleCancelled: Offer;
 };
@@ -1073,6 +1234,7 @@ export enum UploadType {
 export type User = {
   __typename?: "User";
   description?: Maybe<Scalars["String"]>;
+  email?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
   fineHolderBenefits?: Maybe<FineHolderBenefits>;
   id: Scalars["String"];
@@ -1099,16 +1261,6 @@ export type UserItemsOnOfferArgs = {
   filter?: Maybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
   sort?: Maybe<SortInput>;
-};
-
-export type UserConsent = {
-  __typename?: "UserConsent";
-  /** @deprecated Deprecated, only used in frontend */
-  acceptedOlderThan18?: Maybe<Scalars["Boolean"]>;
-  /** @deprecated Deprecated, only used in frontend */
-  acceptedPrivacyPolicy?: Maybe<Scalars["Boolean"]>;
-  /** @deprecated Deprecated, only used in frontend */
-  acceptedTos?: Maybe<Scalars["Boolean"]>;
 };
 
 export type UserItemFilterInput = {
