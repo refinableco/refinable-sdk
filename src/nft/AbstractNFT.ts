@@ -151,20 +151,22 @@ export abstract class AbstractNFT {
 
     // When native currency, we do not need to approve
     if (!isNativeCurrency) {
-      const contractAddress = getSupportedCurrency(
+      const currency = getSupportedCurrency(
         this._chain.supportedCurrencies,
         price.currency
-      ).address;
+      );
 
       const erc20Contract = new Contract(
-        contractAddress,
+        currency.address,
         [`function approve(address _spender, uint256 _value)`],
         this.refinable.provider
       );
 
+      const amount = this.parseCurrency(price.currency, price.amount);
+
       const approvalResult: TransactionResponse = await erc20Contract.approve(
         spenderAddress,
-        utils.parseEther(price.amount.toString())
+        amount
       );
 
       // Wait for 1 confirmation
@@ -192,8 +194,7 @@ export abstract class AbstractNFT {
 
     await this.approveIfNeeded(this.auctionContract.address);
 
-    const startPrice = utils.parseEther(price.amount.toString()).toString();
-
+    const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
 
     const blockchainAuctionResponse = await this.auctionContract.createAuction(
@@ -280,13 +281,16 @@ export abstract class AbstractNFT {
       auctionContractAddress
     );
 
+    const value = this.parseCurrency(
+      price.currency,
+      priceWithServiceFee.amount
+    );
+
     const valueParam = optionalParam(
       // If currency is Native, send msg.value
       this.isNativeCurrency(priceWithServiceFee.currency),
       {
-        value: utils
-          .parseEther(priceWithServiceFee.amount.toString())
-          .toString(),
+        value,
       }
     );
 
@@ -486,16 +490,18 @@ export abstract class AbstractNFT {
       this.refinable.accountAddress
     );
 
+    const currency = this.getCurrency(price.currency);
+
     // We need to do this because of the rounding in our contracts
     const weiAmount = utils
-      .parseEther(price.amount.toString())
+      .parseUnits(price.amount.toString(), currency.decimals)
       .mul(10000 + serviceFeeBps)
       .div(10000)
       .toString();
 
     return {
       ...price,
-      amount: Number(utils.formatUnits(weiAmount, 18)) * amount,
+      amount: Number(utils.formatUnits(weiAmount, currency.decimals)) * amount,
     };
   }
 
@@ -574,10 +580,9 @@ export abstract class AbstractNFT {
     ethAddress?: string,
     supply?: number
   ) {
-    const value = utils.parseEther(price.amount.toString()).toString();
-
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);
+    const value = this.parseCurrency(price.currency, price.amount);
 
     const nonceResult: BigNumber = await this.nonceContract.getNonce(
       this.item.contractAddress,
@@ -606,12 +611,18 @@ export abstract class AbstractNFT {
     return soliditySha3(...(params as string[]));
   }
 
+  protected getCurrency(priceCurrency: PriceCurrency) {
+    return getSupportedCurrency(this._chain.supportedCurrencies, priceCurrency);
+  }
+
   protected isNativeCurrency(priceCurrency: PriceCurrency) {
-    const currency = getSupportedCurrency(
-      this._chain.supportedCurrencies,
-      priceCurrency
-    );
+    const currency = this.getCurrency(priceCurrency);
 
     return currency && currency.native === true;
+  }
+  protected parseCurrency(priceCurrency: PriceCurrency, amount: number) {
+    const currency = this.getCurrency(priceCurrency);
+
+    return utils.parseUnits(amount.toString(), currency.decimals).toString();
   }
 }
