@@ -67,6 +67,10 @@ export class ERC1155NFT extends AbstractNFT {
 
     const paymentToken = this.getPaymentToken(pricePerCopy.currency);
     const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
+    const value = this.parseCurrency(
+      pricePerCopy.currency,
+      priceWithServiceFee.amount
+    );
 
     const result = await this.saleContract.buy(
       // address _token
@@ -88,9 +92,7 @@ export class ERC1155NFT extends AbstractNFT {
 
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {
-        value: ethers.utils
-          .parseEther(priceWithServiceFee.amount.toString())
-          .toString(),
+        value,
       })
     );
 

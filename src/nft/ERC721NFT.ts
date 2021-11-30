@@ -64,6 +64,10 @@ export class ERC721NFT extends AbstractNFT {
 
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);
+    const value = this.parseCurrency(
+      price.currency,
+      priceWithServiceFee.amount
+    );
 
     const result = await this.saleContract.buy(
       // address _token
@@ -80,9 +84,7 @@ export class ERC721NFT extends AbstractNFT {
       signature,
       // If currency is native, send msg.value
       ...optionalParam(isNativeCurrency, {
-        value: ethers.utils
-          .parseEther(priceWithServiceFee.amount.toString())
-          .toString(),
+        value,
       })
     );
 
