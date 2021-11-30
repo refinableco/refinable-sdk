@@ -3,9 +3,10 @@ import base58 from "bs58";
 import * as dotenv from "dotenv";
 import { Chain, ENDPOINTS_SOL } from "../src/interfaces/Network";
 import { initializeWallet } from "../src/providers";
-import { Refinable } from "../src/Refinable";
+import { Refinable, Environment } from "../src/Refinable";
 import { RefinableSolana } from "../src/RefinableSolana";
 import { NodeWallet } from "../src/solana/wallet";
+
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
@@ -15,16 +16,17 @@ const API_KEY = process.env.API_KEY as string;
 export function createRefinableClient(chainId: Chain) {
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
 
-  const graphqlUrl =
-    [Chain.BscTestnet, Chain.EthereumRinkeby, Chain.PolygonTestnet].indexOf(
-      chainId
-    ) > -1
-      ? "https://api-testnet.refinable.com/graphql"
-      : "https://api.refinable.com/graphql";
+  const environment = [
+    Chain.BscTestnet,
+    Chain.EthereumRinkeby,
+    Chain.PolygonTestnet,
+  ].includes(chainId)
+    ? Environment.Testnet
+    : Environment.Mainnet;
 
   return Refinable.create(wallet, API_KEY, {
     waitConfirmations: 1,
-    apiUrl: graphqlUrl,
+    environment,
   });
 }
 

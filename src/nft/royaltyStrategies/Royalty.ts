@@ -14,6 +14,12 @@ export type RoyaltySettingsInput = {
   royaltyBps?: number;
 };
 
+export type SerializedRoyaltySettings = {
+  shares?: (string | number)[][];
+  royaltyStrategy: number;
+  royaltyBps?: number;
+};
+
 export interface Royalties {
   value: number;
   recipient: string;
@@ -29,5 +35,9 @@ export const convertToBps = (value: number): number => {
 };
 
 export interface IRoyalty {
-  serialize: () => RoyaltySettingsInput;
+  shares?: RoyaltiesInput[];
+  royaltyStrategy: RoyaltyStrategy;
+  royaltyBps?: number;
+
+  serialize: () => SerializedRoyaltySettings;
 }

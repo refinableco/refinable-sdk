@@ -9,6 +9,7 @@ import {
   TokenType,
 } from "./@types/graphql";
 import Account from "./Account";
+import { apiUrl } from "./config/sdk";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
 import { ClassType, nftMap, SingleKeys } from "./interfaces";
@@ -18,6 +19,7 @@ import { PartialOffer } from "./offer/Offer";
 import { OfferFactory } from "./offer/OfferFactory";
 import { RefinableBase, RefinableOptions } from "./RefinableBase";
 import { RefinableContracts } from "./RefinableContracts";
+import { Environment, RefinableOptions } from "./types/RefinableOptions";
 import { limit } from "./utils/limitItems";
 
 export type ContractType =
@@ -66,9 +68,9 @@ export class Refinable extends RefinableBase {
     const accountAddress = await provider.getAddress();
     const refinable = new Refinable(provider, accountAddress, options);
 
-    const graphqlUrl = options.apiUrl ?? "https://api.refinable.com/graphql";
-
     if (!apiOrBearerToken) throw new Error("No authentication key present");
+
+    const graphqlUrl = apiUrl[refinable._options.environment];
 
     refinable._apiKey = apiOrBearerToken;
     refinable.apiClient = new GraphQLClient(graphqlUrl, {
@@ -92,10 +94,13 @@ export class Refinable extends RefinableBase {
     options: Partial<RefinableOptions> = {}
   ) {
     super();
-    const { waitConfirmations = 3 } = options;
+  
+    const { waitConfirmations = 3, environment = Environment.Mainnet } =
+      options;
 
     this._options = {
       waitConfirmations,
+      environment,
     };
   }
 
@@ -136,7 +141,7 @@ export class Refinable extends RefinableBase {
 
     if (!Class) throw new Error("Item type not supported");
 
-    return new Class(this, item).build();
+    return new Class(this, item)
   }
 
   private async getItemsWithOffer(

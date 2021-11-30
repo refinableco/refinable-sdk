@@ -1,12 +1,22 @@
-import { IRoyalty, Royalties, RoyaltyStrategy } from "./Royalty";
+import { IRoyalty, RoyaltiesInput, RoyaltyStrategy } from "./Royalty";
 
 export class StandardRoyaltyStrategy implements IRoyalty {
-  constructor(private readonly royaltyShares: Royalties[]) {}
+  public royaltyStrategy: RoyaltyStrategy =
+    RoyaltyStrategy.ProfitDistributionStrategy;
+  public shares?: RoyaltiesInput[];
+  public royaltyBps: number = 0;
+
+  constructor(shares: RoyaltiesInput[] = []) {
+    this.shares = shares;
+  }
 
   serialize() {
     return {
-      royaltyStrategy: RoyaltyStrategy.StandardRoyaltyStrategy,
-      shares: this.royaltyShares,
+      royaltyStrategy: 0,
+      shares: this.shares.map((share) => [
+        share.recipient,
+        share.value,
+      ]),
       royaltyBps: 0,
     };
   }

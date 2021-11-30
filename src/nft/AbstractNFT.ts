@@ -2,7 +2,7 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
 import { BigNumber, constants, Contract, utils } from "ethers";
-import {soliditySha3} from "web3-utils";
+import { soliditySha3 } from "web3-utils";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
@@ -29,16 +29,10 @@ export interface PartialNFTItem {
   totalSupply?: number;
 }
 export abstract class AbstractNFT {
-  protected _initialized: boolean = false;
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
 
-  protected saleContract: Contract;
   private nftTokenContract: Contract | null;
-  protected nonceContract: Contract;
-  protected auctionContract: Contract;
-  protected airdropContract: Contract | null;
-  protected transferProxyContract: Contract;
 
   constructor(
     protected type: TokenType,
@@ -57,51 +51,49 @@ export abstract class AbstractNFT {
     return this.saleContract.address;
   }
 
-  public build() {
-    // Sale contract
+  get saleContract(): Contract {
     const sale = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_SALE`
     );
 
-    this.saleContract = sale.toEthersContract();
+    return sale.toEthersContract();
+  }
 
-    // Auction contract
+  get auctionContract(): Contract {
     const auction = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_AUCTION`
     );
 
-    this.auctionContract = auction.toEthersContract();
+    return auction.toEthersContract();
+  }
 
-    // Nonce contract
+  get nonceContract(): Contract {
     const saleNonceHolder = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_SALE_NONCE_HOLDER`
     );
 
-    this.nonceContract = saleNonceHolder.toEthersContract();
+    return saleNonceHolder.toEthersContract();
+  }
 
-    // transfer proxy
+  get transferProxyContract(): Contract {
     const transferProxy = this.refinable.contracts.getBaseContract(
       this.item.chainId,
       `TRANSFER_PROXY`
     );
 
-    this.transferProxyContract = transferProxy.toEthersContract();
+    return transferProxy.toEthersContract();
+  }
 
-    // Airdrop contract
+  get airdropContract(): Contract | null {
     const airdrop = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      `${this.type}_AIRDROP`,
-      false // Should not fail if not found as airdrop is not supported yet for ETH
+      `${this.type}_AIRDROP`
     );
 
-    this.airdropContract = airdrop?.toEthersContract();
-
-    this._initialized = true;
-
-    return this;
+    return airdrop?.toEthersContract();
   }
 
   public async getTokenContract() {
@@ -159,20 +151,22 @@ export abstract class AbstractNFT {
 
     // When native currency, we do not need to approve
     if (!isNativeCurrency) {
-      const contractAddress = getSupportedCurrency(
+      const currency = getSupportedCurrency(
         this._chain.supportedCurrencies,
         price.currency
-      ).address;
+      );
 
       const erc20Contract = new Contract(
-        contractAddress,
+        currency.address,
         [`function approve(address _spender, uint256 _value)`],
         this.refinable.provider
       );
 
+      const amount = this.parseCurrency(price.currency, price.amount);
+
       const approvalResult: TransactionResponse = await erc20Contract.approve(
         spenderAddress,
-        utils.parseEther(price.amount.toString())
+        amount
       );
 
       // Wait for 1 confirmation
@@ -200,8 +194,7 @@ export abstract class AbstractNFT {
 
     await this.approveIfNeeded(this.auctionContract.address);
 
-    const startPrice = utils.parseEther(price.amount.toString()).toString();
-
+    const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
 
     const blockchainAuctionResponse = await this.auctionContract.createAuction(
@@ -288,13 +281,16 @@ export abstract class AbstractNFT {
       auctionContractAddress
     );
 
+    const value = this.parseCurrency(
+      price.currency,
+      priceWithServiceFee.amount
+    );
+
     const valueParam = optionalParam(
       // If currency is Native, send msg.value
       this.isNativeCurrency(priceWithServiceFee.currency),
       {
-        value: utils
-          .parseEther(priceWithServiceFee.amount.toString())
-          .toString(),
+        value,
       }
     );
 
@@ -418,9 +414,6 @@ export abstract class AbstractNFT {
   async airdrop(recipients: string[]): Promise<TransactionResponse> {
     this.verifyItem();
 
-    if (!this.airdropContract)
-      throw new Error(`Airdrop not supported for ${this.item.chainId}`);
-
     await this.approveIfNeeded(this.airdropContract.address);
 
     if (this.item.supply != null) {
@@ -497,16 +490,18 @@ export abstract class AbstractNFT {
       this.refinable.accountAddress
     );
 
+    const currency = this.getCurrency(price.currency);
+
     // We need to do this because of the rounding in our contracts
     const weiAmount = utils
-      .parseEther(price.amount.toString())
+      .parseUnits(price.amount.toString(), currency.decimals)
       .mul(10000 + serviceFeeBps)
       .div(10000)
       .toString();
 
     return {
       ...price,
-      amount: Number(utils.formatUnits(weiAmount, 18)) * amount,
+      amount: Number(utils.formatUnits(weiAmount, currency.decimals)) * amount,
     };
   }
 
@@ -585,10 +580,9 @@ export abstract class AbstractNFT {
     ethAddress?: string,
     supply?: number
   ) {
-    const value = utils.parseEther(price.amount.toString()).toString();
-
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);
+    const value = this.parseCurrency(price.currency, price.amount);
 
     const nonceResult: BigNumber = await this.nonceContract.getNonce(
       this.item.contractAddress,
@@ -617,12 +611,18 @@ export abstract class AbstractNFT {
     return soliditySha3(...(params as string[]));
   }
 
+  protected getCurrency(priceCurrency: PriceCurrency) {
+    return getSupportedCurrency(this._chain.supportedCurrencies, priceCurrency);
+  }
+
   protected isNativeCurrency(priceCurrency: PriceCurrency) {
-    const currency = getSupportedCurrency(
-      this._chain.supportedCurrencies,
-      priceCurrency
-    );
+    const currency = this.getCurrency(priceCurrency);
 
     return currency && currency.native === true;
+  }
+  protected parseCurrency(priceCurrency: PriceCurrency, amount: number) {
+    const currency = this.getCurrency(priceCurrency);
+
+    return utils.parseUnits(amount.toString(), currency.decimals).toString();
   }
 }

@@ -6,16 +6,24 @@ import {
 } from "./Royalty";
 
 export class ProfitDistributionStrategy implements IRoyalty {
+  public royaltyStrategy: RoyaltyStrategy =
+    RoyaltyStrategy.ProfitDistributionStrategy;
+  public shares?: RoyaltiesInput[];
+  public royaltyBps?: number;
+
   constructor(
-    private readonly profitDistributionShares: RoyaltiesInput[],
-    private readonly royaltyPercentage: number
-  ) {}
+    shares: RoyaltiesInput[] = [],
+    royaltyPercentage: number
+  ) {
+    this.shares = shares;
+    this.royaltyBps = convertToBps(royaltyPercentage);
+  }
 
   serialize() {
     return {
-      royaltyStrategy: RoyaltyStrategy.ProfitDistributionStrategy,
-      shares: this.profitDistributionShares,
-      royaltyBps: convertToBps(this.royaltyPercentage),
+      royaltyStrategy: 1,
+      shares: this.shares.map((share) => [share.recipient, share.value]),
+      royaltyBps: this.royaltyBps,
     };
   }
 }

@@ -1,6 +1,5 @@
 import { Refinable, TokenType } from ".";
 import {
-  ContractTag,
   ContractTypes,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
@@ -10,6 +9,7 @@ import {
   RefinableContractsQueryVariables,
   Token,
 } from "./@types/graphql";
+import { contractsTags } from "./config/sdk";
 import { Contract, IContract } from "./Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
@@ -42,18 +42,14 @@ export class RefinableContracts {
       return this.baseContracts[chainId];
     }
 
+    const tags = contractsTags[this.refinable.options.environment];
+
     const { refinableContracts } = await this.refinable.apiClient.request<
       RefinableContractsQuery,
       RefinableContractsQueryVariables
     >(GET_REFINABLE_CONTRACTS, {
       input: {
-        tags: [
-          ContractTag.SaleV3_0_0,
-          ContractTag.AuctionV3_1_0,
-          ContractTag.SaleNonceHolderV1_0_0,
-          ContractTag.TransferProxyV1_0_0,
-          ContractTag.AirdropV1_0_0,
-        ],
+        tags,
       },
     });
 
@@ -155,11 +151,14 @@ export class RefinableContracts {
     return code !== "0x0";
   }
 
-  getBaseContract(chainId: Chain, type: string, failOnNotFound = true) {
+  getBaseContract(chainId: Chain, type: string) {
+    if (!this.baseContracts[chainId])
+      throw new Error(`No contract of type ${{type}} for this chain ${chainId}`);
+
     const contract = this.baseContracts[chainId][type];
 
-    if (!contract && failOnNotFound)
-      throw new Error(`Unable to initialize contract for type ${type}`);
+    if (!contract)
+      throw new Error(`Unable to initialize contract for type ${type} on chain ${chainId}`);
 
     return contract;
   }
