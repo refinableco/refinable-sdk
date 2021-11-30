@@ -3,3 +3,4 @@ lib
 .env
 .env.mainnet
 .env.local
+.vscode/settings.json

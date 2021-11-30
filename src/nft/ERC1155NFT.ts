@@ -12,6 +12,7 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 
@@ -96,7 +97,12 @@ export class ERC1155NFT extends AbstractNFT {
     return result;
   }
 
-  async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
+  async putForSale(
+    price: Price,
+    supply = 1,
+    saleStartDate?: Date,
+    saleEndDate?: Date
+  ): Promise<SaleOffer> {
     this.verifyItem();
 
     await this.approveIfNeeded(this.transferProxyContract.address);
@@ -125,8 +131,14 @@ export class ERC1155NFT extends AbstractNFT {
           amount: parseFloat(price.amount.toString()),
         },
         supply,
+        saleStartDate,
+        saleEndDate,
       },
     });
+
+    if (saleStartDate) {
+      await this.setStartDateForSale(saleStartDate);
+    }
 
     return this.refinable.createOffer<OfferType.Sale>(
       { ...result.createOfferForItems, type: OfferType.Sale },

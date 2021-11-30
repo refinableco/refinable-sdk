@@ -13,6 +13,7 @@ import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { optionalParam } from "../utils/utils";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
 
 export class ERC721NFT extends AbstractNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
@@ -88,7 +89,12 @@ export class ERC721NFT extends AbstractNFT {
     return result;
   }
 
-  async putForSale(price: Price): Promise<SaleOffer> {
+  async putForSale(
+    price: Price,
+    supply?: number, // put this to comply with the base method
+    saleStartDate?: Date,
+    saleEndDate?: Date
+  ): Promise<SaleOffer> {
     this.verifyItem();
 
     await this.approveIfNeeded(this.transferProxyContract.address);
@@ -116,8 +122,14 @@ export class ERC721NFT extends AbstractNFT {
           amount: parseFloat(price.amount.toString()),
         },
         supply: 1,
+        saleStartDate: saleStartDate,
+        saleEndDate: saleEndDate,
       },
     });
+
+    if (saleStartDate) {
+      await this.setStartDateForSale(saleStartDate);
+    }
 
     return this.refinable.createOffer<OfferType.Sale>(
       { ...result.createOfferForItems, type: OfferType.Sale },

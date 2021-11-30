@@ -139,6 +139,8 @@ export const OfferFragment = gql`
     auction {
       ...Auction
     }
+    saleStartDate
+    saleEndDate
   }
   ${AuctionFragment}
 `;

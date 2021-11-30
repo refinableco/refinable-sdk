@@ -128,7 +128,21 @@ export abstract class AbstractNFT {
     supply?: number,
     ownerEthAddress?: string
   ): Promise<TransactionResponse>;
-  abstract putForSale(price: Price, supply?: number): Promise<SaleOffer>;
+  abstract putForSale(
+    price: Price,
+    supply?: number,
+    saleStartDate?: Date,
+    saleEndDate?: Date
+  ): Promise<SaleOffer>;
+
+  protected async setStartDateForSale(date: Date) {
+    await this.saleContract?.setApproveSaleDate(
+      this.item?.contractAddress,
+      this.item?.tokenId, //tokenId, // uint256 tokenId
+      getUnixEpochTimeStampFromDate(date)
+    );
+  }
+
   abstract transfer(
     ownerEthAddress: string,
     recipientEthAddress: string,
