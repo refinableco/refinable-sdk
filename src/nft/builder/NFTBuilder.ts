@@ -93,8 +93,8 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
       file,
       contractAddress,
       chainId,
+      thumbnail,
     } = this.buildData;
-
     // API Call
     const { createItem } = await this.refinable.apiClient.request<
       CreateItemMutation,
@@ -105,6 +105,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
         marketingDescription,
         name,
         supply,
+        thumbnail,
         royaltySettings: this.buildData.royalty,
         tags,
         airdropAddresses,
