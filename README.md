@@ -35,6 +35,8 @@ Where there are some arguments
 |wallet | The Provider that is allowed to call functions. | Ethers Signer |
 |Api Key|The API key, obtained from Refinable|string|
 |options|Options for customizing the SDK|RefinableOptions|
+|options.environment|Define the environment (mandatory)|`Environment.Testnet` or `Environment.Mainnet`|
+|options.waitConfirmations|How many confirmations do you want to wait for before continuing|`number`|
 
 ## Initialize wallet
 
