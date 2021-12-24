@@ -1,9 +1,5 @@
 import { GraphQLClient } from "graphql-request";
-
-export interface RefinableOptions {
-    waitConfirmations?: number;
-    apiUrl?: string;
-}
+import { RefinableOptions } from "./types/RefinableOptions";
 
 export class RefinableBase {
     protected _apiClient?: GraphQLClient;

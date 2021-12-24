@@ -24,6 +24,7 @@ import {
 import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function redeemPrintingV2Bid(
+  storePubKey: StringPublicKey,
   vault: StringPublicKey,
   safetyDepositTokenStore: StringPublicKey,
   tokenAccount: StringPublicKey,
@@ -40,10 +41,6 @@ export async function redeemPrintingV2Bid(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
 
@@ -145,7 +142,7 @@ export async function redeemPrintingV2Bid(
       isWritable: false,
     },
     {
-      pubkey: store,
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

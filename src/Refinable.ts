@@ -1,4 +1,4 @@
-import { utils, Signer } from "ethers";
+import { Signer, utils } from "ethers";
 import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import {
@@ -6,18 +6,17 @@ import {
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
-  TokenType,
 } from "./@types/graphql";
 import Account from "./Account";
 import { apiUrl } from "./config/sdk";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
-import { ClassType, nftMap, SingleKeys } from "./interfaces";
+import { ClassType, nftMap, NftMapTypes, SingleKeys } from "./interfaces";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
 import { PartialOffer } from "./offer/Offer";
 import { OfferFactory } from "./offer/OfferFactory";
-import { RefinableBase, RefinableOptions } from "./RefinableBase";
+import { RefinableBase } from "./RefinableBase";
 import { RefinableContracts } from "./RefinableContracts";
 import { Environment, RefinableOptions } from "./types/RefinableOptions";
 import { limit } from "./utils/limitItems";
@@ -94,7 +93,7 @@ export class Refinable extends RefinableBase {
     options: Partial<RefinableOptions> = {}
   ) {
     super();
-  
+
     const { waitConfirmations = 3, environment = Environment.Mainnet } =
       options;
 
@@ -132,16 +131,16 @@ export class Refinable extends RefinableBase {
     return OfferFactory.createOffer<K>(this, offer, nft);
   }
 
-  createNft<K extends TokenType>(
+  createNft<K extends NftMapTypes>(
     item: PartialNFTItem & { type: SingleKeys<K> }
   ): ClassType<K, AbstractNFT> {
     if (!item) return null;
 
-    const Class = nftMap[item.type as TokenType];
+    const Class = nftMap[item.type as NftMapTypes];
 
     if (!Class) throw new Error("Item type not supported");
 
-    return new Class(this, item)
+    return new Class(this, item);
   }
 
   private async getItemsWithOffer(

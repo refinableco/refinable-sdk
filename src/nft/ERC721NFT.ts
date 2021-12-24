@@ -11,10 +11,11 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
-import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { optionalParam } from "../utils/utils";
+import { AbstractEvmNFT } from "./AbstractEvmNFT";
+import { PartialNFTItem } from "./AbstractNFT";
 
-export class ERC721NFT extends AbstractNFT {
+export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
     super(TokenType.Erc721, refinable, item);
   }

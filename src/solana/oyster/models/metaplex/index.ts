@@ -1138,20 +1138,16 @@ export const isCreatorPartOfTheStore = async (
 
 export async function getWhitelistedCreator(
   creator: StringPublicKey,
-  storeId?: StringPublicKey,
+  storePubKey: StringPublicKey,
 ) {
   const PROGRAM_IDS = programIds();
-  const store = storeId || PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   return (
     await findProgramAddress(
       [
         Buffer.from(METAPLEX_PREFIX),
         toPublicKey(PROGRAM_IDS.metaplex).toBuffer(),
-        toPublicKey(store).toBuffer(),
+        toPublicKey(storePubKey).toBuffer(),
         toPublicKey(creator).toBuffer(),
       ],
       toPublicKey(PROGRAM_IDS.metaplex),
@@ -1163,11 +1159,7 @@ export async function getPrizeTrackingTicket(
   auctionManager: string,
   mint: string,
 ) {
-  const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
+  const PROGRAM_IDS = programIds()
 
   return (
     await findProgramAddress(
@@ -1184,10 +1176,6 @@ export async function getPrizeTrackingTicket(
 
 export async function getAuctionWinnerTokenTypeTracker(auctionManager: string) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   return (
     await findProgramAddress(
@@ -1207,10 +1195,6 @@ export async function getSafetyDepositConfig(
   safetyDeposit: string,
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   return (
     await findProgramAddress(

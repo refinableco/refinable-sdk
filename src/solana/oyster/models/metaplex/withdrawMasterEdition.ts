@@ -18,6 +18,7 @@ import {
 
 export async function withdrawMasterEdition(
   vault: StringPublicKey,
+  storePubKey: StringPublicKey,
   safetyDepositTokenStore: StringPublicKey,
   destination: StringPublicKey,
   safetyDeposit: StringPublicKey,
@@ -26,10 +27,6 @@ export async function withdrawMasterEdition(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
 
@@ -129,7 +126,7 @@ export async function withdrawMasterEdition(
       isWritable: false,
     },
     {
-      pubkey: toPublicKey(store),
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

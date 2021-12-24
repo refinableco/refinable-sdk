@@ -91,7 +91,7 @@ export async function addTokensToVault(
 
       await addTokenToInactiveVault(
         nft.draft.masterEdition &&
-          nft.draft.masterEdition.info.key === MetadataKey.MasterEditionV2
+          nft.draft.masterEdition.key === MetadataKey.MasterEditionV2
           ? new BN(1)
           : nft.box.amount,
         nft.box.tokenMint,

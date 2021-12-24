@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 import { createRefinableClientSolana } from '../shared';
 import { QUOTE_MINT } from "../../src/solana/constants";
+import { Environment } from "../../src";
   
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 async function main() {
-    const refinable = await createRefinableClientSolana();
+    const refinable = await createRefinableClientSolana(Environment.Local);
 
     const { whitelistedCreators, items } = await refinable.getItemsFromChain();
     if (!items.length) {

@@ -18,6 +18,7 @@ import { optionalParam } from "../../utils/utils";
 import { ERC1155NFT } from "../ERC1155NFT";
 import { ERC721NFT } from "../ERC721NFT";
 import { Stream } from "form-data";
+import { AbstractEvmNFT } from "../AbstractEvmNFT";
 
 export interface NftBuilderParams
   extends Omit<
@@ -35,7 +36,7 @@ export interface NftBuilderParamsWithFileStream
   nftFile: Stream;
 }
 
-export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
+export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
   private signature: string;
   private item: CreateItemMutation["createItem"]["item"];
   public mintTransaction: TransactionResponse;
@@ -196,7 +197,7 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
       },
     });
 
-    return this.refinable.createNft(finishMint.finishMint.item) as AbstractNFT;
+    return this.refinable.createNft(finishMint.finishMint.item as any) as AbstractNFT;
   }
 
   /**

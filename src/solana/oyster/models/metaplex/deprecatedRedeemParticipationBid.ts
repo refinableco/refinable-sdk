@@ -17,6 +17,7 @@ import { DeprecatedRedeemParticipationBidArgs } from './deprecatedStates';
 
 export async function deprecatedRedeemParticipationBid(
   vault: StringPublicKey,
+  storePubKey: StringPublicKey,
   safetyDepositTokenStore: StringPublicKey,
   destination: StringPublicKey,
   safetyDeposit: StringPublicKey,
@@ -29,10 +30,6 @@ export async function deprecatedRedeemParticipationBid(
   tokenPaymentAccount: StringPublicKey,
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
 
@@ -120,7 +117,7 @@ export async function deprecatedRedeemParticipationBid(
       isWritable: false,
     },
     {
-      pubkey: store,
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

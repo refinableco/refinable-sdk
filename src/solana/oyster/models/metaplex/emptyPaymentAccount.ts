@@ -15,6 +15,7 @@ import {
 import { programIds, StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function emptyPaymentAccount(
+  storePubKey: StringPublicKey,
   acceptPayment: StringPublicKey,
   destination: StringPublicKey,
   auctionManager: StringPublicKey,
@@ -31,10 +32,6 @@ export async function emptyPaymentAccount(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const safetyDepositConfig = await getSafetyDepositConfig(
     auctionManager,
@@ -102,7 +99,7 @@ export async function emptyPaymentAccount(
       isWritable: false,
     },
     {
-      pubkey: toPublicKey(store),
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

@@ -49,6 +49,5 @@ export const programIds = () => {
     vault: VAULT_ID,
     auction: AUCTION_ID,
     metaplex: METAPLEX_ID,
-    store: STORE,
   };
 };

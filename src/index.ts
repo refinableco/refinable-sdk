@@ -21,6 +21,7 @@ import { AuctionOffer } from "./offer/AuctionOffer";
 import { Offer, PartialOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
 import { Refinable } from "./Refinable";
+import { RefinableSolana } from "./RefinableSolana";
 import * as is from "./utils/is";
 export * from "./providers";
 
@@ -31,6 +32,7 @@ export {
   PartialOffer,
   AbstractNFT,
   Refinable,
+  RefinableSolana,
   NftMap,
   Chain,
   TokenType,

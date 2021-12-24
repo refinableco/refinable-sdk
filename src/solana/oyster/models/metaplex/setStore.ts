@@ -8,21 +8,18 @@ import { StringPublicKey, toPublicKey } from '../../../utils';
 export async function setStore(
   isPublic: boolean,
   admin: StringPublicKey,
+  storePubKey: StringPublicKey,
   payer: StringPublicKey,
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const value = new SetStoreArgs({ public: isPublic });
   const data = Buffer.from(serialize(SCHEMA, value));
 
   const keys = [
     {
-      pubkey: toPublicKey(store),
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: true,
     },

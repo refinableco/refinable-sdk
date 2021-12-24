@@ -26,11 +26,11 @@ async function main() {
 
   console.log("Listing for sale...");
 
-  // SDK: Put for sale
-  await nft.putForSale({
-    amount: 1,
-    currency: PriceCurrency.Bnb,
-  });
+  // // SDK: Put for sale
+  // await nft.putForSale({
+  //   amount: 1,
+  //   currency: PriceCurrency.Bnb,
+  // });
 }
 
 main();

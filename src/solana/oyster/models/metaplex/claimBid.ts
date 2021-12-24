@@ -6,6 +6,7 @@ import { getBidderPotKey, getAuctionExtended } from '../../actions';
 import { programIds, StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function claimBid(
+  storePubKey: StringPublicKey,
   acceptPayment: StringPublicKey,
   bidder: StringPublicKey,
   bidderPotToken: StringPublicKey,
@@ -14,10 +15,6 @@ export async function claimBid(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
 
@@ -78,7 +75,7 @@ export async function claimBid(
       isWritable: false,
     },
     {
-      pubkey: toPublicKey(store),
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

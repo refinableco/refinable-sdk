@@ -7,14 +7,11 @@ import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function startAuction(
   vault: StringPublicKey,
+  storePubKey: StringPublicKey,
   auctionManagerAuthority: StringPublicKey,
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
 
@@ -38,7 +35,7 @@ export async function startAuction(
       isWritable: false,
     },
     {
-      pubkey: store,
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

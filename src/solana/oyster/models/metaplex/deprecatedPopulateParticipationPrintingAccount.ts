@@ -12,6 +12,7 @@ import { DeprecatedPopulateParticipationPrintingAccountArgs } from './deprecated
 
 export async function deprecatedPopulateParticipationPrintingAccount(
   vault: StringPublicKey,
+  storePubKey: StringPublicKey,
   auctionManager: StringPublicKey,
   auction: StringPublicKey,
   safetyDepositTokenStore: StringPublicKey,
@@ -27,10 +28,6 @@ export async function deprecatedPopulateParticipationPrintingAccount(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const transferAuthority = (
     await findProgramAddress(
@@ -123,7 +120,7 @@ export async function deprecatedPopulateParticipationPrintingAccount(
       isWritable: false,
     },
     {
-      pubkey: store,
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

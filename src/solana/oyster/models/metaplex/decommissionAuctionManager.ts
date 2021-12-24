@@ -5,6 +5,7 @@ import { DecommissionAuctionManagerArgs, SCHEMA } from '.';
 import { programIds, StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function decommissionAuctionManager(
+  storePubKey: StringPublicKey,
   auctionManager: StringPublicKey,
   auction: StringPublicKey,
   authority: StringPublicKey,
@@ -12,10 +13,6 @@ export async function decommissionAuctionManager(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const value = new DecommissionAuctionManagerArgs();
   const data = Buffer.from(serialize(SCHEMA, value));
@@ -44,7 +41,7 @@ export async function decommissionAuctionManager(
       isWritable: true,
     },
     {
-      pubkey: toPublicKey(store),
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },

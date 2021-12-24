@@ -25,6 +25,7 @@ import { StringPublicKey, toPublicKey } from '../../../utils';
 
 export async function redeemParticipationBidV3(
   vault: StringPublicKey,
+  storePubKey: StringPublicKey,
   safetyDepositTokenStore: StringPublicKey,
   destination: StringPublicKey,
   safetyDeposit: StringPublicKey,
@@ -42,10 +43,6 @@ export async function redeemParticipationBidV3(
   instructions: TransactionInstruction[],
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
   const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
   const auctionDataExtended = await getAuctionExtended({
@@ -147,7 +144,7 @@ export async function redeemParticipationBidV3(
       isWritable: false,
     },
     {
-      pubkey: store,
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },
