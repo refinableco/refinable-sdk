@@ -168,6 +168,31 @@ export class ERC1155NFT extends AbstractNFT {
     return nftTokenContract.burn(ownerEthAddress, this.item.tokenId, amount);
   }
 
+  async cancelSale(
+    price: Price,
+    signature: string,
+    amount = 1
+  ): Promise<TransactionResponse> {
+    if (!this.item.tokenId) {
+      throw new Error("tokenId is not set");
+    }
+
+    if (!this.item.contractAddress) {
+      throw new Error("contract address is not set");
+    }
+    this.verifyItem();
+
+    const paymentToken = this.getPaymentToken(price.currency);
+    const parsedPrice = this.parseCurrency(price.currency, price.amount);
+    return this.saleContract.cancel(
+      this.item.contractAddress,
+      this.item.tokenId,
+      paymentToken,
+      parsedPrice.toString(),
+      amount,
+      signature
+    );
+  }
   /**
    * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
    */

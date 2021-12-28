@@ -142,6 +142,11 @@ export abstract class AbstractNFT {
     supply?: number,
     amount?: number
   ): Promise<TransactionResponse>;
+  abstract cancelSale(
+    price: Price,
+    signature: string,
+    amount?: number
+  ): Promise<TransactionResponse>;
 
   protected async approveForTokenIfNeeded(
     price: Price,
@@ -191,7 +196,6 @@ export abstract class AbstractNFT {
     offer: AuctionOffer;
   }> {
     await this.isValidRoyaltyContract(royaltyContractAddress);
-
     await this.approveIfNeeded(this.auctionContract.address);
 
     const startPrice = this.parseCurrency(price.currency, price.amount);
@@ -245,28 +249,6 @@ export abstract class AbstractNFT {
       txResponse: blockchainAuctionResponse,
       offer,
     };
-  }
-
-  cancelSale(price: Price, signature: string): Promise<TransactionResponse> {
-    if (!this.item.tokenId) {
-      throw new Error("tokenId is not set");
-    }
-
-    if (!this.item.contractAddress) {
-      throw new Error("contract address is not set");
-    }
-    this.verifyItem();
-
-    const paymentToken = this.getPaymentToken(price.currency);
-    const value = this.parseCurrency(price.currency, price.amount);
-
-    return this.saleContract.cancel(
-      this.item.contractAddress,
-      this.item.tokenId,
-      paymentToken,
-      value.toString(),
-      signature
-    );
   }
 
   async placeBid(

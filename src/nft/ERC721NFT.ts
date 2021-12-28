@@ -151,4 +151,25 @@ export class ERC721NFT extends AbstractNFT {
 
     return nftTokenContract.burn(this.item.tokenId);
   }
+
+  cancelSale(price: Price, signature: string): Promise<TransactionResponse> {
+    if (!this.item.tokenId) {
+      throw new Error("tokenId is not set");
+    }
+
+    if (!this.item.contractAddress) {
+      throw new Error("contract address is not set");
+    }
+    this.verifyItem();
+
+    const paymentToken = this.getPaymentToken(price.currency);
+    const parsedPrice = this.parseCurrency(price.currency, price.amount);
+    return this.saleContract.cancel(
+      this.item.contractAddress,
+      this.item.tokenId,
+      paymentToken,
+      parsedPrice.toString(),
+      signature
+    );
+  }
 }
