@@ -23,7 +23,7 @@ export class SaleOffer extends Offer {
     const result = await this.nft.buy(
       this.signature,
       this.price,
-      this?.user?.ethAddress,
+      this.user?.ethAddress,
       params.royaltyContractAddress,
       this.totalSupply,
       amount
@@ -44,6 +44,6 @@ export class SaleOffer extends Offer {
   }
 
   public cancelSale() {
-    return this.nft.cancelSale();
+    return this.nft.cancelSale(this.price, this.signature);
   }
 }

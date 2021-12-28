@@ -247,7 +247,7 @@ export abstract class AbstractNFT {
     };
   }
 
-  cancelSale(): Promise<TransactionResponse> {
+  cancelSale(price: Price, signature: string): Promise<TransactionResponse> {
     if (!this.item.tokenId) {
       throw new Error("tokenId is not set");
     }
@@ -255,11 +255,17 @@ export abstract class AbstractNFT {
     if (!this.item.contractAddress) {
       throw new Error("contract address is not set");
     }
-
     this.verifyItem();
+
+    const paymentToken = this.getPaymentToken(price.currency);
+    const value = this.parseCurrency(price.currency, price.amount);
+
     return this.saleContract.cancel(
       this.item.contractAddress,
-      this.item.tokenId //tokenId, // uint256 tokenId
+      this.item.tokenId,
+      paymentToken,
+      value.toString(),
+      signature
     );
   }
 
@@ -439,6 +445,10 @@ export abstract class AbstractNFT {
     serviceFeeUserAddress: string,
     address: string
   ): Promise<number> {
+    const diamondSale = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      serviceFeeUserAddress
+    );
     // Get ServiceFeeProxyAddress from user contract (sale or auction)
     const serviceFeeUserContract = new Contract(
       serviceFeeUserAddress,
@@ -461,7 +471,9 @@ export abstract class AbstractNFT {
     );
 
     const serviceFeeProxyAddress =
-      await serviceFeeUserContract.serviceFeeProxy();
+      diamondSale?.tags?.[0] === ContractTag.SaleV4_0_0
+        ? diamondSale?.contractAddress
+        : await serviceFeeUserContract.serviceFeeProxy();
 
     if (!serviceFeeProxyAddress)
       throw new Error(

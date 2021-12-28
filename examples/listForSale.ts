@@ -8,7 +8,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 type ParameterTuple = [string, string, string, string, number, number];
 
 async function main() {
-  const refinable = await createRefinableClient(Chain.BscTestnet);
+  const refinable = await createRefinableClient(Chain.Local);
 
   let lineNumber = 0;
   const rl = readline.createInterface({
@@ -34,7 +34,7 @@ async function main() {
       // Use and parse existing NFTs to put for sale
       const nft = refinable.createNft({
         type: parameters[2] as TokenType,
-        chainId: Chain.BscTestnet,
+        chainId: Chain.Local,
         contractAddress: parameters[0],
         tokenId: parameters[1],
       });
@@ -43,6 +43,7 @@ async function main() {
         amount: parameters[4],
         currency: parameters[3] as PriceCurrency,
       });
+
       console.log(
         `{Put ${parameters[5]} items for sale for ${parameters[4]} ${parameters[3]}`
       );
