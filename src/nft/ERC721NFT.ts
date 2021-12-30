@@ -118,13 +118,13 @@ export class ERC721NFT extends AbstractNFT {
 
   async putForSale(price: Price): Promise<SaleOffer> {
     this.verifyItem();
-    const diamondSale = await this.refinable.contracts.getRefinableContract(
+    const contract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
       this.saleContract.address
     );
-    const isDiamond = diamondSale?.tags?.[0] === ContractTag.SaleV4_0_0;
+    const isDiamond = contract?.tags?.[0] === ContractTag.SaleV4_0_0;
     const addressForApproval = isDiamond
-      ? diamondSale.contractAddress
+      ? contract.contractAddress
       : this.transferProxyContract.address;
     await this.approveIfNeeded(addressForApproval);
 

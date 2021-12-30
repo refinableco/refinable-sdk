@@ -427,7 +427,7 @@ export abstract class AbstractNFT {
     serviceFeeUserAddress: string,
     address: string
   ): Promise<number> {
-    const diamondSale = await this.refinable.contracts.getRefinableContract(
+    const contract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
       serviceFeeUserAddress
     );
@@ -453,8 +453,8 @@ export abstract class AbstractNFT {
     );
 
     const serviceFeeProxyAddress =
-      diamondSale?.tags?.[0] === ContractTag.SaleV4_0_0
-        ? diamondSale?.contractAddress
+      contract?.tags?.[0] === ContractTag.SaleV4_0_0
+        ? contract?.contractAddress
         : await serviceFeeUserContract.serviceFeeProxy();
 
     if (!serviceFeeProxyAddress)
