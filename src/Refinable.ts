@@ -12,7 +12,6 @@ import Account from "./Account";
 import { apiUrl } from "./config/sdk";
 import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "./graphql/items";
 import { uploadFile } from "./graphql/utils";
-import { ChainType } from "./interfaces/Network";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder, NftBuilderParams } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
@@ -110,16 +109,11 @@ export class Refinable {
     public readonly accountAddress: string,
     options: Partial<RefinableOptions> = {}
   ) {
-    const {
-      waitConfirmations = 3,
-      environment = Environment.Mainnet,
-      chainType = ChainType.BSC,
-    } = options;
-
+    const { waitConfirmations = 3, environment = Environment.Mainnet } =
+      options;
     this._options = {
       waitConfirmations,
       environment,
-      chainType,
     };
   }
 

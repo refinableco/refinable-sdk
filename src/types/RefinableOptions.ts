@@ -1,5 +1,3 @@
-import { ChainType } from "../interfaces/Network";
-
 export enum Environment {
   Mainnet = "mainnet",
   Testnet = "testnet",
@@ -9,5 +7,4 @@ export enum Environment {
 export interface RefinableOptions {
   waitConfirmations?: number;
   environment?: Environment;
-  chainType?: ChainType;
 }

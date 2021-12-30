@@ -9,7 +9,7 @@ import {
   RefinableContractsQueryVariables,
   Token,
 } from "./@types/graphql";
-import { contractsTags } from "./config/sdk";
+import { getContractsTags } from "./config/sdk";
 import { Contract, IContract } from "./Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
@@ -41,8 +41,10 @@ export class RefinableContracts {
     if (this.baseContracts?.[chainId]) {
       return this.baseContracts[chainId];
     }
-
-    const tags = contractsTags[this.refinable.options.environment];
+    const tags = getContractsTags(
+      this.refinable.options.environment,
+      chainId === 0 ? Chain.Local : chainId
+    );
 
     const { refinableContracts } = await this.refinable.apiClient.request<
       RefinableContractsQuery,
@@ -126,8 +128,7 @@ export class RefinableContracts {
 
   async getDefaultTokenContract(chainId: Chain, tokenType: TokenType) {
     const mintableContracts = await this.getMintableContracts();
-
-    return Object.values(mintableContracts[chainId]).find(
+    return Object.values(mintableContracts[chainId.toString()]).find(
       (token) => token.type === tokenType && token.default
     );
   }

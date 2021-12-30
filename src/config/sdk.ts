@@ -1,6 +1,7 @@
 import { ContractTag } from "../@types/graphql";
-import { ChainType } from "../interfaces/Network";
+import { Chain, ChainType } from "../interfaces/Network";
 import { Environment } from "../types/RefinableOptions";
+import { selectChainType } from "../utils/utils";
 
 export const apiUrl = {
   [Environment.Mainnet]: "https://api.refinable.com/graphql",
@@ -8,26 +9,40 @@ export const apiUrl = {
   [Environment.Local]: "http://localhost:8001/graphql",
 };
 
-export const contractsTags = {
-  [Environment.Mainnet]: [
-    ContractTag.SaleV3_0_1,
-    ContractTag.AuctionV3_1_1,
-    ContractTag.SaleNonceHolderV1_0_0,
-    ContractTag.TransferProxyV1_0_0,
-    ContractTag.AirdropV1_0_0,
-  ],
-  [Environment.Testnet]: [
-    ChainType.BSC ? ContractTag.SaleV4_0_0 : ContractTag.SaleV3_0_1,
-    ContractTag.AuctionV3_1_0,
-    ContractTag.SaleNonceHolderV1_0_0,
-    ContractTag.TransferProxyV1_0_0,
-    ContractTag.AirdropV1_0_0,
-  ],
-  [Environment.Local]: [
-    ChainType.BSC ? ContractTag.SaleV4_0_0 : ContractTag.SaleV3_0_1,
-    ContractTag.AuctionV3_1_0,
-    ContractTag.SaleNonceHolderV1_0_0,
-    ContractTag.TransferProxyV1_0_0,
-    ContractTag.AirdropV1_0_0,
-  ],
+export const getContractsTags = (
+  environment: Environment,
+  chainId: Chain
+): ContractTag[] => {
+  const chain = selectChainType(chainId);
+
+  switch (environment) {
+    case Environment.Mainnet:
+      return [
+        ContractTag.SaleV3_0_1,
+        ContractTag.AuctionV3_1_1,
+        ContractTag.SaleNonceHolderV1_0_0,
+        ContractTag.TransferProxyV1_0_0,
+        ContractTag.AirdropV1_0_0,
+      ];
+    case Environment.Testnet:
+      return [
+        chain === ChainType.BSC
+          ? ContractTag.SaleV4_0_0
+          : ContractTag.SaleV3_0_1,
+        ContractTag.AuctionV3_1_0,
+        ContractTag.SaleNonceHolderV1_0_0,
+        ContractTag.TransferProxyV1_0_0,
+        ContractTag.AirdropV1_0_0,
+      ];
+    case Environment.Local:
+      return [
+        chain === ChainType.BSC
+          ? ContractTag.SaleV4_0_0
+          : ContractTag.SaleV3_0_1,
+        ContractTag.AuctionV3_1_0,
+        ContractTag.SaleNonceHolderV1_0_0,
+        ContractTag.TransferProxyV1_0_0,
+        ContractTag.AirdropV1_0_0,
+      ];
+  }
 };

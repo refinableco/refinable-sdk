@@ -19,7 +19,6 @@ export class SaleOffer extends Offer {
 
   public async buy(params?: BuyParams) {
     const amount = params.amount ?? 1;
-
     const result = await this.nft.buy(
       this.signature,
       this.price,
