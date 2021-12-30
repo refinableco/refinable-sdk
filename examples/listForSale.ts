@@ -8,8 +8,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 type ParameterTuple = [string, string, string, string, number, number];
 
 async function main() {
-  const refinable = await createRefinableClient(Chain.Local);
-
+  const refinable = await createRefinableClient(Chain.BscTestnet);
   let lineNumber = 0;
   const rl = readline.createInterface({
     input: fs.createReadStream("./public/listForSale.csv"),

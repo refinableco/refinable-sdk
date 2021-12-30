@@ -13,6 +13,7 @@ import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { optionalParam } from "../utils/utils";
+import { ethers } from "ethers";
 
 export class ERC721NFT extends AbstractNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
@@ -49,6 +50,14 @@ export class ERC721NFT extends AbstractNFT {
   ): Promise<TransactionResponse> {
     this.verifyItem();
 
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    await this.isValidRoyaltyContract(royaltyContractAddress);
+    const isDiamondContract =
+      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
+
     await this.isValidRoyaltyContract(royaltyContractAddress);
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
@@ -68,22 +77,41 @@ export class ERC721NFT extends AbstractNFT {
       priceWithServiceFee.amount
     );
 
-    const result = await this.saleContract.buy(
-      // address _token
-      this.item.contractAddress,
-      // uint256 _tokenId
-      this.item.tokenId,
-      // address _payToken
-      paymentToken,
-      // address payable _owner
-      ownerEthAddress,
-      // bytes memory _signature
-      signature,
-      // If currency is native, send msg.value
-      ...optionalParam(isNativeCurrency, {
-        value,
-      })
-    );
+    const result = isDiamondContract
+      ? await this.saleContract.buy(
+          // address _token
+          this.item.contractAddress,
+          // uint256 _tokenId
+          this.item.tokenId,
+          // address _payToken
+          paymentToken,
+          // address payable _owner
+          ownerEthAddress,
+          // bytes memory _signature
+          signature,
+          // If currency is native, send msg.value
+          ...optionalParam(isNativeCurrency, {
+            value,
+          })
+        )
+      : await this.saleContract.buy(
+          // address _token
+          this.item.contractAddress,
+          // address _royaltyToken,
+          royaltyContractAddress ?? ethers.constants.AddressZero,
+          // uint256 _tokenId
+          this.item.tokenId,
+          // address _payToken
+          paymentToken,
+          // address payable _owner
+          ownerEthAddress,
+          // bytes memory _signature
+          signature,
+          // If currency is native, send msg.value
+          ...optionalParam(isNativeCurrency, {
+            value,
+          })
+        );
 
     return result;
   }
@@ -152,7 +180,10 @@ export class ERC721NFT extends AbstractNFT {
     return nftTokenContract.burn(this.item.tokenId);
   }
 
-  cancelSale(price: Price, signature: string): Promise<TransactionResponse> {
+  async cancelSale(
+    price?: Price,
+    signature?: string
+  ): Promise<TransactionResponse> {
     if (!this.item.tokenId) {
       throw new Error("tokenId is not set");
     }
@@ -161,15 +192,28 @@ export class ERC721NFT extends AbstractNFT {
       throw new Error("contract address is not set");
     }
     this.verifyItem();
-
-    const paymentToken = this.getPaymentToken(price.currency);
-    const parsedPrice = this.parseCurrency(price.currency, price.amount);
-    return this.saleContract.cancel(
-      this.item.contractAddress,
-      this.item.tokenId,
-      paymentToken,
-      parsedPrice.toString(),
-      signature
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
     );
+    const isDiamondContract =
+      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
+
+    if (isDiamondContract) {
+      const paymentToken = this.getPaymentToken(price.currency);
+      const parsedPrice = this.parseCurrency(price.currency, price.amount);
+      return await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId,
+        paymentToken,
+        parsedPrice.toString(),
+        signature
+      );
+    } else {
+      return await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId
+      );
+    }
   }
 }

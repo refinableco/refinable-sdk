@@ -1,4 +1,5 @@
 import { ContractTag } from "../@types/graphql";
+import { ChainType } from "../interfaces/Network";
 import { Environment } from "../types/RefinableOptions";
 
 export const apiUrl = {
@@ -16,14 +17,14 @@ export const contractsTags = {
     ContractTag.AirdropV1_0_0,
   ],
   [Environment.Testnet]: [
-    ContractTag.SaleV4_0_0,
+    ChainType.BSC ? ContractTag.SaleV4_0_0 : ContractTag.SaleV3_0_1,
     ContractTag.AuctionV3_1_0,
     ContractTag.SaleNonceHolderV1_0_0,
     ContractTag.TransferProxyV1_0_0,
     ContractTag.AirdropV1_0_0,
   ],
   [Environment.Local]: [
-    ContractTag.SaleV4_0_0,
+    ChainType.BSC ? ContractTag.SaleV4_0_0 : ContractTag.SaleV3_0_1,
     ContractTag.AuctionV3_1_0,
     ContractTag.SaleNonceHolderV1_0_0,
     ContractTag.TransferProxyV1_0_0,

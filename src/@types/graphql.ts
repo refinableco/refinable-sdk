@@ -256,6 +256,7 @@ export enum ContractTag {
 }
 
 export enum ContractTypes {
+  Erc20Token = "ERC20_TOKEN",
   Erc721Airdrop = "ERC721_AIRDROP",
   Erc721Auction = "ERC721_AUCTION",
   Erc721Sale = "ERC721_SALE",
@@ -888,6 +889,7 @@ export enum PriceCurrency {
   Eth = "ETH",
   Fine = "FINE",
   Matic = "MATIC",
+  Usdc = "USDC",
   Usdt = "USDT",
   Weth = "WETH",
 }
@@ -938,7 +940,6 @@ export type Query = {
   refinableContracts: Array<ContractOutput>;
   reports: ItemReportResponse;
   search: SearchResponse;
-  searchTag: Array<Tag>;
   store?: Maybe<Store>;
   /** @deprecated tag creation limit is not supported anymore */
   tagCreationUserSuspended: TagSuspensionOutput;
@@ -1025,14 +1026,10 @@ export type QueryReportsArgs = {
 };
 
 export type QuerySearchArgs = {
-  limit?: Maybe<Scalars["Int"]>;
-  query?: Maybe<Scalars["String"]>;
+  filter: SearchFilterInput;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
   type: AssetType;
-};
-
-export type QuerySearchTagArgs = {
-  limit?: Maybe<Scalars["Int"]>;
-  query: Scalars["String"];
 };
 
 export type QueryStoreArgs = {
@@ -1068,9 +1065,24 @@ export enum RoyaltyStrategy {
   StandardRoyaltyStrategy = "STANDARD_ROYALTY_STRATEGY",
 }
 
+export type SearchFilterInput = {
+  auctionType?: Maybe<AuctionType>;
+  chainIds?: Maybe<Array<Scalars["String"]>>;
+  collection?: Maybe<Scalars["String"]>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
+  contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
+  offerTypes?: Maybe<Array<OfferType>>;
+  query?: Maybe<Scalars["String"]>;
+  tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
+};
+
 export type SearchResponse = {
   __typename?: "SearchResponse";
-  result: Array<SearchResult>;
+  edges?: Maybe<Array<UndefinedEdge>>;
+  pageInfo?: Maybe<UndefinedPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
 };
 
 export type SearchResult = Collection | ItemWithOffer | Tag | User;
@@ -1297,6 +1309,20 @@ export enum UserRoles {
 
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
+};
+
+export type UndefinedEdge = {
+  __typename?: "undefinedEdge";
+  cursor: Scalars["String"];
+  node: SearchResult;
+};
+
+export type UndefinedPageInfo = {
+  __typename?: "undefinedPageInfo";
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export type PlaceAuctionBidMutationVariables = Exact<{
