@@ -826,6 +826,7 @@ export enum PriceCurrency {
   Fine = "FINE",
   Matic = "MATIC",
   Usdt = "USDT",
+  Usdc = "USDC",
   Weth = "WETH",
 }
 
