@@ -33,7 +33,7 @@ async function main() {
       // Use and parse existing NFTs to put for sale
       const nft = refinable.createNft({
         type: parameters[2] as TokenType,
-        chainId: Chain.Local,
+        chainId: Chain.BscTestnet,
         contractAddress: parameters[0],
         tokenId: parameters[1],
       });
