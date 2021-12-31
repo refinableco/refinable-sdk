@@ -143,8 +143,8 @@ export abstract class AbstractNFT {
     amount?: number
   ): Promise<TransactionResponse>;
   abstract cancelSale(
-    price: Price,
-    signature: string,
+    price?: Price,
+    signature?: string,
     amount?: number
   ): Promise<TransactionResponse>;
 

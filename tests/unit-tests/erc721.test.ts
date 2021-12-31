@@ -33,6 +33,53 @@ describe("Refinable", () => {
     expect(currentChainId).toBe(Chain.Local);
   });
 
+  it("should mint a erc721 token", async () => {
+    const fileStream = fs.createReadStream(
+      path.resolve(__dirname, "../assets/image.jpg")
+    );
+    const nft = await refinable
+      .nftBuilder()
+      .erc721({
+        nftFile: fileStream,
+        description: "some test description",
+        name: "The Test NFT",
+        royalty: new StandardRoyaltyStrategy([]),
+        chainId: Chain.Local,
+      })
+      .createAndMint();
+    const minredItem = nft.getItem();
+    expect(minredItem.chainId).toEqual(Chain.Local);
+    expect(minredItem.supply).toEqual(1);
+    expect(minredItem.contractAddress).toBeDefined();
+  });
+  it("should put for sale", async () => {
+    const fileStream = fs.createReadStream(
+      path.resolve(__dirname, "../assets/image.jpg")
+    );
+    const address = await wallet.getAddress();
+    const nft = await refinable
+      .nftBuilder()
+      .erc721({
+        nftFile: fileStream,
+        description: "some test description",
+        name: "The Test NFT",
+        royalty: new StandardRoyaltyStrategy([]),
+        chainId: Chain.Local,
+      })
+      .createAndMint();
+    const price = {
+      amount: 1,
+      currency: PriceCurrency.Bnb,
+    };
+    const itemOnSale = await nft.putForSale(price);
+    expect(itemOnSale.totalSupply).toEqual(1);
+    expect(itemOnSale.user.ethAddress.toLowerCase()).toEqual(
+      address.toLowerCase()
+    );
+    expect(itemOnSale.type).toEqual("SALE");
+    expect(itemOnSale.price).toEqual(price);
+  });
+
   describe("Test Buy", () => {
     let nft: ERC721NFT;
     let address: string;

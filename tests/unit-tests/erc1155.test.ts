@@ -32,7 +32,54 @@ describe("Refinable", () => {
     const currentChainId = await refinable.provider.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });
-
+  it("should mint a erc1155 token", async () => {
+    const fileStream = fs.createReadStream(
+      path.resolve(__dirname, "../assets/image.jpg")
+    );
+    const nft = await refinable
+      .nftBuilder()
+      .erc1155({
+        nftFile: fileStream,
+        description: "some test description",
+        name: "The Test NFT",
+        royalty: new StandardRoyaltyStrategy([]),
+        chainId: Chain.Local,
+        supply: 11,
+      })
+      .createAndMint();
+    const minredItem = nft.getItem();
+    expect(minredItem.chainId).toEqual(Chain.Local);
+    expect(minredItem.supply).toEqual(11);
+    expect(minredItem.contractAddress).toBeDefined();
+  });
+  it("should put for sale", async () => {
+    const fileStream = fs.createReadStream(
+      path.resolve(__dirname, "../assets/image.jpg")
+    );
+    const address = await wallet.getAddress();
+    const nft = await refinable
+      .nftBuilder()
+      .erc1155({
+        nftFile: fileStream,
+        description: "some test description",
+        name: "The Test NFT",
+        royalty: new StandardRoyaltyStrategy([]),
+        chainId: Chain.Local,
+        supply: 11,
+      })
+      .createAndMint();
+    const price = {
+      amount: 1,
+      currency: PriceCurrency.Bnb,
+    };
+    const itemOnSale = await nft.putForSale(price, 4);
+    expect(itemOnSale.totalSupply).toEqual(4);
+    expect(itemOnSale.user.ethAddress.toLowerCase()).toEqual(
+      address.toLowerCase()
+    );
+    expect(itemOnSale.type).toEqual("SALE");
+    expect(itemOnSale.price).toEqual(price);
+  });
   describe("Test Buy", () => {
     let nft: ERC1155NFT;
     let address: string;
