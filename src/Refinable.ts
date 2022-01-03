@@ -91,9 +91,7 @@ export class Refinable {
     refinable._apiKey = apiOrBearerToken;
     refinable.apiClient = new GraphQLClient(graphqlUrl, {
       headers:
-        refinable._options.environment === "local"
-          ? { "X-API-KEY": apiOrBearerToken }
-          : apiOrBearerToken.length === 32
+        apiOrBearerToken.length === 32
           ? { "X-API-KEY": apiOrBearerToken }
           : { authorization: `Bearer ${apiOrBearerToken}` },
     });
