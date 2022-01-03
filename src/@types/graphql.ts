@@ -248,6 +248,7 @@ export enum ContractTag {
   SaleV2_0_0 = "SALE_v2_0_0",
   SaleV3_0_0 = "SALE_v3_0_0",
   SaleV3_0_1 = "SALE_v3_0_1",
+  SaleV4_0_0 = "SALE_v4_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
   TokenV3_0_0 = "TOKEN_v3_0_0",
@@ -255,6 +256,7 @@ export enum ContractTag {
 }
 
 export enum ContractTypes {
+  Erc20Token = "ERC20_TOKEN",
   Erc721Airdrop = "ERC721_AIRDROP",
   Erc721Auction = "ERC721_AUCTION",
   Erc721Sale = "ERC721_SALE",
@@ -711,8 +713,10 @@ export type Mutation = {
   importCollection: ImportCollectionOutput;
   importItem: CreateItemOutput;
   login: Auth;
+  markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
   reportItem: ItemReport;
+  updateNotificationSeenStatus: Notification;
   updateUser: User;
   uploadFile: Scalars["String"];
 };
@@ -773,6 +777,10 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
+export type MutationUpdateNotificationSeenStatusArgs = {
+  id: Scalars["String"];
+};
+
 export type MutationUpdateUserArgs = {
   data: UpdateUserInput;
 };
@@ -780,6 +788,62 @@ export type MutationUpdateUserArgs = {
 export type MutationUploadFileArgs = {
   file: Scalars["Upload"];
 };
+
+export type Notification = {
+  __typename?: "Notification";
+  createdAt?: Maybe<Scalars["DateTime"]>;
+  eventId?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
+  item?: Maybe<Item>;
+  notificationType: NotificationType;
+  seen: Scalars["Boolean"];
+  seenAt?: Maybe<Scalars["DateTime"]>;
+};
+
+export type NotificationEdge = {
+  __typename?: "NotificationEdge";
+  cursor: Scalars["String"];
+  node: Notification;
+};
+
+export type NotificationPageInfo = {
+  __typename?: "NotificationPageInfo";
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type NotificationResponse = {
+  __typename?: "NotificationResponse";
+  edges?: Maybe<Array<NotificationEdge>>;
+  pageInfo?: Maybe<NotificationPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
+};
+
+export enum NotificationType {
+  AuctionCancelledNotification = "AUCTION_CANCELLED_NOTIFICATION",
+  AuctionClosedNotification = "AUCTION_CLOSED_NOTIFICATION",
+  AuctionConcludedNotification = "AUCTION_CONCLUDED_NOTIFICATION",
+  AuctionEndedWithoutBidNotification = "AUCTION_ENDED_WITHOUT_BID_NOTIFICATION",
+  AuctionEndedWithBidNotification = "AUCTION_ENDED_WITH_BID_NOTIFICATION",
+  BidderWithHighestBidNotification = "BIDDER_WITH_HIGHEST_BID_NOTIFICATION",
+  BidderWonAuctionNotification = "BIDDER_WON_AUCTION_NOTIFICATION",
+  BidOutbidHighestBidderNotification = "BID_OUTBID_HIGHEST_BIDDER_NOTIFICATION",
+  BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
+  ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
+  ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
+  RemindToCloseAuctionNotification = "REMIND_TO_CLOSE_AUCTION_NOTIFICATION",
+}
+
+export type NotificationsFilterInput = {
+  status?: Maybe<NotificationsFilterType>;
+};
+
+export enum NotificationsFilterType {
+  Seen = "SEEN",
+  Unseen = "UNSEEN",
+}
 
 export type Offer = {
   __typename?: "Offer";
@@ -825,6 +889,7 @@ export enum PriceCurrency {
   Eth = "ETH",
   Fine = "FINE",
   Matic = "MATIC",
+  Usdc = "USDC",
   Usdt = "USDT",
   Usdc = "USDC",
   Weth = "WETH",
@@ -870,12 +935,12 @@ export type Query = {
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
   mintableCollections: Array<Collection>;
+  notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   refinableContract?: Maybe<ContractOutput>;
   refinableContracts: Array<ContractOutput>;
   reports: ItemReportResponse;
   search: SearchResponse;
-  searchTag: Array<Tag>;
   store?: Maybe<Store>;
   /** @deprecated tag creation limit is not supported anymore */
   tagCreationUserSuspended: TagSuspensionOutput;
@@ -938,6 +1003,11 @@ export type QueryItemsOnOfferArgs = {
   sort?: Maybe<SortInput>;
 };
 
+export type QueryNotificationsArgs = {
+  filter?: Maybe<NotificationsFilterInput>;
+  paging: PagingInput;
+};
+
 export type QueryOfferArgs = {
   id?: Maybe<Scalars["ID"]>;
 };
@@ -957,18 +1027,15 @@ export type QueryReportsArgs = {
 };
 
 export type QuerySearchArgs = {
-  limit?: Maybe<Scalars["Int"]>;
-  query?: Maybe<Scalars["String"]>;
+  filter: SearchFilterInput;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
   type: AssetType;
-};
-
-export type QuerySearchTagArgs = {
-  limit?: Maybe<Scalars["Int"]>;
-  query: Scalars["String"];
 };
 
 export type QueryStoreArgs = {
   domain: Scalars["String"];
+  isExternal?: Maybe<Scalars["Boolean"]>;
 };
 
 export type QueryTopUsersArgs = {
@@ -999,9 +1066,24 @@ export enum RoyaltyStrategy {
   StandardRoyaltyStrategy = "STANDARD_ROYALTY_STRATEGY",
 }
 
+export type SearchFilterInput = {
+  auctionType?: Maybe<AuctionType>;
+  chainIds?: Maybe<Array<Scalars["String"]>>;
+  collection?: Maybe<Scalars["String"]>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
+  contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
+  offerTypes?: Maybe<Array<OfferType>>;
+  query?: Maybe<Scalars["String"]>;
+  tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
+};
+
 export type SearchResponse = {
   __typename?: "SearchResponse";
-  result: Array<SearchResult>;
+  edges?: Maybe<Array<UndefinedEdge>>;
+  pageInfo?: Maybe<UndefinedPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
 };
 
 export type SearchResult = Collection | ItemWithOffer | Tag | User;
@@ -1019,21 +1101,23 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
-  creator: Scalars["String"];
   description: Scalars["String"];
-  discord: Scalars["String"];
+  discord?: Maybe<Scalars["String"]>;
   domain: Scalars["String"];
   email: Scalars["String"];
+  externalCustomLink?: Maybe<Scalars["String"]>;
   favicon: Scalars["String"];
-  instagram: Scalars["String"];
+  fontFamily?: Maybe<Scalars["String"]>;
+  instagram?: Maybe<Scalars["String"]>;
   logo: Scalars["String"];
   name: Scalars["String"];
   primaryColor: Scalars["String"];
-  telegram: Scalars["String"];
-  twitter: Scalars["String"];
-  website: Scalars["String"];
+  primaryFontColor?: Maybe<Scalars["String"]>;
+  secondaryColor?: Maybe<Scalars["String"]>;
+  secondaryFontColor?: Maybe<Scalars["String"]>;
+  telegram?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type Subscription = {
@@ -1046,6 +1130,7 @@ export type Subscription = {
   itemMinted: ItemMinted;
   itemPurchased: Item;
   itemTransfered: Item;
+  newNotification: Notification;
   offerUpdated?: Maybe<Offer>;
   saleCancelled: Offer;
 };
@@ -1225,6 +1310,20 @@ export enum UserRoles {
 
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
+};
+
+export type UndefinedEdge = {
+  __typename?: "undefinedEdge";
+  cursor: Scalars["String"];
+  node: SearchResult;
+};
+
+export type UndefinedPageInfo = {
+  __typename?: "undefinedPageInfo";
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
 };
 
 export type PlaceAuctionBidMutationVariables = Exact<{

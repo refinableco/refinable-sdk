@@ -9,7 +9,6 @@ type ParameterTuple = [string, string, string, string, number, number];
 
 async function main() {
   const refinable = await createRefinableClient(Chain.BscTestnet);
-
   let lineNumber = 0;
   const rl = readline.createInterface({
     input: fs.createReadStream("./public/listForSale.csv"),
@@ -43,6 +42,7 @@ async function main() {
         amount: parameters[4],
         currency: parameters[3] as PriceCurrency,
       });
+
       console.log(
         `{Put ${parameters[5]} items for sale for ${parameters[4]} ${parameters[3]}`
       );

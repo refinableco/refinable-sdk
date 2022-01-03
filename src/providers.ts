@@ -4,7 +4,6 @@ import { Chain } from "./interfaces/Network";
 
 export const initializeWallet = (privateKey: string, chain: Chain) => {
   const chainConfig = chainMap[chain];
-
   if (!chainConfig) throw new Error("Unsupported chain");
 
   return buildWallet(privateKey, chainConfig.nodeUri[0]);

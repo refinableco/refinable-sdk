@@ -111,7 +111,6 @@ export class Refinable {
   ) {
     const { waitConfirmations = 3, environment = Environment.Mainnet } =
       options;
-
     this._options = {
       waitConfirmations,
       environment,
@@ -174,7 +173,7 @@ export class Refinable {
 
     if (!Class) throw new Error("Item type not supported");
 
-    return new Class(this, item)
+    return new Class(this, item);
   }
 
   private async getItemsWithOffer(

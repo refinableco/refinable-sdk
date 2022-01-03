@@ -3,6 +3,7 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
+  ContractTag,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -45,7 +46,12 @@ export class ERC1155NFT extends AbstractNFT {
   ): Promise<TransactionResponse> {
     this.verifyItem();
     await this.isValidRoyaltyContract(royaltyContractAddress);
-
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    const isDiamondContract =
+      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       pricePerCopy,
       this.saleContract.address,
@@ -71,37 +77,65 @@ export class ERC1155NFT extends AbstractNFT {
       priceWithServiceFee.amount
     );
 
-    const result = await this.saleContract.buy(
-      // address _token
-      this.item.contractAddress,
-      // address _royaltyToken
-      royaltyContractAddress ?? ethers.constants.AddressZero,
-      // uint256 _tokenId
-      this.item.tokenId,
-      // address _payToken
-      paymentToken,
-      // address payable _owner
-      ownerEthAddress,
-      // uint256 _selling
-      supplyForSale,
-      // uint256 _buying
-      amount,
-      // bytes memory _signature
-      signature,
-
-      // If currency is Native, send msg.value
-      ...optionalParam(isNativeCurrency, {
-        value,
-      })
-    );
-
-    return result;
+    if (isDiamondContract) {
+      return await this.saleContract.buy(
+        // address _token
+        this.item.contractAddress,
+        // uint256 _tokenId
+        this.item.tokenId,
+        // address _payToken
+        paymentToken,
+        // address payable _owner
+        ownerEthAddress,
+        // uint256 _selling
+        supplyForSale,
+        // uint256 _buying
+        amount,
+        // bytes memory _signature
+        signature,
+        // If currency is Native, send msg.value
+        ...optionalParam(isNativeCurrency, {
+          value,
+        })
+      );
+    } else {
+      return await this.saleContract.buy(
+        // address _token
+        this.item.contractAddress,
+        // address _royaltyToken
+        royaltyContractAddress ?? ethers.constants.AddressZero,
+        // uint256 _tokenId
+        this.item.tokenId,
+        // address _payToken
+        paymentToken,
+        // address payable _owner
+        ownerEthAddress,
+        // uint256 _selling
+        supplyForSale,
+        // uint256 _buying
+        amount,
+        // bytes memory _signature
+        signature,
+        // If currency is Native, send msg.value
+        ...optionalParam(isNativeCurrency, {
+          value,
+        })
+      );
+    }
   }
 
   async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
     this.verifyItem();
+    const contract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    const isDiamond = contract?.tags?.[0] === ContractTag.SaleV4_0_0;
+    const addressForApproval = isDiamond
+      ? contract.contractAddress
+      : this.transferProxyContract.address;
 
-    await this.approveIfNeeded(this.transferProxyContract.address);
+    await this.approveIfNeeded(addressForApproval);
 
     const saleParamHash = await this.getSaleParamsHash(
       price,
@@ -161,6 +195,44 @@ export class ERC1155NFT extends AbstractNFT {
     return nftTokenContract.burn(ownerEthAddress, this.item.tokenId, amount);
   }
 
+  async cancelSale(
+    price?: Price,
+    signature?: string,
+    amount = 1
+  ): Promise<TransactionResponse> {
+    if (!this.item.tokenId) {
+      throw new Error("tokenId is not set");
+    }
+
+    if (!this.item.contractAddress) {
+      throw new Error("contract address is not set");
+    }
+    this.verifyItem();
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    const isDiamondContract =
+      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
+
+    if (isDiamondContract) {
+      const paymentToken = this.getPaymentToken(price.currency);
+      const parsedPrice = this.parseCurrency(price.currency, price.amount);
+      return await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId,
+        paymentToken,
+        parsedPrice.toString(),
+        amount,
+        signature
+      );
+    } else {
+      return await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId
+      );
+    }
+  }
   /**
    * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
    */
