@@ -891,6 +891,7 @@ export enum PriceCurrency {
   Matic = "MATIC",
   Usdc = "USDC",
   Usdt = "USDT",
+  Usdc = "USDC",
   Weth = "WETH",
 }
 
