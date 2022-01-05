@@ -3,8 +3,8 @@ import { Chain, ChainType } from "../src/interfaces/Network";
 import { initializeWallet } from "../src/providers";
 import { Refinable, Environment } from "../src";
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-
+// dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config();
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 const API_KEY = process.env.API_KEY as string;
 

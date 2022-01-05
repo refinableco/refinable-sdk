@@ -89,11 +89,14 @@ export class Refinable {
     const graphqlUrl = apiUrl[refinable._options.environment];
 
     refinable._apiKey = apiOrBearerToken;
+    // refinable.apiClient = new GraphQLClient(graphqlUrl, {
+    //   headers:
+    //     apiOrBearerToken.length === 32
+    //       ? { "X-API-KEY": apiOrBearerToken }
+    //       : { authorization: `Bearer ${apiOrBearerToken}` },
+    // });
     refinable.apiClient = new GraphQLClient(graphqlUrl, {
-      headers:
-        apiOrBearerToken.length === 32
-          ? { "X-API-KEY": apiOrBearerToken }
-          : { authorization: `Bearer ${apiOrBearerToken}` },
+      headers: { "X-API-KEY": apiOrBearerToken },
     });
 
     refinable.account = new Account(accountAddress, refinable);

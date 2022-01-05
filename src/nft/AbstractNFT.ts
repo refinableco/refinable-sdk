@@ -380,7 +380,16 @@ export abstract class AbstractNFT {
         auctionContractAddress
       );
 
+    // console.log("this.refinable.contracts: ", this.refinable.contracts);
+    // console.log("currentAuctionContract: ", currentAuctionContract);
+    // console.log("this.item.chainId: ", this.item.chainId);
+    // console.log("auctionContractAddress: ", auctionContractAddress);
     const ethersContract = currentAuctionContract.toEthersContract();
+    // console.log("ethersContract: ", ethersContract);
+
+    // var proc = require("child_process").spawn("pbcopy");
+    // proc.stdin.write(JSON.stringify(ethersContract));
+    // proc.stdin.end();
 
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
       return ethersContract.endAuction(
@@ -394,6 +403,8 @@ export abstract class AbstractNFT {
       }
 
       assert(!!auctionId, "AuctionId must be defined");
+
+      // console.log("auctionId: ", auctionId);
 
       return ethersContract.endAuction(auctionId);
     }
