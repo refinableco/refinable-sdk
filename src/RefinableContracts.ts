@@ -41,9 +41,10 @@ export class RefinableContracts {
     if (this.baseContracts?.[chainId]) {
       return this.baseContracts[chainId];
     }
+    const networkId = await this.refinable.provider.getChainId();
     const tags = getContractsTags(
       this.refinable.options.environment,
-      chainId === 0 ? Chain.Local : chainId
+      networkId
     );
 
     const { refinableContracts } = await this.refinable.apiClient.request<

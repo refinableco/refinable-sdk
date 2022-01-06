@@ -320,6 +320,7 @@ export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
+  customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
   domain: Scalars["String"];
@@ -327,11 +328,23 @@ export type CreateStoreInput = {
   favicon: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   logo: Scalars["String"];
+  logoHeight: Scalars["Float"];
   name: Scalars["String"];
   primaryColor: Scalars["String"];
   telegram?: Maybe<Scalars["String"]>;
   twitter?: Maybe<Scalars["String"]>;
   website?: Maybe<Scalars["String"]>;
+};
+
+export type CustomLink = {
+  __typename?: "CustomLink";
+  label: Scalars["String"];
+  url: Scalars["String"];
+};
+
+export type CustomLinkInput = {
+  label: Scalars["String"];
+  url: Scalars["String"];
 };
 
 export type EventInput = {
@@ -717,6 +730,7 @@ export type Mutation = {
   placeAuctionBid: Scalars["Boolean"];
   reportItem: ItemReport;
   updateNotificationSeenStatus: Notification;
+  updateStore?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
 };
@@ -779,6 +793,10 @@ export type MutationReportItemArgs = {
 
 export type MutationUpdateNotificationSeenStatusArgs = {
   id: Scalars["String"];
+};
+
+export type MutationUpdateStoreArgs = {
+  data: UpdateStoreInput;
 };
 
 export type MutationUpdateUserArgs = {
@@ -1100,6 +1118,10 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  creator: Scalars["String"];
+  customLinks?: Maybe<Array<CustomLink>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
   domain: Scalars["String"];
@@ -1109,6 +1131,7 @@ export type Store = {
   fontFamily?: Maybe<Scalars["String"]>;
   instagram?: Maybe<Scalars["String"]>;
   logo: Scalars["String"];
+  logoHeight?: Maybe<Scalars["Float"]>;
   name: Scalars["String"];
   primaryColor: Scalars["String"];
   primaryFontColor?: Maybe<Scalars["String"]>;
@@ -1237,6 +1260,32 @@ export type Transcoding = {
   __typename?: "Transcoding";
   mimeType: Scalars["String"];
   url: Scalars["String"];
+};
+
+export type UpdateStore = {
+  __typename?: "UpdateStore";
+  store: Store;
+  success: Scalars["Boolean"];
+};
+
+export type UpdateStoreInput = {
+  backgroundColor: Scalars["String"];
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  customLinks?: Maybe<Array<CustomLinkInput>>;
+  description: Scalars["String"];
+  discord?: Maybe<Scalars["String"]>;
+  domain: Scalars["String"];
+  email: Scalars["String"];
+  favicon: Scalars["String"];
+  instagram?: Maybe<Scalars["String"]>;
+  logo: Scalars["String"];
+  logoHeight: Scalars["Float"];
+  name: Scalars["String"];
+  primaryColor: Scalars["String"];
+  telegram?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type UpdateUserInput = {
