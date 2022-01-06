@@ -8,6 +8,7 @@ import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
 import {
   ContractTag,
+  ContractTypes,
   CreateOfferForEditionsMutation,
   OfferType,
   Price,
@@ -140,11 +141,6 @@ export abstract class AbstractNFT {
     ownerEthAddress: string,
     royaltyContractAddress?: string,
     supply?: number,
-    amount?: number
-  ): Promise<TransactionResponse>;
-  abstract cancelSale(
-    price?: Price,
-    signature?: string,
     amount?: number
   ): Promise<TransactionResponse>;
 
@@ -516,6 +512,48 @@ export abstract class AbstractNFT {
       await ethersContract.minBidIncrementBps();
 
     return parseBPS(minBidIncrementBps) / 100;
+  }
+
+  async cancelSale(
+    price?: Price,
+    signature?: string,
+    amount = 1
+  ): Promise<TransactionResponse> {
+    if (!this.item.tokenId) {
+      throw new Error("tokenId is not set");
+    }
+
+    if (!this.item.contractAddress) {
+      throw new Error("contract address is not set");
+    }
+
+    this.verifyItem();
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    const isDiamondContract =
+      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
+    const isERC1155 =
+      (saleContract.type as unknown) === ContractTypes.Erc1155Sale;
+
+    if (isDiamondContract) {
+      const paymentToken = this.getPaymentToken(price.currency);
+      const parsedPrice = this.parseCurrency(price.currency, price.amount);
+      return await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId,
+        paymentToken,
+        parsedPrice.toString(),
+        ...optionalParam(isERC1155, amount),
+        signature
+      );
+    } else {
+      return await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId
+      );
+    }
   }
 
   protected getPaymentToken(priceCurrency: PriceCurrency) {

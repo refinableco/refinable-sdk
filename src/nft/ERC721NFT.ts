@@ -77,41 +77,27 @@ export class ERC721NFT extends AbstractNFT {
       priceWithServiceFee.amount
     );
 
-    const result = isDiamondContract
-      ? await this.saleContract.buy(
-          // address _token
-          this.item.contractAddress,
-          // uint256 _tokenId
-          this.item.tokenId,
-          // address _payToken
-          paymentToken,
-          // address payable _owner
-          ownerEthAddress,
-          // bytes memory _signature
-          signature,
-          // If currency is native, send msg.value
-          ...optionalParam(isNativeCurrency, {
-            value,
-          })
-        )
-      : await this.saleContract.buy(
-          // address _token
-          this.item.contractAddress,
-          // address _royaltyToken,
-          royaltyContractAddress ?? ethers.constants.AddressZero,
-          // uint256 _tokenId
-          this.item.tokenId,
-          // address _payToken
-          paymentToken,
-          // address payable _owner
-          ownerEthAddress,
-          // bytes memory _signature
-          signature,
-          // If currency is native, send msg.value
-          ...optionalParam(isNativeCurrency, {
-            value,
-          })
-        );
+    const result = await this.saleContract.buy(
+      // address _token
+      this.item.contractAddress,
+      // address _royaltyToken,
+      ...optionalParam(
+        !isDiamondContract,
+        royaltyContractAddress ?? ethers.constants.AddressZero
+      ),
+      // uint256 _tokenId
+      this.item.tokenId,
+      // address _payToken
+      paymentToken,
+      // address payable _owner
+      ownerEthAddress,
+      // bytes memory _signature
+      signature,
+      // If currency is native, send msg.value
+      ...optionalParam(isNativeCurrency, {
+        value,
+      })
+    );
 
     return result;
   }
@@ -178,42 +164,5 @@ export class ERC721NFT extends AbstractNFT {
     const nftTokenContract = await this.getTokenContract();
 
     return nftTokenContract.burn(this.item.tokenId);
-  }
-
-  async cancelSale(
-    price?: Price,
-    signature?: string
-  ): Promise<TransactionResponse> {
-    if (!this.item.tokenId) {
-      throw new Error("tokenId is not set");
-    }
-
-    if (!this.item.contractAddress) {
-      throw new Error("contract address is not set");
-    }
-    this.verifyItem();
-    const saleContract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      this.saleContract.address
-    );
-    const isDiamondContract =
-      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
-
-    if (isDiamondContract) {
-      const paymentToken = this.getPaymentToken(price.currency);
-      const parsedPrice = this.parseCurrency(price.currency, price.amount);
-      return await this.saleContract.cancel(
-        this.item.contractAddress,
-        this.item.tokenId,
-        paymentToken,
-        parsedPrice.toString(),
-        signature
-      );
-    } else {
-      return await this.saleContract.cancel(
-        this.item.contractAddress,
-        this.item.tokenId
-      );
-    }
   }
 }
