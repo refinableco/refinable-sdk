@@ -535,8 +535,6 @@ export abstract class AbstractNFT {
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
     const isERC1155 = this.type === TokenType.Erc1155;
 
-    console.log(isDiamondContract, isERC1155);
-
     if (isDiamondContract) {
       const paymentToken = this.getPaymentToken(price.currency);
       const parsedPrice = this.parseCurrency(price.currency, price.amount);
