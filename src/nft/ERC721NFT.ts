@@ -55,8 +55,7 @@ export class ERC721NFT extends AbstractNFT {
       this.saleContract.address
     );
     await this.isValidRoyaltyContract(royaltyContractAddress);
-    const isDiamondContract =
-      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
+    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     await this.isValidRoyaltyContract(royaltyContractAddress);
 

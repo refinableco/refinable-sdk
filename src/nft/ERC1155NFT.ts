@@ -50,8 +50,8 @@ export class ERC1155NFT extends AbstractNFT {
       this.item.chainId,
       this.saleContract.address
     );
-    const isDiamondContract =
-      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
+    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
+
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       pricePerCopy,
       this.saleContract.address,

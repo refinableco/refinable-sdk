@@ -22,6 +22,7 @@ import { IChainConfig } from "../interfaces/Config";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
+import { SemVer } from "semver";
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
@@ -447,7 +448,6 @@ export abstract class AbstractNFT {
       ],
       this.refinable.provider
     );
-
     const serviceFeeProxyAddress =
       contract?.tags?.[0] === ContractTag.SaleV4_0_0
         ? contract?.contractAddress
@@ -532,10 +532,10 @@ export abstract class AbstractNFT {
       this.item.chainId,
       this.saleContract.address
     );
-    const isDiamondContract =
-      saleContract?.tags?.[0] === ContractTag.SaleV4_0_0;
-    const isERC1155 =
-      (saleContract.type as unknown) === ContractTypes.Erc1155Sale;
+    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
+    const isERC1155 = this.type === TokenType.Erc1155;
+
+    console.log(isDiamondContract, isERC1155);
 
     if (isDiamondContract) {
       const paymentToken = this.getPaymentToken(price.currency);
