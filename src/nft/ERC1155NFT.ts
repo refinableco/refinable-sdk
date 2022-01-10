@@ -3,7 +3,6 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
-  ContractTag,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -105,14 +104,8 @@ export class ERC1155NFT extends AbstractNFT {
 
   async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
     this.verifyItem();
-    const contract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      this.saleContract.address
-    );
-    const isDiamond = contract?.tags?.[0] === ContractTag.SaleV4_0_0;
-    const addressForApproval = isDiamond
-      ? contract.contractAddress
-      : this.transferProxyContract.address;
+
+    const addressForApproval = this.transferProxyContract.address;
 
     await this.approveIfNeeded(addressForApproval);
 
