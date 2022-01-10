@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import {
-  ContractTag,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -102,6 +101,7 @@ export class ERC721NFT extends AbstractNFT {
   async putForSale(price: Price): Promise<SaleOffer> {
     this.verifyItem();
     const addressForApproval = this.transferProxyContract.address;
+    await this.approveIfNeeded(addressForApproval);
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,
