@@ -729,6 +729,7 @@ export type Mutation = {
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
+  refreshMetadata: RefreshMetadataOutput;
   reportItem: ItemReport;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
@@ -786,6 +787,10 @@ export type MutationLoginArgs = {
 
 export type MutationPlaceAuctionBidArgs = {
   input: AuctionPlaceBidInput;
+};
+
+export type MutationRefreshMetadataArgs = {
+  input: RefreshMetadataInput;
 };
 
 export type MutationReportItemArgs = {
@@ -1066,6 +1071,19 @@ export type QueryUserArgs = {
 
 export type QueryVerificationTokenArgs = {
   data: VerificationTokenInput;
+};
+
+export type RefreshMetadataInput = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+  type: Scalars["String"];
+};
+
+export type RefreshMetadataOutput = {
+  __typename?: "RefreshMetadataOutput";
+  error?: Maybe<Scalars["String"]>;
+  success: Scalars["Boolean"];
 };
 
 export type RoyaltiesInput = {
@@ -2008,6 +2026,15 @@ export type GetUserItemsQuery = {
       }
     | null
     | undefined;
+};
+
+export type RefreshMetadataMutationVariables = Exact<{
+  input: RefreshMetadataInput;
+}>;
+
+export type RefreshMetadataMutation = {
+  __typename?: "Mutation";
+  refreshMetadata: { __typename?: "RefreshMetadataOutput"; success: boolean };
 };
 
 export type UploadFileMutationVariables = Exact<{

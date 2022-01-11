@@ -58,3 +58,11 @@ export const GET_USER_ITEMS = gql`
   }
   ${UserItemsFragment}
 `;
+
+export const REFRESH_METADATA = gql`
+  mutation refreshMetadata($input: RefreshMetadataInput!) {
+    refreshMetadata(input: $input) {
+      success
+    }
+  }
+`;

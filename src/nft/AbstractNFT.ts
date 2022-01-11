@@ -9,6 +9,7 @@ import { Refinable } from "../Refinable";
 import {
   ContractTag,
   CreateOfferForEditionsMutation,
+  RefreshMetadataMutation,
   OfferType,
   Price,
   PriceCurrency,
@@ -17,6 +18,7 @@ import {
 import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
 import { chainMap } from "../config/chains";
 import { CREATE_OFFER } from "../graphql/sale";
+import { REFRESH_METADATA } from "../graphql/items";
 import { IChainConfig } from "../interfaces/Config";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
@@ -409,6 +411,23 @@ export abstract class AbstractNFT {
 
       return ethersContract.endAuction(auctionId);
     }
+  }
+
+  async refreshMetadata() {
+    const response =
+      await this.refinable.apiClient.request<RefreshMetadataMutation>(
+        REFRESH_METADATA,
+        {
+          input: {
+            tokenId: this.item.tokenId,
+            contractAddress: this.item.contractAddress,
+            chainId: this.item.chainId,
+            type: this.type,
+          },
+        }
+      );
+
+    return response.refreshMetadata;
   }
 
   async airdrop(recipients: string[]): Promise<TransactionResponse> {
