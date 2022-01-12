@@ -8,7 +8,6 @@ import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
 import {
   ContractTag,
-  ContractTypes,
   CreateOfferForEditionsMutation,
   OfferType,
   Price,
@@ -194,6 +193,10 @@ export abstract class AbstractNFT {
   }> {
     await this.isValidRoyaltyContract(royaltyContractAddress);
     await this.approveIfNeeded(this.auctionContract.address);
+    const isDiamondContract = this.auctionContract.hasTagSemver(
+      "AUCTION",
+      ">=4.0.0"
+    );
 
     const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
@@ -202,7 +205,10 @@ export abstract class AbstractNFT {
       // address _token
       this.item.contractAddress,
       // address _royaltyToken
-      royaltyContractAddress ?? constants.AddressZero,
+      optionalParam(
+        !isDiamondContract,
+        royaltyContractAddress ?? constants.AddressZero
+      ),
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
