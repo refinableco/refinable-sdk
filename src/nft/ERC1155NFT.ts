@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
   CreateOfferForEditionsMutation,
@@ -62,13 +61,6 @@ export class ERC1155NFT extends AbstractNFT {
       this.saleContract.address
     );
 
-    const supplyForSale = await this.getSupplyOnSale(
-      pricePerCopy, // We have to take the price without service fee, since the sale signature was made that way
-      supply,
-      signature,
-      ownerEthAddress
-    );
-
     const paymentToken = this.getPaymentToken(pricePerCopy.currency);
     const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
     const value = this.parseCurrency(
@@ -90,7 +82,7 @@ export class ERC1155NFT extends AbstractNFT {
       // address payable _owner
       ownerEthAddress,
       // uint256 _selling
-      supplyForSale,
+      supply,
       // uint256 _buying
       amount,
       // bytes memory _signature
@@ -165,31 +157,5 @@ export class ERC1155NFT extends AbstractNFT {
     const nftTokenContract = await this.getTokenContract();
 
     return nftTokenContract.burn(ownerEthAddress, this.item.tokenId, amount);
-  }
-
-  /**
-   * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
-   */
-  private async getSupplyOnSale(
-    price: Price,
-    offerSupply: number,
-    offerSignature: string,
-    ownerEthAddress: string
-  ) {
-    const saleParamsWithOfferSupply = await this.getSaleParamsHash(
-      price,
-      ownerEthAddress,
-      offerSupply
-    );
-
-    const address = ethers.utils.verifyMessage(
-      // For some reason we need to remove 0x and parse it as buffer for it to work
-      Buffer.from(saleParamsWithOfferSupply.slice(2), "hex"),
-      offerSignature
-    );
-
-    return address.toLowerCase() === ownerEthAddress.toLowerCase()
-      ? offerSupply
-      : this.item.totalSupply;
   }
 }
