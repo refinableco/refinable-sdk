@@ -21,7 +21,7 @@ import { IChainConfig } from "../interfaces/Config";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
-import { SemVer } from "semver";
+
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
@@ -29,6 +29,7 @@ export interface PartialNFTItem {
   supply?: number;
   totalSupply?: number;
 }
+
 export abstract class AbstractNFT {
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
@@ -535,7 +536,7 @@ export abstract class AbstractNFT {
   async cancelSale(
     price?: Price,
     signature?: string,
-    amount = 1
+    selling = 1
   ): Promise<TransactionResponse> {
     if (!this.item.tokenId) {
       throw new Error("tokenId is not set");
@@ -561,7 +562,7 @@ export abstract class AbstractNFT {
         this.item.tokenId,
         paymentToken,
         parsedPrice.toString(),
-        ...optionalParam(isERC1155, amount),
+        ...optionalParam(isERC1155, selling),
         signature
       );
     } else {
@@ -623,7 +624,7 @@ export abstract class AbstractNFT {
     }
   }
 
-  protected async getSaleParamsHash(
+   async getSaleParamsHash(
     price: Price,
     ethAddress?: string,
     supply?: number
