@@ -205,6 +205,12 @@ export abstract class AbstractNFT {
       ">=4.0.0"
     );
 
+    // We are using tranferProxy for diamondContracts so need to approve the address
+    if (isDiamondContract) {
+      const addressForApproval = this.transferProxyContract.address;
+      await this.approveIfNeeded(addressForApproval);
+    }
+
     const ethersContracts = currentAuctionContract.toEthersContract();
     const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
@@ -624,11 +630,7 @@ export abstract class AbstractNFT {
     }
   }
 
-   async getSaleParamsHash(
-    price: Price,
-    ethAddress?: string,
-    supply?: number
-  ) {
+  async getSaleParamsHash(price: Price, ethAddress?: string, supply?: number) {
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);
     const value = this.parseCurrency(price.currency, price.amount);
