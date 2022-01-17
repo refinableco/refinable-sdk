@@ -267,52 +267,56 @@ export abstract class AbstractNFT {
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<TransactionResponse> {
-    this.verifyItem();
+    try {
+      this.verifyItem();
 
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
-      price,
-      auctionContractAddress
-    );
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
-      auctionContractAddress
-    );
-
-    const value = this.parseCurrency(
-      price.currency,
-      priceWithServiceFee.amount
-    );
-    const valueParam = optionalParam(
-      // If currency is Native, send msg.value
-      this.isNativeCurrency(priceWithServiceFee.currency),
-      {
-        value,
-      }
-    );
-
-    const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
-        this.item.chainId,
+      const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+        price,
         auctionContractAddress
       );
-    const ethersContracts = currentAuctionContract.toEthersContract();
-    let result: TransactionResponse;
-
-    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
-      result = await ethersContracts.placeBid(
-        this.item.tokenId, //tokenId, // uint256 tokenId
-        ownerEthAddress,
-        ...valueParam
+      await this.approveForTokenIfNeeded(
+        priceWithServiceFee,
+        auctionContractAddress
       );
-    } else {
-      if (!auctionId) {
-        auctionId = await this.getAuctionId(auctionContractAddress);
-      }
 
-      assert(!!auctionId, "AuctionId must be defined");
-      result = await ethersContracts.placeBid(auctionId, ...valueParam);
+      const value = this.parseCurrency(
+        price.currency,
+        priceWithServiceFee.amount
+      );
+      const valueParam = optionalParam(
+        // If currency is Native, send msg.value
+        this.isNativeCurrency(priceWithServiceFee.currency),
+        {
+          value,
+        }
+      );
+
+      const currentAuctionContract =
+        await this.refinable.contracts.getRefinableContract(
+          this.item.chainId,
+          auctionContractAddress
+        );
+      const ethersContracts = currentAuctionContract.toEthersContract();
+      let result: TransactionResponse;
+
+      if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
+        result = await ethersContracts.placeBid(
+          this.item.tokenId, //tokenId, // uint256 tokenId
+          ownerEthAddress,
+          ...valueParam
+        );
+      } else {
+        if (!auctionId) {
+          auctionId = await this.getAuctionId(auctionContractAddress);
+        }
+
+        assert(!!auctionId, "AuctionId must be defined");
+        result = await ethersContracts.placeBid(auctionId, ...valueParam);
+      }
+      return result;
+    } catch (err) {
+      console.log(err);
     }
-    return result;
   }
 
   async getAuctionId(auctionContractAddress: string): Promise<string> {
