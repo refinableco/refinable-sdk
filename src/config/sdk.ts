@@ -26,10 +26,10 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        chain === ChainType.BSC
+        chain === ChainType.POLYGON
           ? ContractTag.SaleV4_0_0
           : ContractTag.SaleV3_0_0,
-        chain === ChainType.BSC
+        chain === ChainType.POLYGON
           ? ContractTag.AuctionV4_0_0
           : ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
