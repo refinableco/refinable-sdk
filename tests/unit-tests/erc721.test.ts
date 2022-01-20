@@ -79,41 +79,73 @@ describe("Refinable", () => {
     expect(itemOnSale.type).toEqual("SALE");
     expect(itemOnSale.price).toEqual(price);
   });
-
-  describe("Test Buy", () => {
-    let nft: ERC721NFT;
-    let address: string;
-    beforeEach(async () => {
-      const fileStream = fs.createReadStream(
-        path.resolve(__dirname, "../assets/image.jpg")
-      );
-      address = await wallet.getAddress();
-      nft = await refinable
-        .nftBuilder()
-        .erc721({
-          nftFile: fileStream,
-          description: "some test description",
-          name: "The Test NFT",
-          royalty: new StandardRoyaltyStrategy([]),
-          chainId: Chain.Local,
-        })
-        .createAndMint();
+  describe("ERC721Sale", () => {
+    describe("Test Buy", () => {
+      let nft: ERC721NFT;
+      let address: string;
+      beforeEach(async () => {
+        const fileStream = fs.createReadStream(
+          path.resolve(__dirname, "../assets/image.jpg")
+        );
+        address = await wallet.getAddress();
+        nft = await refinable
+          .nftBuilder()
+          .erc721({
+            nftFile: fileStream,
+            description: "some test description",
+            name: "The Test NFT",
+            royalty: new StandardRoyaltyStrategy([]),
+            chainId: Chain.Local,
+          })
+          .createAndMint();
+      });
+      it("should buy a nft with correct parameters", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+        const itemOnSale = await nft.putForSale(price);
+        const txnResponce = await itemOnSale.buy(price);
+        expect(txnResponce).toBeDefined();
+        expect(txnResponce.chainId).toEqual(Chain.Local);
+        expect(txnResponce.from).toEqual(address);
+        const txnReceipt = await txnResponce.wait();
+        expect(txnReceipt.confirmations).toBe(1);
+      });
     });
-    it("should buy a nft with correct parameters", async () => {
-      const price = {
-        amount: 1,
-        currency: PriceCurrency.Bnb,
-      };
-      const itemOnSale = await nft.putForSale(price);
-      const txnResponce = await itemOnSale.buy(price);
-      expect(txnResponce).toBeDefined();
-      expect(txnResponce.chainId).toEqual(Chain.Local);
-      expect(txnResponce.from).toEqual(address);
-      const txnReceipt = await txnResponce.wait();
-      expect(txnReceipt.confirmations).toBe(1);
+    describe("Test Cancel", () => {
+      let nft: ERC721NFT;
+      let address: string;
+      beforeEach(async () => {
+        const fileStream = fs.createReadStream(
+          path.resolve(__dirname, "../assets/image.jpg")
+        );
+        address = await wallet.getAddress();
+        nft = await refinable
+          .nftBuilder()
+          .erc721({
+            nftFile: fileStream,
+            description: "some test description",
+            name: "The Test NFT",
+            royalty: new StandardRoyaltyStrategy([]),
+            chainId: Chain.Local,
+          })
+          .createAndMint();
+      });
+      it("should cancel the sale", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+        const itemOnSale = await nft.putForSale(price);
+        const txnResponce = await itemOnSale.cancelSale();
+        expect(txnResponce).toBeDefined();
+        expect(txnResponce.chainId).toEqual(Chain.Local);
+        expect(txnResponce.from).toEqual(address);
+      });
     });
   });
-  describe("Test Cancel", () => {
+  describe("ERC721Auction", () => {
     let nft: ERC721NFT;
     let address: string;
     beforeEach(async () => {
@@ -132,16 +164,53 @@ describe("Refinable", () => {
         })
         .createAndMint();
     });
-    it("should cancel the sale", async () => {
-      const price = {
-        amount: 1,
-        currency: PriceCurrency.Bnb,
-      };
-      const itemOnSale = await nft.putForSale(price);
-      const txnResponce = await itemOnSale.cancelSale();
-      expect(txnResponce).toBeDefined();
-      expect(txnResponce.chainId).toEqual(Chain.Local);
-      expect(txnResponce.from).toEqual(address);
+    it("should put on Auction", async (): Promise<void> => {
+      const { offer } = await nft.putForAuction({
+        auctionStartDate: new Date(Date.now() + 300000),
+        auctionEndDate: new Date(Date.now() + 900000),
+        price: {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        },
+      });
+      expect(offer).toBeDefined();
+      expect(offer.type).toBe("AUCTION");
+      expect(offer.user.ethAddress.toLowerCase()).toBe(
+        wallet.address.toLowerCase()
+      );
+      expect(offer.totalSupply).toBe(1);
+    });
+    it("cancel auction", async (): Promise<void> => {
+      const { offer } = await nft.putForAuction({
+        auctionStartDate: new Date(Date.now() + 300000),
+        auctionEndDate: new Date(Date.now() + 600000),
+        price: {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        },
+      });
+      const res = await (await offer.cancelAuction()).wait(1);
+      expect(res).toBeDefined();
+      expect(res.confirmations).toBe(1);
+    });
+    it("end auction should throw error while there are no bids", async (): Promise<void> => {
+      try {
+        const { offer } = await nft.putForAuction({
+          auctionStartDate: new Date(Date.now() + 300000),
+          auctionEndDate: new Date(Date.now() + 600000),
+          price: {
+            amount: 1,
+            currency: PriceCurrency.Bnb,
+          },
+        });
+        await offer.endAuction();
+      } catch (error) {
+        expect(
+          error.message.includes(
+            "VM Exception while processing transaction: revert ERC721Auction: There is no bid"
+          )
+        ).toBeTruthy();
+      }
     });
   });
 });

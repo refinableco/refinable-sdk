@@ -8,7 +8,6 @@ import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
 import {
   ContractTag,
-  ContractTypes,
   CreateOfferForEditionsMutation,
   OfferType,
   Price,
@@ -196,14 +195,34 @@ export abstract class AbstractNFT {
     await this.isValidRoyaltyContract(royaltyContractAddress);
     await this.approveIfNeeded(this.auctionContract.address);
 
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        this.auctionContract.address
+      );
+    const isDiamondContract = currentAuctionContract.hasTagSemver(
+      "AUCTION",
+      ">=4.0.0"
+    );
+
+    // We are using tranferProxy for diamondContracts so need to approve the address
+    const addressToApprove = isDiamondContract
+      ? this.transferProxyContract.address
+      : this.auctionContract.address;
+    await this.approveIfNeeded(addressToApprove);
+
+    const ethersContracts = currentAuctionContract.toEthersContract();
     const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
 
-    const blockchainAuctionResponse = await this.auctionContract.createAuction(
+    const blockchainAuctionResponse = await ethersContracts.createAuction(
       // address _token
       this.item.contractAddress,
       // address _royaltyToken
-      royaltyContractAddress ?? constants.AddressZero,
+      ...optionalParam(
+        !isDiamondContract,
+        royaltyContractAddress ?? constants.AddressZero
+      ),
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
@@ -261,7 +280,6 @@ export abstract class AbstractNFT {
       price,
       auctionContractAddress
     );
-
     await this.approveForTokenIfNeeded(
       priceWithServiceFee,
       auctionContractAddress
@@ -271,7 +289,6 @@ export abstract class AbstractNFT {
       price.currency,
       priceWithServiceFee.amount
     );
-
     const valueParam = optionalParam(
       // If currency is Native, send msg.value
       this.isNativeCurrency(priceWithServiceFee.currency),
@@ -286,7 +303,6 @@ export abstract class AbstractNFT {
         auctionContractAddress
       );
     const ethersContracts = currentAuctionContract.toEthersContract();
-
     let result: TransactionResponse;
 
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
@@ -301,10 +317,8 @@ export abstract class AbstractNFT {
       }
 
       assert(!!auctionId, "AuctionId must be defined");
-
       result = await ethersContracts.placeBid(auctionId, ...valueParam);
     }
-
     return result;
   }
 
@@ -449,10 +463,12 @@ export abstract class AbstractNFT {
       ],
       this.refinable.provider
     );
-    const serviceFeeProxyAddress =
-      contract?.tags?.[0] === ContractTag.SaleV4_0_0
-        ? contract?.contractAddress
-        : await serviceFeeUserContract.serviceFeeProxy();
+    const isDiamondContract =
+      contract.hasTagSemver("AUCTION", ">=4.0.0") ||
+      contract.hasTagSemver("SALE", ">=4.0.0");
+    const serviceFeeProxyAddress = isDiamondContract
+      ? contract?.contractAddress
+      : await serviceFeeUserContract.serviceFeeProxy();
 
     if (!serviceFeeProxyAddress)
       throw new Error(
@@ -508,9 +524,13 @@ export abstract class AbstractNFT {
     if (currentAuctionContract.hasTagSemver("AUCTION", "<3.1.0")) {
       return 0;
     }
-
-    const minBidIncrementBps: BigNumber =
-      await ethersContract.minBidIncrementBps();
+    const isDiamondContract = currentAuctionContract.hasTagSemver(
+      "AUCTION",
+      ">=4.0.0"
+    );
+    const minBidIncrementBps: BigNumber = isDiamondContract
+      ? await ethersContract.getMinBidIncrementBps()
+      : await ethersContract.minBidIncrementBps();
 
     return parseBPS(minBidIncrementBps) / 100;
   }
@@ -606,11 +626,7 @@ export abstract class AbstractNFT {
     }
   }
 
-   async getSaleParamsHash(
-    price: Price,
-    ethAddress?: string,
-    supply?: number
-  ) {
+  async getSaleParamsHash(price: Price, ethAddress?: string, supply?: number) {
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);
     const value = this.parseCurrency(price.currency, price.amount);

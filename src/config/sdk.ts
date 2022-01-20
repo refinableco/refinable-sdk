@@ -9,6 +9,7 @@ export const apiUrl = {
   [Environment.Local]: "http://localhost:8001/graphql",
 };
 
+const v4ContractChains = [ChainType.POLYGON, ChainType.BSC];
 export const getContractsTags = (
   environment: Environment,
   chainId: Chain
@@ -26,10 +27,12 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        chain === ChainType.BSC
+        v4ContractChains.includes(chain)
           ? ContractTag.SaleV4_0_0
           : ContractTag.SaleV3_0_0,
-        ContractTag.AuctionV3_1_0,
+        chain === ChainType.POLYGON
+          ? ContractTag.AuctionV4_0_0
+          : ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
@@ -39,7 +42,9 @@ export const getContractsTags = (
         chain === ChainType.BSC
           ? ContractTag.SaleV4_0_0
           : ContractTag.SaleV3_0_1,
-        ContractTag.AuctionV3_1_0,
+        chain === ChainType.BSC
+          ? ContractTag.AuctionV4_0_0
+          : ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
