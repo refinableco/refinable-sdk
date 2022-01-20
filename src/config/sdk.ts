@@ -9,6 +9,7 @@ export const apiUrl = {
   [Environment.Local]: "http://localhost:8001/graphql",
 };
 
+const v4ContractChains = [ChainType.POLYGON, ChainType.BSC];
 export const getContractsTags = (
   environment: Environment,
   chainId: Chain
@@ -26,7 +27,7 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        chain === ChainType.POLYGON
+        v4ContractChains.includes(chain)
           ? ContractTag.SaleV4_0_0
           : ContractTag.SaleV3_0_0,
         chain === ChainType.POLYGON
