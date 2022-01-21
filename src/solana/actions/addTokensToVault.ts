@@ -1,20 +1,22 @@
-import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
-import {
-  MetadataKey,
-  WalletSigner,
-} from '../oyster';
-import { SafetyDepositConfig } from '../oyster';
-import { approve } from '../oyster';
-import { createTokenAccount } from '../oyster';
+import { Wallet } from "@metaplex/js";
+import { AccountLayout } from "@solana/spl-token";
+import { Connection, Keypair, TransactionInstruction } from "@solana/web3.js";
+import BN from "bn.js";
 import {
   addTokenToInactiveVault,
+  approve,
+  createTokenAccount,
+  MetadataKey,
+  SafetyDepositConfig,
   VAULT_PREFIX,
-} from '../oyster';
-
-import { AccountLayout } from '@solana/spl-token';
-import BN from 'bn.js';
-import { SafetyDepositDraft } from './createAuctionManager';
-import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
+} from "../oyster";
+import {
+  findProgramAddress,
+  programIds,
+  StringPublicKey,
+  toPublicKey,
+} from "../utils";
+import { SafetyDepositDraft } from "./createAuctionManager";
 
 export interface SafetyDepositInstructionTemplate {
   box: {
@@ -31,20 +33,20 @@ const BATCH_SIZE = 1;
 // the vault for use. It issues a series of transaction instructions and signers for the sendTransactions batch.
 export async function addTokensToVault(
   connection: Connection,
-  wallet: WalletSigner,
+  wallet: Wallet,
   vault: StringPublicKey,
-  nfts: SafetyDepositInstructionTemplate[],
+  nfts: SafetyDepositInstructionTemplate[]
 ): Promise<{
   instructions: Array<TransactionInstruction[]>;
   signers: Array<Keypair[]>;
   safetyDepositTokenStores: StringPublicKey[];
 }> {
-  if (!wallet.publicKey) throw new Error('Wallet not connected');
+  if (!wallet.publicKey) throw new Error("Wallet not connected");
 
   const PROGRAM_IDS = programIds();
 
   const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-    AccountLayout.span,
+    AccountLayout.span
   );
 
   const vaultAuthority = (
@@ -54,7 +56,7 @@ export async function addTokensToVault(
         toPublicKey(PROGRAM_IDS.vault).toBuffer(),
         toPublicKey(vault).toBuffer(),
       ],
-      toPublicKey(PROGRAM_IDS.vault),
+      toPublicKey(PROGRAM_IDS.vault)
     )
   )[0];
 
@@ -75,7 +77,7 @@ export async function addTokensToVault(
         accountRentExempt,
         toPublicKey(nft.box.tokenMint),
         toPublicKey(vaultAuthority),
-        currSigners,
+        currSigners
       );
       newStores.push(newStoreAccount.toBase58());
 
@@ -84,14 +86,14 @@ export async function addTokensToVault(
         [],
         toPublicKey(nft.box.tokenAccount),
         wallet.publicKey,
-        nft.box.amount.toNumber(),
+        nft.box.amount.toNumber()
       );
 
       currSigners.push(transferAuthority);
 
       await addTokenToInactiveVault(
         nft.draft.masterEdition &&
-          nft.draft.masterEdition.info.key === MetadataKey.MasterEditionV2
+          nft.draft.masterEdition.data.key === MetadataKey.MasterEditionV2
           ? new BN(1)
           : nft.box.amount,
         nft.box.tokenMint,
@@ -101,7 +103,7 @@ export async function addTokensToVault(
         wallet.publicKey.toBase58(),
         wallet.publicKey.toBase58(),
         transferAuthority.publicKey.toBase58(),
-        currInstructions,
+        currInstructions
       );
 
       if (batchCounter === BATCH_SIZE) {

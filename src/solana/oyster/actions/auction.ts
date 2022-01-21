@@ -4,16 +4,17 @@ import {
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
-} from '@solana/web3.js';
-import { deserializeUnchecked, serialize } from 'borsh';
-import BN from 'bn.js';
-import { AccountParser } from '../contexts/accounts/types';
-import moment from 'moment';
-import { findProgramAddress, StringPublicKey, toPublicKey } from '../../utils';
-import { programIds } from '../../utils';
-export const AUCTION_PREFIX = 'auction';
-export const METADATA = 'metadata';
-export const EXTENDED = 'extended';
+} from "@solana/web3.js";
+import { deserializeUnchecked, serialize } from "borsh";
+import BN from "bn.js";
+import { AccountParser } from "../contexts/accounts/types";
+import moment from "moment";
+import { findProgramAddress, StringPublicKey, toPublicKey } from "../../utils";
+import { programIds } from "../../utils";
+import { Auction, AuctionExtended } from "@metaplex-foundation/mpl-auction";
+export const AUCTION_PREFIX = "auction";
+export const METADATA = "metadata";
+export const EXTENDED = "extended";
 export const MAX_AUCTION_DATA_EXTENDED_SIZE = 8 + 9 + 2 + 9 + 33 + 158;
 
 export enum AuctionState {
@@ -64,7 +65,7 @@ export class BidState {
   public getWinnerIndex(bidder: StringPublicKey): number | null {
     if (!this.bids) return null;
 
-    const index = this.bids.findIndex(b => b.key === bidder);
+    const index = this.bids.findIndex((b) => b.key === bidder);
     // auction stores data in reverse order
     if (index !== -1) {
       const zeroBased = this.bids.length - index - 1;
@@ -81,7 +82,7 @@ export class BidState {
 
 export const AuctionParser: AccountParser = (
   pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>,
+  account: AccountInfo<Buffer>
 ) => ({
   pubkey,
   account,
@@ -92,13 +93,13 @@ export const decodeAuction = (buffer: Buffer) => {
   return deserializeUnchecked(
     AUCTION_SCHEMA,
     AuctionData,
-    buffer,
+    buffer
   ) as AuctionData;
 };
 
 export const BidderPotParser: AccountParser = (
   pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>,
+  account: AccountInfo<Buffer>
 ) => ({
   pubkey,
   account,
@@ -111,7 +112,7 @@ export const decodeBidderPot = (buffer: Buffer) => {
 
 export const AuctionDataExtendedParser: AccountParser = (
   pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>,
+  account: AccountInfo<Buffer>
 ) => ({
   pubkey,
   account,
@@ -122,29 +123,9 @@ export const decodeAuctionDataExtended = (buffer: Buffer) => {
   return deserializeUnchecked(
     AUCTION_SCHEMA,
     AuctionDataExtended,
-    buffer,
+    buffer
   ) as AuctionDataExtended;
 };
-
-export const BidderMetadataParser: AccountParser = (
-  pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>,
-) => ({
-  pubkey,
-  account,
-  info: decodeBidderMetadata(account.data),
-});
-
-export const decodeBidderMetadata = (buffer: Buffer) => {
-  return deserializeUnchecked(
-    AUCTION_SCHEMA,
-    BidderMetadata,
-    buffer,
-  ) as BidderMetadata;
-};
-
-export const BASE_AUCTION_DATA_SIZE =
-  32 + 32 + 32 + 9 + 9 + 9 + 9 + 1 + 32 + 1 + 8 + 8;
 
 export enum PriceFloorType {
   None = 0,
@@ -168,11 +149,11 @@ export class PriceFloor {
     this.hash = args.hash || new Uint8Array(32);
     if (this.type === PriceFloorType.Minimum) {
       if (args.minPrice) {
-        this.hash.set(args.minPrice.toArrayLike(Buffer, 'le', 8), 0);
+        this.hash.set(args.minPrice.toArrayLike(Buffer, "le", 8), 0);
       } else {
         this.minPrice = new BN(
           (args.hash || new Uint8Array(0)).slice(0, 8),
-          'le',
+          "le"
         );
       }
     }
@@ -241,7 +222,7 @@ export class AuctionData {
     if (this.auctionGap && this.lastBid) {
       endAt = Math.max(
         endAt,
-        this.auctionGap.toNumber() + this.lastBid.toNumber(),
+        this.auctionGap.toNumber() + this.lastBid.toNumber()
       );
     }
 
@@ -473,61 +454,61 @@ export const AUCTION_SCHEMA = new Map<any, any>([
   [
     CreateAuctionArgs,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['instruction', 'u8'],
-        ['winners', WinnerLimit],
-        ['endAuctionAt', { kind: 'option', type: 'u64' }],
-        ['auctionGap', { kind: 'option', type: 'u64' }],
-        ['tokenMint', 'pubkeyAsString'],
-        ['authority', 'pubkeyAsString'],
-        ['resource', 'pubkeyAsString'],
-        ['priceFloor', PriceFloor],
-        ['tickSize', { kind: 'option', type: 'u64' }],
-        ['gapTickSizePercentage', { kind: 'option', type: 'u8' }],
-        ['instantSalePrice', { kind: 'option', type: 'u64' }],
-        ['name', { kind: 'option', type: [32] }],
+        ["instruction", "u8"],
+        ["winners", WinnerLimit],
+        ["endAuctionAt", { kind: "option", type: "u64" }],
+        ["auctionGap", { kind: "option", type: "u64" }],
+        ["tokenMint", "pubkeyAsString"],
+        ["authority", "pubkeyAsString"],
+        ["resource", "pubkeyAsString"],
+        ["priceFloor", PriceFloor],
+        ["tickSize", { kind: "option", type: "u64" }],
+        ["gapTickSizePercentage", { kind: "option", type: "u8" }],
+        ["instantSalePrice", { kind: "option", type: "u64" }],
+        ["name", { kind: "option", type: [32] }],
       ],
     },
   ],
   [
     WinnerLimit,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['type', 'u8'],
-        ['usize', 'u64'],
+        ["type", "u8"],
+        ["usize", "u64"],
       ],
     },
   ],
   [
     StartAuctionArgs,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['instruction', 'u8'],
-        ['resource', 'pubkeyAsString'],
+        ["instruction", "u8"],
+        ["resource", "pubkeyAsString"],
       ],
     },
   ],
   [
     PlaceBidArgs,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['instruction', 'u8'],
-        ['amount', 'u64'],
-        ['resource', 'pubkeyAsString'],
+        ["instruction", "u8"],
+        ["amount", "u64"],
+        ["resource", "pubkeyAsString"],
       ],
     },
   ],
   [
     CancelBidArgs,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['instruction', 'u8'],
-        ['resource', 'pubkeyAsString'],
+        ["instruction", "u8"],
+        ["resource", "pubkeyAsString"],
       ],
     },
   ],
@@ -535,93 +516,93 @@ export const AUCTION_SCHEMA = new Map<any, any>([
   [
     SetAuthorityArgs,
     {
-      kind: 'struct',
-      fields: [['instruction', 'u8']],
+      kind: "struct",
+      fields: [["instruction", "u8"]],
     },
   ],
   [
     AuctionData,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['authority', 'pubkeyAsString'],
-        ['tokenMint', 'pubkeyAsString'],
-        ['lastBid', { kind: 'option', type: 'u64' }],
-        ['endedAt', { kind: 'option', type: 'u64' }],
-        ['endAuctionAt', { kind: 'option', type: 'u64' }],
-        ['auctionGap', { kind: 'option', type: 'u64' }],
-        ['priceFloor', PriceFloor],
-        ['state', 'u8'],
-        ['bidState', BidState],
+        ["authority", "pubkeyAsString"],
+        ["tokenMint", "pubkeyAsString"],
+        ["lastBid", { kind: "option", type: "u64" }],
+        ["endedAt", { kind: "option", type: "u64" }],
+        ["endAuctionAt", { kind: "option", type: "u64" }],
+        ["auctionGap", { kind: "option", type: "u64" }],
+        ["priceFloor", PriceFloor],
+        ["state", "u8"],
+        ["bidState", BidState],
       ],
     },
   ],
   [
     AuctionDataExtended,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['totalUncancelledBids', 'u64'],
-        ['tickSize', { kind: 'option', type: 'u64' }],
-        ['gapTickSizePercentage', { kind: 'option', type: 'u8' }],
-        ['instantSalePrice', { kind: 'option', type: 'u64' }],
-        ['name', { kind: 'option', type: [32] }],
+        ["totalUncancelledBids", "u64"],
+        ["tickSize", { kind: "option", type: "u64" }],
+        ["gapTickSizePercentage", { kind: "option", type: "u8" }],
+        ["instantSalePrice", { kind: "option", type: "u64" }],
+        ["name", { kind: "option", type: [32] }],
       ],
     },
   ],
   [
     PriceFloor,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['type', 'u8'],
-        ['hash', [32]],
+        ["type", "u8"],
+        ["hash", [32]],
       ],
     },
   ],
   [
     BidState,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['type', 'u8'],
-        ['bids', [Bid]],
-        ['max', 'u64'],
+        ["type", "u8"],
+        ["bids", [Bid]],
+        ["max", "u64"],
       ],
     },
   ],
   [
     Bid,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['key', 'pubkeyAsString'],
-        ['amount', 'u64'],
+        ["key", "pubkeyAsString"],
+        ["amount", "u64"],
       ],
     },
   ],
   [
     BidderMetadata,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['bidderPubkey', 'pubkeyAsString'],
-        ['auctionPubkey', 'pubkeyAsString'],
-        ['lastBid', 'u64'],
-        ['lastBidTimestamp', 'u64'],
-        ['cancelled', 'u8'],
+        ["bidderPubkey", "pubkeyAsString"],
+        ["auctionPubkey", "pubkeyAsString"],
+        ["lastBid", "u64"],
+        ["lastBidTimestamp", "u64"],
+        ["cancelled", "u8"],
       ],
     },
   ],
   [
     BidderPot,
     {
-      kind: 'struct',
+      kind: "struct",
       fields: [
-        ['bidderPot', 'pubkeyAsString'],
-        ['bidderAct', 'pubkeyAsString'],
-        ['auctionAct', 'pubkeyAsString'],
-        ['emptied', 'u8'],
+        ["bidderPot", "pubkeyAsString"],
+        ["bidderAct", "pubkeyAsString"],
+        ["auctionAct", "pubkeyAsString"],
+        ["emptied", "u8"],
       ],
     },
   ],
@@ -631,29 +612,20 @@ export const decodeAuctionData = (buffer: Buffer) => {
   return deserializeUnchecked(
     AUCTION_SCHEMA,
     AuctionData,
-    buffer,
+    buffer
   ) as AuctionData;
 };
 
 export async function createAuction(
   settings: CreateAuctionArgs,
   creator: StringPublicKey,
-  instructions: TransactionInstruction[],
+  instructions: TransactionInstruction[]
 ) {
   const auctionProgramId = programIds().auction;
 
   const data = Buffer.from(serialize(AUCTION_SCHEMA, settings));
 
-  const auctionKey: StringPublicKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(settings.resource).toBuffer(),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
+  const auctionKey = (await Auction.getPDA(settings.resource)).toBase58();
 
   const keys = [
     {
@@ -667,12 +639,7 @@ export async function createAuction(
       isWritable: true,
     },
     {
-      pubkey: toPublicKey(
-        await getAuctionExtended({
-          auctionProgramId,
-          resource: settings.resource,
-        }),
-      ),
+      pubkey: toPublicKey(await AuctionExtended.getPDA(settings.resource)),
       isSigner: false,
       isWritable: true,
     },
@@ -692,60 +659,7 @@ export async function createAuction(
       keys,
       programId: toPublicKey(auctionProgramId),
       data: data,
-    }),
-  );
-}
-
-export async function startAuctionWithResource(
-  resource: StringPublicKey,
-  creator: StringPublicKey,
-  instructions: TransactionInstruction[],
-) {
-  const auctionProgramId = programIds().auction;
-
-  const data = Buffer.from(
-    serialize(
-      AUCTION_SCHEMA,
-      new StartAuctionArgs({
-        resource,
-      }),
-    ),
-  );
-
-  const auctionKey: StringPublicKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(resource).toBuffer(),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-
-  const keys = [
-    {
-      pubkey: toPublicKey(creator),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(auctionKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: SYSVAR_CLOCK_PUBKEY,
-      isSigner: false,
-      isWritable: false,
-    },
-  ];
-  instructions.push(
-    new TransactionInstruction({
-      keys,
-      programId: toPublicKey(auctionProgramId),
-      data: data,
-    }),
+    })
   );
 }
 
@@ -753,7 +667,7 @@ export async function setAuctionAuthority(
   auction: StringPublicKey,
   currentAuthority: StringPublicKey,
   newAuthority: StringPublicKey,
-  instructions: TransactionInstruction[],
+  instructions: TransactionInstruction[]
 ) {
   const auctionProgramId = programIds().auction;
 
@@ -781,310 +695,6 @@ export async function setAuctionAuthority(
       keys,
       programId: toPublicKey(auctionProgramId),
       data: data,
-    }),
-  );
-}
-
-export async function placeBid(
-  bidderPubkey: StringPublicKey,
-  bidderTokenPubkey: StringPublicKey,
-  bidderPotTokenPubkey: StringPublicKey,
-  tokenMintPubkey: StringPublicKey,
-  transferAuthority: StringPublicKey,
-  payer: StringPublicKey,
-  resource: StringPublicKey,
-  amount: BN,
-  instructions: TransactionInstruction[],
-) {
-  const auctionProgramId = programIds().auction;
-
-  const data = Buffer.from(
-    serialize(
-      AUCTION_SCHEMA,
-      new PlaceBidArgs({
-        resource,
-        amount,
-      }),
-    ),
-  );
-
-  const auctionKey: StringPublicKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(resource).toBuffer(),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-
-  const bidderPotKey = await getBidderPotKey({
-    auctionProgramId,
-    auctionKey,
-    bidderPubkey,
-  });
-
-  const bidderMetaKey: StringPublicKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(auctionKey).toBuffer(),
-        toPublicKey(bidderPubkey).toBuffer(),
-        Buffer.from('metadata'),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-
-  const keys = [
-    {
-      pubkey: toPublicKey(bidderPubkey),
-      isSigner: true,
-      isWritable: false,
-    },
-    {
-      pubkey: toPublicKey(bidderTokenPubkey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(bidderPotKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(bidderPotTokenPubkey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(bidderMetaKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(auctionKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(
-        await getAuctionExtended({ auctionProgramId, resource }),
-      ),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(tokenMintPubkey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(transferAuthority),
-      isSigner: true,
-      isWritable: false,
-    },
-    {
-      pubkey: toPublicKey(payer),
-      isSigner: true,
-      isWritable: false,
-    },
-    {
-      pubkey: SYSVAR_CLOCK_PUBKEY,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
-      pubkey: SYSVAR_RENT_PUBKEY,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
-      pubkey: programIds().token,
-      isSigner: false,
-      isWritable: false,
-    },
-  ];
-  instructions.push(
-    new TransactionInstruction({
-      keys,
-      programId: toPublicKey(auctionProgramId),
-      data: data,
-    }),
-  );
-
-  return {
-    amount,
-  };
-}
-
-export async function getBidderPotKey({
-  auctionProgramId,
-  auctionKey,
-  bidderPubkey,
-}: {
-  auctionProgramId: StringPublicKey;
-  auctionKey: StringPublicKey;
-  bidderPubkey: StringPublicKey;
-}): Promise<StringPublicKey> {
-  return (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(auctionKey).toBuffer(),
-        toPublicKey(bidderPubkey).toBuffer(),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-}
-
-export async function getAuctionExtended({
-  auctionProgramId,
-  resource,
-}: {
-  auctionProgramId: StringPublicKey;
-  resource: StringPublicKey;
-}): Promise<StringPublicKey> {
-  return (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(resource).toBuffer(),
-        Buffer.from(EXTENDED),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-}
-
-export async function cancelBid(
-  bidderPubkey: StringPublicKey,
-  bidderTokenPubkey: StringPublicKey,
-  bidderPotTokenPubkey: StringPublicKey,
-  tokenMintPubkey: StringPublicKey,
-  resource: StringPublicKey,
-  instructions: TransactionInstruction[],
-) {
-  const auctionProgramId = programIds().auction;
-
-  const data = Buffer.from(
-    serialize(
-      AUCTION_SCHEMA,
-      new CancelBidArgs({
-        resource,
-      }),
-    ),
-  );
-
-  const auctionKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(resource).toBuffer(),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-
-  const bidderPotKey = await getBidderPotKey({
-    auctionProgramId,
-    auctionKey,
-    bidderPubkey,
-  });
-
-  const bidderMetaKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(auctionProgramId).toBuffer(),
-        toPublicKey(auctionKey).toBuffer(),
-        toPublicKey(bidderPubkey).toBuffer(),
-        Buffer.from('metadata'),
-      ],
-      toPublicKey(auctionProgramId),
-    )
-  )[0];
-
-  const keys = [
-    {
-      pubkey: toPublicKey(bidderPubkey),
-      isSigner: true,
-      isWritable: false,
-    },
-    {
-      pubkey: toPublicKey(bidderTokenPubkey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(bidderPotKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(bidderPotTokenPubkey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(bidderMetaKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(auctionKey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(
-        await getAuctionExtended({ auctionProgramId, resource }),
-      ),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: toPublicKey(tokenMintPubkey),
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: SYSVAR_CLOCK_PUBKEY,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
-      pubkey: SYSVAR_RENT_PUBKEY,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
-    },
-    {
-      pubkey: programIds().token,
-      isSigner: false,
-      isWritable: false,
-    },
-  ];
-  instructions.push(
-    new TransactionInstruction({
-      keys,
-      programId: toPublicKey(auctionProgramId),
-      data: data,
-    }),
+    })
   );
 }

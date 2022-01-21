@@ -1,34 +1,30 @@
+import { Wallet } from "@metaplex/js";
+import { NATIVE_MINT } from "@solana/spl-token";
 import {
-  Keypair,
   Connection,
+  Keypair,
   SystemProgram,
   TransactionInstruction,
-} from '@solana/web3.js';
-
+} from "@solana/web3.js";
+import BN from "bn.js";
 import {
-  WalletSigner,
-} from '../oyster';
-import {
-  updateExternalPriceAccount,
   ExternalPriceAccount,
   MAX_EXTERNAL_ACCOUNT_SIZE,
-} from '../oyster';
-
-import BN from 'bn.js';
-import { QUOTE_MINT } from '../constants';
-import { programIds, StringPublicKey, toPublicKey } from '../utils';
+  updateExternalPriceAccount,
+} from "../oyster";
+import { programIds, StringPublicKey, toPublicKey } from "../utils";
 
 // This command creates the external pricing oracle
 export async function createExternalPriceAccount(
   connection: Connection,
-  wallet: WalletSigner,
+  wallet: Wallet
 ): Promise<{
   priceMint: StringPublicKey;
   externalPriceAccount: StringPublicKey;
   instructions: TransactionInstruction[];
   signers: Keypair[];
 }> {
-  if (!wallet.publicKey) throw new Error('Wallet not connected');
+  if (!wallet.publicKey) throw new Error("Wallet not connected");
 
   const PROGRAM_IDS = programIds();
 
@@ -36,7 +32,7 @@ export async function createExternalPriceAccount(
   const instructions: TransactionInstruction[] = [];
 
   const epaRentExempt = await connection.getMinimumBalanceForRentExemption(
-    MAX_EXTERNAL_ACCOUNT_SIZE,
+    MAX_EXTERNAL_ACCOUNT_SIZE
   );
 
   const externalPriceAccount = Keypair.generate();
@@ -44,7 +40,7 @@ export async function createExternalPriceAccount(
 
   const epaStruct = new ExternalPriceAccount({
     pricePerShare: new BN(0),
-    priceMint: QUOTE_MINT.toBase58(),
+    priceMint: NATIVE_MINT.toBase58(),
     allowedToCombine: true,
   });
 
@@ -62,7 +58,7 @@ export async function createExternalPriceAccount(
 
   return {
     externalPriceAccount: key,
-    priceMint: QUOTE_MINT.toBase58(),
+    priceMint: NATIVE_MINT.toBase58(),
     instructions,
     signers,
   };

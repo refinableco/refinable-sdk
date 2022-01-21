@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
@@ -11,19 +9,26 @@ import {
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
-import { Refinable } from "../Refinable";
+import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
+import EvmTransaction from "../transaction/EvmTransaction";
 import { optionalParam } from "../utils/utils";
-import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
+import { AbstractEvmNFT } from "./AbstractEvmNFT";
+import { PartialNFTItem } from "./AbstractNFT";
 
-export class ERC1155NFT extends AbstractNFT {
-  constructor(refinable: Refinable, item: PartialNFTItem) {
+export class ERC1155NFT extends AbstractEvmNFT {
+  constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
     super(TokenType.Erc1155, refinable, item);
   }
 
-  async approve(operatorAddress: string): Promise<TransactionResponse> {
+  async approve(operatorAddress: string): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    return nftTokenContract.setApprovalForAll(operatorAddress, true);
+    const setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+      operatorAddress,
+      true
+    );
+
+    return new EvmTransaction(setApprovalForAllTx);
   }
 
   async isApproved(operatorAddress: string): Promise<boolean> {
@@ -35,14 +40,23 @@ export class ERC1155NFT extends AbstractNFT {
     );
   }
 
-  async buy(
-    signature: string,
-    pricePerCopy: Price,
-    ownerEthAddress: string,
-    royaltyContractAddress?: string,
-    supply = 1,
-    amount = 1
-  ): Promise<TransactionResponse> {
+  async buy(params: {
+    signature?: string;
+    price: Price;
+    ownerEthAddress: string;
+    royaltyContractAddress?: string;
+    supply?: number;
+    amount?: number;
+  }): Promise<EvmTransaction> {
+    const {
+      signature,
+      price: pricePerCopy,
+      ownerEthAddress,
+      royaltyContractAddress,
+      supply = 1,
+      amount = 1,
+    } = params;
+
     this.verifyItem();
     await this.isValidRoyaltyContract(royaltyContractAddress);
 
@@ -71,7 +85,7 @@ export class ERC1155NFT extends AbstractNFT {
       priceWithServiceFee.amount
     );
 
-    const result = await this.saleContract.buy(
+    const buyTx = await this.saleContract.buy(
       // address _token
       this.item.contractAddress,
       // address _royaltyToken
@@ -95,7 +109,7 @@ export class ERC1155NFT extends AbstractNFT {
       })
     );
 
-    return result;
+    return new EvmTransaction(buyTx);
   }
 
   async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
@@ -140,25 +154,30 @@ export class ERC1155NFT extends AbstractNFT {
     ownerEthAddress: string,
     recipientEthAddress: string,
     amount = 1
-  ): Promise<TransactionResponse> {
+  ): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    return nftTokenContract.safeTransferFrom(
+    const transferTx = await nftTokenContract.safeTransferFrom(
       ownerEthAddress,
       recipientEthAddress,
       this.item.tokenId,
       amount,
       ethers.constants.HashZero
     );
+
+    return new EvmTransaction(transferTx);
   }
 
-  async burn(
-    amount: number,
-    ownerEthAddress: string
-  ): Promise<TransactionResponse> {
+  async burn(amount: number, ownerEthAddress: string): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    return nftTokenContract.burn(ownerEthAddress, this.item.tokenId, amount);
+    const burnTx = await nftTokenContract.burn(
+      ownerEthAddress,
+      this.item.tokenId,
+      amount
+    );
+
+    return new EvmTransaction(burnTx);
   }
 
   /**

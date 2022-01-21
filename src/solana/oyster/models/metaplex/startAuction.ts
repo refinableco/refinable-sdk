@@ -1,25 +1,31 @@
-import { SYSVAR_CLOCK_PUBKEY, TransactionInstruction } from '@solana/web3.js';
-import { serialize } from 'borsh';
+import { SYSVAR_CLOCK_PUBKEY, TransactionInstruction } from "@solana/web3.js";
+import { serialize } from "borsh";
 
-import { getAuctionKeys, SCHEMA, StartAuctionArgs } from '.';
-import { programIds } from '../../../utils';
-import { StringPublicKey, toPublicKey } from '../../../utils';
+import { getAuctionKeys, SCHEMA, StartAuctionArgs } from ".";
+import { programIds } from "../../../utils";
+import { StringPublicKey, toPublicKey } from "../../../utils";
 
 export async function startAuction(
   vault: StringPublicKey,
+  storePubKey: StringPublicKey,
+  _auctionManager: StringPublicKey,
   auctionManagerAuthority: StringPublicKey,
-  instructions: TransactionInstruction[],
+  instructions: TransactionInstruction[]
 ) {
   const PROGRAM_IDS = programIds();
-  const store = PROGRAM_IDS.store;
-  if (!store) {
-    throw new Error('Store not initialized');
-  }
 
-  const { auctionKey, auctionManagerKey } = await getAuctionKeys(vault);
+  const { auctionKey,auctionManagerKey } = await getAuctionKeys(vault);
 
   const value = new StartAuctionArgs();
   const data = Buffer.from(serialize(SCHEMA, value));
+
+  console.log({
+    auctionManagerKey: auctionManagerKey,
+    auctionKey,
+    auctionManagerAuthority,
+    storePubKey,
+    programId: PROGRAM_IDS.auction,
+  });
 
   const keys = [
     {
@@ -38,7 +44,7 @@ export async function startAuction(
       isWritable: false,
     },
     {
-      pubkey: store,
+      pubkey: toPublicKey(storePubKey),
       isSigner: false,
       isWritable: false,
     },
@@ -60,6 +66,6 @@ export async function startAuction(
       keys,
       programId: toPublicKey(PROGRAM_IDS.metaplex),
       data,
-    }),
+    })
   );
 }

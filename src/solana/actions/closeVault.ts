@@ -1,35 +1,34 @@
-import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
-import { WalletSigner } from '../oyster';
-import { createTokenAccount } from '../oyster';
+import { Wallet } from "@metaplex/js";
+import { AccountLayout } from "@solana/spl-token";
+import { Connection, Keypair, TransactionInstruction } from "@solana/web3.js";
+import BN from "bn.js";
 import {
   activateVault,
+  approve,
   combineVault,
-} from '../oyster';
-import { approve } from '../oyster';
-
-import { AccountLayout } from '@solana/spl-token';
-import BN from 'bn.js';
-import { StringPublicKey, toPublicKey } from '../utils';
+  createTokenAccount,
+} from "../oyster";
+import { StringPublicKey, toPublicKey } from "../utils";
 
 // This command "closes" the vault, by activating & combining it in one go, handing it over to the auction manager
 // authority (that may or may not exist yet.)
 export async function closeVault(
   connection: Connection,
-  wallet: WalletSigner,
+  wallet: Wallet,
   vault: StringPublicKey,
   fractionMint: StringPublicKey,
   fractionTreasury: StringPublicKey,
   redeemTreasury: StringPublicKey,
   priceMint: StringPublicKey,
-  externalPriceAccount: StringPublicKey,
+  externalPriceAccount: StringPublicKey
 ): Promise<{
   instructions: TransactionInstruction[];
   signers: Keypair[];
 }> {
-  if (!wallet.publicKey) throw new Error('Wallet not connected');
+  if (!wallet.publicKey) throw new Error("Wallet not connected");
 
   const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-    AccountLayout.span,
+    AccountLayout.span
   );
   const signers: Keypair[] = [];
   const instructions: TransactionInstruction[] = [];
@@ -40,7 +39,7 @@ export async function closeVault(
     fractionMint,
     fractionTreasury,
     wallet.publicKey.toBase58(),
-    instructions,
+    instructions
   );
 
   const outstandingShareAccount = createTokenAccount(
@@ -49,7 +48,7 @@ export async function closeVault(
     accountRentExempt,
     toPublicKey(fractionMint),
     wallet.publicKey,
-    signers,
+    signers
   );
 
   const payingTokenAccount = createTokenAccount(
@@ -58,7 +57,7 @@ export async function closeVault(
     accountRentExempt,
     toPublicKey(priceMint),
     wallet.publicKey,
-    signers,
+    signers
   );
 
   const transferAuthority = Keypair.generate();
@@ -73,7 +72,7 @@ export async function closeVault(
     0,
     false,
     undefined,
-    transferAuthority,
+    transferAuthority
   );
 
   approve(
@@ -84,7 +83,7 @@ export async function closeVault(
     0,
     false,
     undefined,
-    transferAuthority,
+    transferAuthority
   );
 
   signers.push(transferAuthority);
@@ -100,7 +99,7 @@ export async function closeVault(
     wallet.publicKey.toBase58(),
     transferAuthority.publicKey.toBase58(),
     externalPriceAccount,
-    instructions,
+    instructions
   );
 
   return { instructions, signers };

@@ -1,41 +1,29 @@
-import { Keypair, TransactionInstruction } from '@solana/web3.js';
+import { Auction } from "@metaplex-foundation/mpl-auction";
+import { Wallet } from "@metaplex/js";
+import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import {
-  IPartialCreateAuctionArgs,
-  CreateAuctionArgs,
-  WalletSigner,
-} from '../oyster';
-import {
-  AUCTION_PREFIX,
   createAuction,
-} from '../oyster';
-import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
+  CreateAuctionArgs,
+  IPartialCreateAuctionArgs,
+} from "../oyster";
+import { StringPublicKey } from "../utils";
 
 // This command makes an auction
 export async function makeAuction(
-  wallet: WalletSigner,
+  wallet: Wallet,
   vault: StringPublicKey,
-  auctionSettings: IPartialCreateAuctionArgs,
+  auctionSettings: IPartialCreateAuctionArgs
 ): Promise<{
   auction: StringPublicKey;
   instructions: TransactionInstruction[];
   signers: Keypair[];
 }> {
-  if (!wallet.publicKey) throw new Error('Wallet not connected');
-
-  const PROGRAM_IDS = programIds();
+  if (!wallet.publicKey) throw new Error("Wallet not connected");
 
   const signers: Keypair[] = [];
   const instructions: TransactionInstruction[] = [];
-  const auctionKey = (
-    await findProgramAddress(
-      [
-        Buffer.from(AUCTION_PREFIX),
-        toPublicKey(PROGRAM_IDS.auction).toBuffer(),
-        toPublicKey(vault).toBuffer(),
-      ],
-      toPublicKey(PROGRAM_IDS.auction),
-    )
-  )[0];
+
+  const auctionKey = (await Auction.getPDA(vault)).toBase58();
 
   const fullSettings = new CreateAuctionArgs({
     ...auctionSettings,

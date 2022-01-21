@@ -1,16 +1,14 @@
-import { Keypair, TransactionInstruction } from '@solana/web3.js';
-import {
-  updatePrimarySaleHappenedViaToken,
-  WalletSigner,
-} from '../oyster';
-import { SafetyDepositDraft } from './createAuctionManager';
+import { Wallet } from "@metaplex/js";
+import { Keypair, TransactionInstruction } from "@solana/web3.js";
+import { updatePrimarySaleHappenedViaToken } from "../oyster";
+import { SafetyDepositDraft } from "./createAuctionManager";
 const SALE_TRANSACTION_SIZE = 10;
 
 export async function markItemsThatArentMineAsSold(
-  wallet: WalletSigner,
-  safetyDepositDrafts: SafetyDepositDraft[],
+  wallet: Wallet,
+  safetyDepositDrafts: SafetyDepositDraft[]
 ): Promise<{ instructions: TransactionInstruction[][]; signers: Keypair[][] }> {
-  if (!wallet.publicKey) throw new Error('Wallet not connected');
+  if (!wallet.publicKey) throw new Error("Wallet not connected");
 
   const publicKey = wallet.publicKey.toBase58();
 
@@ -26,19 +24,19 @@ export async function markItemsThatArentMineAsSold(
     const item = safetyDepositDrafts[i].metadata;
 
     if (
-      !item.info.data.creators?.find(c => c.address === publicKey) &&
+      !item.info.data.creators?.find((c) => c.address === publicKey) &&
       !item.info.primarySaleHappened
     ) {
       console.log(
-        'For token',
+        "For token",
         item.info.data.name,
-        'marking it sold because i didnt make it but i want to keep proceeds',
+        "marking it sold because i didnt make it but i want to keep proceeds"
       );
       await updatePrimarySaleHappenedViaToken(
         item.pubkey,
         publicKey,
         safetyDepositDrafts[i].holding,
-        markInstructions,
+        markInstructions
       );
 
       if (markInstructions.length === SALE_TRANSACTION_SIZE) {

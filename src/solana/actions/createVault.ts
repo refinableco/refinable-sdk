@@ -1,30 +1,32 @@
+import { Wallet } from "@metaplex/js";
+import { AccountLayout, MintLayout } from "@solana/spl-token";
 import {
-  Keypair,
   Connection,
+  Keypair,
   SystemProgram,
   TransactionInstruction,
-} from '@solana/web3.js';
+} from "@solana/web3.js";
 import {
   createMint,
-  WalletSigner,
-} from '../oyster';
-import {
+  createTokenAccount,
   initVault,
   MAX_VAULT_SIZE,
   VAULT_PREFIX,
-} from '../oyster';
-import { createTokenAccount } from '../oyster';
-
-import { AccountLayout, MintLayout } from '@solana/spl-token';
-import { findProgramAddress, programIds, StringPublicKey, toPublicKey } from '../utils';
+} from "../oyster";
+import {
+  findProgramAddress,
+  programIds,
+  StringPublicKey,
+  toPublicKey,
+} from "../utils";
 
 // This command creates the external pricing oracle a vault
 // This gets the vault ready for adding the tokens.
 export async function createVault(
   connection: Connection,
-  wallet: WalletSigner,
+  wallet: Wallet,
   priceMint: StringPublicKey,
-  externalPriceAccount: StringPublicKey,
+  externalPriceAccount: StringPublicKey
 ): Promise<{
   vault: StringPublicKey;
   fractionalMint: StringPublicKey;
@@ -33,7 +35,7 @@ export async function createVault(
   instructions: TransactionInstruction[];
   signers: Keypair[];
 }> {
-  if (!wallet.publicKey) throw new Error('Wallet not connected');
+  if (!wallet.publicKey) throw new Error("Wallet not connected");
 
   const PROGRAM_IDS = programIds();
 
@@ -41,15 +43,15 @@ export async function createVault(
   const instructions: TransactionInstruction[] = [];
 
   const accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-    AccountLayout.span,
+    AccountLayout.span
   );
 
   const mintRentExempt = await connection.getMinimumBalanceForRentExemption(
-    MintLayout.span,
+    MintLayout.span
   );
 
   const vaultRentExempt = await connection.getMinimumBalanceForRentExemption(
-    MAX_VAULT_SIZE,
+    MAX_VAULT_SIZE
   );
 
   const vault = Keypair.generate();
@@ -61,7 +63,7 @@ export async function createVault(
         toPublicKey(PROGRAM_IDS.vault).toBuffer(),
         vault.publicKey.toBuffer(),
       ],
-      toPublicKey(PROGRAM_IDS.vault),
+      toPublicKey(PROGRAM_IDS.vault)
     )
   )[0];
 
@@ -72,7 +74,7 @@ export async function createVault(
     0,
     toPublicKey(vaultAuthority),
     toPublicKey(vaultAuthority),
-    signers,
+    signers
   ).toBase58();
 
   const redeemTreasury = createTokenAccount(
@@ -81,7 +83,7 @@ export async function createVault(
     accountRentExempt,
     toPublicKey(priceMint),
     toPublicKey(vaultAuthority),
-    signers,
+    signers
   ).toBase58();
 
   const fractionTreasury = createTokenAccount(
@@ -90,7 +92,7 @@ export async function createVault(
     accountRentExempt,
     toPublicKey(fractionalMint),
     toPublicKey(vaultAuthority),
-    signers,
+    signers
   ).toBase58();
 
   const uninitializedVault = SystemProgram.createAccount({
@@ -111,7 +113,7 @@ export async function createVault(
     vault.publicKey.toBase58(),
     wallet.publicKey.toBase58(),
     externalPriceAccount,
-    instructions,
+    instructions
   );
 
   return {

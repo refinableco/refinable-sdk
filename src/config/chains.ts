@@ -271,6 +271,96 @@ export const chainMap: Record<Chain, IChainConfig> = {
       },
     ],
   },
+
+  /**
+   * ===
+   * SOLANA
+   * ===
+   */
+  [Chain.SolanaMainnetBeta]: {
+    ...chainConfigBase,
+    name: "Solana Mainnet Beta",
+    displayName: "Solana Mainnet",
+    shortName: "Solana",
+    networkId: Chain.SolanaMainnetBeta,
+    networkName: "solana",
+    networkType: NetworkType.MAINNET,
+    chainType: ChainType.SOLANA,
+    nodeUri: ["https://solana-api.projectserum.com"],
+    explorerUri: "https://explorer.solana.com/",
+    supportedCurrencies: [
+      {
+        name: 'Wrapped SOL',
+        symbol: "SOL",
+        decimals: 9,
+        native: true,
+        address: "So11111111111111111111111111111111111111112",
+      },
+    ],
+  },
+  [Chain.SolanaTestnet]: {
+    ...chainConfigBase,
+    name: "Solana Testnet",
+    displayName: "Solana Testnet",
+    shortName: "Solana Testnet",
+    networkId: Chain.SolanaTestnet,
+    networkName: "solana-testnet",
+    networkType: NetworkType.TESTNET,
+    chainType: ChainType.SOLANA,
+    nodeUri: ["https://api.testnet.solana.com"],
+    explorerUri: "https://explorer.solana.com/?cluster=testnet",
+    supportedCurrencies: [
+      {
+        name: 'Wrapped SOL',
+        symbol: "SOL",
+        decimals: 9,
+        native: true,
+        address: "So11111111111111111111111111111111111111112",
+      },
+    ],
+  },
+  [Chain.SolanaDevnet]: {
+    ...chainConfigBase,
+    name: "Solana Devnet",
+    displayName: "Solana Devnet",
+    shortName: "Solana Devnet",
+    networkId: Chain.SolanaDevnet,
+    networkName: "solana-devnet",
+    networkType: NetworkType.TESTNET,
+    chainType: ChainType.SOLANA,
+    nodeUri: ["https://api.devnet.solana.com"],
+    explorerUri: "https://explorer.solana.com/?cluster=devnet",
+    supportedCurrencies: [
+      {
+        name: 'Wrapped SOL',
+        symbol: "SOL",
+        decimals: 9,
+        native: true,
+        address: "So11111111111111111111111111111111111111112",
+      },
+    ],
+  },
+  [Chain.SolanaLocalnet]:{
+    ...chainConfigBase,
+    name: 'Solana Localnet',
+    displayName: 'Solana Localnet',
+    shortName: 'Solana Localnet',
+    networkId: Chain.SolanaLocalnet,
+    networkName: 'solana-devnet',
+    networkType: NetworkType.TESTNET,
+    chainType: ChainType.SOLANA,
+    nodeUri: ['http://localhost:8899'],
+    explorerUri: 'https://explorer.solana.com/?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899',
+    supportedCurrencies: [
+      {
+        name: 'Wrapped SOL',
+        symbol: 'SOL',
+        decimals: 9,
+        native: true,
+        address: 'So11111111111111111111111111111111111111112',
+      },
+    ],
+  },
 };
 
 export const chains: IChainConfig[] = [
