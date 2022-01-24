@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "yarn build",
-    "test": "env-cmd jest --runInBand --testPathIgnorePatterns=.*e2e.spec.ts",
+    "test": "jest --runInBand --testPathIgnorePatterns=.*e2e.spec.ts",
     "test:e2e": "env-cmd jest --runInBand --testPathPattern=.*e2e.spec.ts$",
     "test:silent": "yarn test --silent=true",
     "test:watch": "yarn test --watch",
