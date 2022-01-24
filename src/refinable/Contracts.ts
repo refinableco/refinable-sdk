@@ -1,4 +1,4 @@
-import { Refinable, RefinableEvmClient, TokenType } from "..";
+import { RefinableEvmClient, TokenType } from "..";
 import {
   ContractTypes,
   GetMintableCollectionsQuery,
@@ -7,14 +7,14 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  Token,
+  Token
 } from "../@types/graphql";
-import { contractsTags } from "../config/sdk";
+import { getContractsTags } from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
-  GET_REFINABLE_CONTRACTS,
+  GET_REFINABLE_CONTRACTS
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
 
@@ -41,8 +41,11 @@ export class Contracts {
     if (this.baseContracts?.[chainId]) {
       return this.baseContracts[chainId];
     }
-
-    const tags = contractsTags[this.refinable.options.environment];
+    const networkId = await this.refinable.provider.getChainId();
+    const tags = getContractsTags(
+      this.refinable.options.environment,
+      networkId
+    );
 
     const { refinableContracts } = await this.refinable.apiClient.request<
       RefinableContractsQuery,
@@ -126,8 +129,7 @@ export class Contracts {
 
   async getDefaultTokenContract(chainId: Chain, tokenType: TokenType) {
     const mintableContracts = await this.getMintableContracts();
-
-    return Object.values(mintableContracts[chainId]).find(
+    return Object.values(mintableContracts[chainId.toString()]).find(
       (token) => token.type === tokenType && token.default
     );
   }
@@ -153,12 +155,15 @@ export class Contracts {
 
   getBaseContract(chainId: Chain, type: string) {
     if (!this.baseContracts[chainId])
-      throw new Error(`No contract of type ${{type}} for this chain ${chainId}`);
+      throw new Error(
+        `No contract of type ${{ type }} for this chain ${chainId}`
+      );
 
     const contract = this.baseContracts[chainId][type];
-
     if (!contract)
-      throw new Error(`Unable to initialize contract for type ${type} on chain ${chainId}`);
+      throw new Error(
+        `Unable to initialize contract for type ${type} on chain ${chainId}`
+      );
 
     return contract;
   }

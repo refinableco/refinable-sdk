@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
 import { BigNumber, constants, Contract, utils } from "ethers";
@@ -19,6 +18,7 @@ import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
+import { isERC1155 } from "../utils/is";
 import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
@@ -32,7 +32,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   private nftTokenContract: Contract | null;
 
   constructor(
-    protected type: EvmTokenType,
+    public type: EvmTokenType,
     protected readonly refinable: RefinableEvmClient,
     protected item: PartialNFTItem
   ) {
@@ -112,6 +112,14 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   verifyItem() {
     if (!this.item) throw new Error("Unable to do this action, item required");
+
+    if (!this.item.tokenId) {
+      throw new Error("tokenId is not set");
+    }
+
+    if (!this.item.contractAddress) {
+      throw new Error("contract address is not set");
+    }
   }
 
   abstract isApproved(operatorAddress?: string): Promise<boolean>;
@@ -186,17 +194,36 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     offer: AuctionOffer;
   }> {
     await this.isValidRoyaltyContract(royaltyContractAddress);
-
     await this.approveIfNeeded(this.auctionContract.address);
 
+    const currentAuctionContract =
+      await this.refinable.contracts.getRefinableContract(
+        this.item.chainId,
+        this.auctionContract.address
+      );
+    const isDiamondContract = currentAuctionContract.hasTagSemver(
+      "AUCTION",
+      ">=4.0.0"
+    );
+
+    // We are using tranferProxy for diamondContracts so need to approve the address
+    const addressToApprove = isDiamondContract
+      ? this.transferProxyContract.address
+      : this.auctionContract.address;
+    await this.approveIfNeeded(addressToApprove);
+
+    const ethersContracts = currentAuctionContract.toEthersContract();
     const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
 
-    const blockchainAuctionResponse = await this.auctionContract.createAuction(
+    const blockchainAuctionResponse = await ethersContracts.createAuction(
       // address _token
       this.item.contractAddress,
       // address _royaltyToken
-      royaltyContractAddress ?? constants.AddressZero,
+      ...optionalParam(
+        !isDiamondContract,
+        royaltyContractAddress ?? constants.AddressZero
+      ),
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
@@ -240,24 +267,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       txResponse: new EvmTransaction(blockchainAuctionResponse),
       offer,
     };
-  }
-
-  async cancelSale(): Promise<EvmTransaction> {
-    if (!this.item.tokenId) {
-      throw new Error("tokenId is not set");
-    }
-
-    if (!this.item.contractAddress) {
-      throw new Error("contract address is not set");
-    }
-
-    this.verifyItem();
-    const cancelTx = await this.saleContract.cancel(
-      this.item.contractAddress,
-      this.item.tokenId //tokenId, // uint256 tokenId
-    );
-
-    return new EvmTransaction(cancelTx);
   }
 
   async placeBid(
@@ -312,7 +321,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       }
 
       assert(!!auctionId, "AuctionId must be defined");
-
       placeBidTx = await ethersContracts.placeBid(auctionId, ...valueParam);
     }
 
@@ -357,7 +365,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     let cancelAuctionTx: TransactionResponse;
 
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
-      cancelAuctionTx = ethersContract.cancelAuction(
+      cancelAuctionTx = await ethersContract.cancelAuction(
         // uint256 tokenId
         this.item.tokenId,
         ownerEthAddress
@@ -369,7 +377,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
       assert(!!auctionId, "AuctionId must be defined");
 
-      cancelAuctionTx = ethersContract.cancelAuction(auctionId);
+      cancelAuctionTx = await ethersContract.cancelAuction(auctionId);
     }
 
     return new EvmTransaction(cancelAuctionTx);
@@ -412,6 +420,43 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
 
     return new EvmTransaction(endAuctionTx);
+  }
+
+  async cancelSale(params: {
+    price?: Price;
+    signature?: string;
+    selling?: number;
+  }): Promise<EvmTransaction> {
+    const { price, signature, selling = 1 } = params;
+    this.verifyItem();
+
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
+
+    let cancelTx: TransactionResponse;
+
+    if (isDiamondContract) {
+      const paymentToken = this.getPaymentToken(price.currency);
+      const parsedPrice = this.parseCurrency(price.currency, price.amount);
+      cancelTx = await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId,
+        paymentToken,
+        parsedPrice.toString(),
+        ...optionalParam(isERC1155(this), selling),
+        signature
+      );
+    } else {
+      cancelTx = await this.saleContract.cancel(
+        this.item.contractAddress,
+        this.item.tokenId
+      );
+    }
+
+    return new EvmTransaction(cancelTx);
   }
 
   async airdrop(recipients: string[]): Promise<EvmTransaction> {
@@ -568,7 +613,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
   }
 
-  protected async getSaleParamsHash(
+  public async getSaleParamsHash(
     price: Price,
     ethAddress?: string,
     supply?: number

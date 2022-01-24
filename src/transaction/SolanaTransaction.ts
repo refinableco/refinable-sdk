@@ -4,7 +4,6 @@ import {
   RpcResponseAndContext,
   SignatureResult,
 } from "@solana/web3.js";
-import assert from "assert";
 import { Transaction } from "./Transaction";
 
 export default class SolanaTransaction implements Transaction {
@@ -17,11 +16,8 @@ export default class SolanaTransaction implements Transaction {
     private readonly connection: Connection
   ) {}
 
-  get successful() {
-    assert(!!this.txResult, "Must await tx first");
-
-    console.log(this.txResult);
-    
+  get success() {
+    if (!this.txResult) throw new Error("Must await tx first");
 
     return !this.txResult.value?.err;
   }

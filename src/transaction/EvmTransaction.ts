@@ -1,9 +1,8 @@
-import { Transaction } from "./Transaction";
 import {
-  TransactionResponse,
   TransactionReceipt,
+  TransactionResponse,
 } from "@ethersproject/abstract-provider";
-import assert from "assert";
+import { Transaction } from "./Transaction";
 
 export default class EvmTransaction implements Transaction {
   public txReceipt: TransactionReceipt;
@@ -17,8 +16,8 @@ export default class EvmTransaction implements Transaction {
     return this.tx.timestamp;
   }
 
-  get successful() {
-    assert(!!this.txReceipt, "Must await tx first");
+  get success() {
+    if (!this.txReceipt) throw new Error("Must await tx first");
 
     return this.txReceipt.status === 1;
   }

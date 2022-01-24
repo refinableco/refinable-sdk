@@ -3,11 +3,8 @@ import { Keypair } from "@solana/web3.js";
 import base58 from "bs58";
 import * as dotenv from "dotenv";
 import {
-  Environment,
-  RefinableEvmClient,
-  RefinableSolanaClient,
-  Chain,
-  initializeWallet,
+  Chain, Environment, initializeWallet, RefinableEvmClient,
+  RefinableSolanaClient
 } from "../src";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -18,13 +15,16 @@ const API_KEY = process.env.API_KEY as string;
 export function createRefinableClient(chainId: Chain) {
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
 
-  const environment = [
+  let environment = [
     Chain.BscTestnet,
     Chain.EthereumRinkeby,
     Chain.PolygonTestnet,
   ].includes(chainId)
     ? Environment.Testnet
     : Environment.Mainnet;
+  if (chainId === Chain.Local) {
+    environment = Environment.Local;
+  }
 
   return RefinableEvmClient.create(wallet, API_KEY, {
     waitConfirmations: 1,

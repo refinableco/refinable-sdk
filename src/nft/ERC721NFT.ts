@@ -57,7 +57,12 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     this.verifyItem();
 
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
     await this.isValidRoyaltyContract(royaltyContractAddress);
+    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       price,
@@ -80,7 +85,10 @@ export class ERC721NFT extends AbstractEvmNFT {
       // address _token
       this.item.contractAddress,
       // address _royaltyToken,
-      royaltyContractAddress ?? ethers.constants.AddressZero,
+      ...optionalParam(
+        !isDiamondContract,
+        royaltyContractAddress ?? ethers.constants.AddressZero
+      ),
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
@@ -100,8 +108,9 @@ export class ERC721NFT extends AbstractEvmNFT {
 
   async putForSale(price: Price): Promise<SaleOffer> {
     this.verifyItem();
+    const addressForApproval = this.transferProxyContract.address;
 
-    await this.approveIfNeeded(this.transferProxyContract.address);
+    await this.approveIfNeeded(addressForApproval);
 
     const saleParamsHash = await this.getSaleParamsHash(
       price,

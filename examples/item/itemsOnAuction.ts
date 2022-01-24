@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
-import { Chain, initializeWallet } from "../../";
-import { RefinableEvmClient } from "../../src";
+import { Chain, initializeWallet, RefinableEvmClient } from "../../src";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as readline from "readline";
-import { Chain, EvmTokenType } from "../../../src";
+import { Chain, EvmTokenType, PriceCurrency } from "../../../src";
 import { createRefinableClient } from "../../shared";
 
 type ParameterTuple = [string, string, string, string, number, number];
@@ -36,8 +36,11 @@ async function main() {
         contractAddress: parameters[0],
         tokenId: parameters[1],
       });
-
-      await nft.cancelSale();
+      const res = await nft.putForSale({
+        amount: parameters[4],
+        currency: parameters[3] as PriceCurrency,
+      });
+      await res.cancelSale();
       console.log(`${parameters[0]}:${parameters[1]} - Canceled from sale`);
     }
   });

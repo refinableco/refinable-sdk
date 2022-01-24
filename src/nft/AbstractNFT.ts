@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { utils } from "ethers";
 import { Price, PriceCurrency, TokenType } from "../@types/graphql";
 import { chainMap } from "../config/chains";
@@ -8,6 +7,7 @@ import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { Transaction } from "../transaction/Transaction";
 import { getSupportedCurrency } from "../utils/chain";
+
 export interface PartialNFTItem {
   contractAddress: string;
   chainId: number;
@@ -15,12 +15,13 @@ export interface PartialNFTItem {
   supply?: number;
   totalSupply?: number;
 }
+
 export abstract class AbstractNFT {
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
 
   constructor(
-    protected type: TokenType,
+    public type: TokenType,
     protected refinable: RefinableBaseClient,
     protected item: PartialNFTItem
   ) {
@@ -44,6 +45,12 @@ export abstract class AbstractNFT {
     if (!this.item) throw new Error("Unable to do this action, item required");
   }
 
+  abstract cancelSale(params?: {
+    blockchainId?: string;
+    price?: Price;
+    signature?: string;
+    selling?: number;
+  }): Promise<Transaction>;
   abstract burn(
     supply?: number,
     ownerEthAddress?: string
@@ -78,8 +85,6 @@ export abstract class AbstractNFT {
     txResponse: Transaction;
     offer: AuctionOffer;
   }>;
-
-  abstract cancelSale(params?: { blockchainId?: string }): Promise<Transaction>;
 
   abstract placeBid(
     auctionContractAddress: string,

@@ -17,6 +17,7 @@ export default class EvmAccount implements Account {
 
     let result = null;
     const decimals = await this.getTokenDecimals(tokenAddress);
+    
     try {
       
       const token = new ethers.Contract(

@@ -1,10 +1,9 @@
 import { TransactionResponse } from "@ethersproject/providers";
-import assert from "assert";
+import { Stream } from "form-data";
 import {
   AbstractNFT,
   CreateItemInput,
   IRoyalty,
-  Refinable,
   RefinableEvmClient,
   TokenType,
 } from "../..";
@@ -15,11 +14,11 @@ import {
   FinishMintMutationVariables,
 } from "../../@types/graphql";
 import { CREATE_ITEM, FINISH_MINT } from "../../graphql/mint";
+import { isERC1155 } from "../../utils/is";
 import { optionalParam } from "../../utils/utils";
+import { AbstractEvmNFT } from "../AbstractEvmNFT";
 import { ERC1155NFT } from "../ERC1155NFT";
 import { ERC721NFT } from "../ERC721NFT";
-import { Stream } from "form-data";
-import { AbstractEvmNFT } from "../AbstractEvmNFT";
 
 export interface NftBuilderParams
   extends Omit<
@@ -46,6 +45,12 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
     private readonly refinable: RefinableEvmClient,
     private buildData?: NftBuilderParams
   ) {}
+
+  get tokenId() {
+    if (!this.item) throw new Error("Item not created, please create first");
+
+    return this.item.tokenId;
+  }
 
   get royaltySettings() {
     return this.buildData.royalty ? this.buildData.royalty.serialize() : null;
@@ -78,11 +83,18 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
    * Creates an item in the DB and retrieves a tokenId and signature
    */
   async create() {
-    assert(this.buildData != null, "NFT token data not initalized");
-    assert(
-      this.buildData.contractAddress != null,
-      'Parameter "contractAddress" is required. None passed or no default contract found'
-    );
+    if (this.buildData == null) {
+      throw new Error("NFT token data not initalized");
+    }
+
+    if (this.buildData.contractAddress == null) {
+      throw new Error(
+        `'Parameter "contractAddress" is required. None passed or no default contract found'`
+      );
+    }
+
+    if (this.buildData.type === TokenType.Spl)
+      throw new Error("Not supported yet");
 
     const {
       type,
@@ -95,9 +107,9 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
       file,
       contractAddress,
       chainId,
+      thumbnail,
     } = this.buildData;
 
-    // API Call
     const { createItem } = await this.refinable.apiClient.request<
       CreateItemMutation,
       CreateItemMutationVariables
@@ -107,6 +119,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
         marketingDescription,
         name,
         supply,
+        thumbnail,
         royaltySettings: this.buildData.royalty,
         tags,
         airdropAddresses,
@@ -129,6 +142,9 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
    * Mints an item on-chain
    */
   async mint() {
+    if (this.item == null || this.signature == null)
+      throw new Error("Item not created, please create first");
+
     const tokenContract =
       await this.refinable.contracts.getMintableTokenContract(
         this.item.chainId,
@@ -143,11 +159,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
       // RoyaltyLibrary.RoyaltyShareDetails[] memory _royaltyShares
       this.royaltySettings?.shares,
       // uint256 _supply - Only for ERC1155
-      ...optionalParam(
-        this.item.type === TokenType.Erc1155,
-        this.item.supply.toString()
-      ),
-
+      ...optionalParam(isERC1155(this.item), this.item.supply.toString()),
       // string memory _uri,
       this.item.properties.ipfsDocument,
     ];
@@ -185,6 +197,9 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
    * Action to finalize minting and return a item object
    */
   async finishMint(): Promise<AbstractNFT> {
+    if (!this.mintTransaction)
+      throw new Error("Item not minted, please mint first");
+
     const { tokenId, contractAddress } = this.item;
 
     const finishMint = await this.refinable.apiClient.request<
@@ -198,7 +213,9 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
       },
     });
 
-    return this.refinable.createNft(finishMint.finishMint.item as any) as AbstractNFT;
+    return this.refinable.createNft(
+      finishMint.finishMint.item as any
+    ) as AbstractNFT;
   }
 
   /**

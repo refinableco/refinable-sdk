@@ -1,4 +1,3 @@
-import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
   CreateOfferForEditionsMutation,
@@ -59,6 +58,11 @@ export class ERC1155NFT extends AbstractEvmNFT {
 
     this.verifyItem();
     await this.isValidRoyaltyContract(royaltyContractAddress);
+    const saleContract = await this.refinable.contracts.getRefinableContract(
+      this.item.chainId,
+      this.saleContract.address
+    );
+    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       pricePerCopy,
@@ -69,13 +73,6 @@ export class ERC1155NFT extends AbstractEvmNFT {
     await this.approveForTokenIfNeeded(
       priceWithServiceFee,
       this.saleContract.address
-    );
-
-    const supplyForSale = await this.getSupplyOnSale(
-      pricePerCopy, // We have to take the price without service fee, since the sale signature was made that way
-      supply,
-      signature,
-      ownerEthAddress
     );
 
     const paymentToken = this.getPaymentToken(pricePerCopy.currency);
@@ -89,7 +86,10 @@ export class ERC1155NFT extends AbstractEvmNFT {
       // address _token
       this.item.contractAddress,
       // address _royaltyToken
-      royaltyContractAddress ?? ethers.constants.AddressZero,
+      ...optionalParam(
+        !isDiamondContract,
+        royaltyContractAddress ?? ethers.constants.AddressZero
+      ),
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
@@ -97,12 +97,11 @@ export class ERC1155NFT extends AbstractEvmNFT {
       // address payable _owner
       ownerEthAddress,
       // uint256 _selling
-      supplyForSale,
+      supply,
       // uint256 _buying
       amount,
       // bytes memory _signature
       signature,
-
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {
         value,
@@ -115,7 +114,9 @@ export class ERC1155NFT extends AbstractEvmNFT {
   async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
     this.verifyItem();
 
-    await this.approveIfNeeded(this.transferProxyContract.address);
+    const addressForApproval = this.transferProxyContract.address;
+
+    await this.approveIfNeeded(addressForApproval);
 
     const saleParamHash = await this.getSaleParamsHash(
       price,
@@ -178,31 +179,5 @@ export class ERC1155NFT extends AbstractEvmNFT {
     );
 
     return new EvmTransaction(burnTx);
-  }
-
-  /**
-   * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
-   */
-  private async getSupplyOnSale(
-    price: Price,
-    offerSupply: number,
-    offerSignature: string,
-    ownerEthAddress: string
-  ) {
-    const saleParamsWithOfferSupply = await this.getSaleParamsHash(
-      price,
-      ownerEthAddress,
-      offerSupply
-    );
-
-    const address = ethers.utils.verifyMessage(
-      // For some reason we need to remove 0x and parse it as buffer for it to work
-      Buffer.from(saleParamsWithOfferSupply.slice(2), "hex"),
-      offerSignature
-    );
-
-    return address.toLowerCase() === ownerEthAddress.toLowerCase()
-      ? offerSupply
-      : this.item.totalSupply;
   }
 }

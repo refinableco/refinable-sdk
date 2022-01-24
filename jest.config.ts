@@ -12,6 +12,8 @@ const config: Config.InitialOptions = {
   verbose: true,
   moduleFileExtensions: [...defaults.moduleFileExtensions, "ts", "json", "js"],
   transformIgnorePatterns: ["node_modules/(?!variables/.*)"],
+  setupFiles: ["./tests/setup.jest.ts"],
+  clearMocks: true,
 };
 
 export default config;
