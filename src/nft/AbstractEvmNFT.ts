@@ -1,4 +1,4 @@
-import { TransactionResponse } from "@ethersproject/abstract-provider";
+import type { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
 import { BigNumber, constants, Contract, utils } from "ethers";
 import { soliditySha3 } from "web3-utils";

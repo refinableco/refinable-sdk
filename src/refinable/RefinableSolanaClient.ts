@@ -1,6 +1,6 @@
 import { Store } from "@metaplex-foundation/mpl-metaplex";
 import { Wallet } from "@metaplex/js";
-import { Connection } from "@solana/web3.js";
+import type { Connection } from "@solana/web3.js";
 import { solanaChainIds, solanaStorePubKeys } from "../config/solana";
 import { PartialNFTItem } from "../nft/AbstractNFT";
 import { SPLNFT } from "../nft/SPLNFT";

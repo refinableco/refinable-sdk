@@ -19,14 +19,6 @@ export async function startAuction(
   const value = new StartAuctionArgs();
   const data = Buffer.from(serialize(SCHEMA, value));
 
-  console.log({
-    auctionManagerKey: auctionManagerKey,
-    auctionKey,
-    auctionManagerAuthority,
-    storePubKey,
-    programId: PROGRAM_IDS.auction,
-  });
-
   const keys = [
     {
       pubkey: toPublicKey(auctionManagerKey),

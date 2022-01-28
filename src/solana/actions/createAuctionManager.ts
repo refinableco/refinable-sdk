@@ -13,7 +13,7 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import BN from "bn.js";
-import { sendTransactions } from "../../nft/solana/connection";
+import { sendTransactions, SequenceType } from "../../nft/solana/connection";
 import {
   AmountRange,
   createTokenAccount,
@@ -25,15 +25,12 @@ import {
   ParticipationConfigV2,
   ParticipationStateV2,
   SafetyDepositConfig,
+  sendTransactionWithRetry,
   startAuction,
   TupleNumericType,
   WinningConfigType,
 } from "../oyster";
 import { ParsedAccount } from "../oyster/contexts/accounts/types";
-import {
-  sendTransactionWithRetry,
-  SequenceType,
-} from "../oyster/contexts/connection";
 import { initAuctionManagerV2 } from "../oyster/models/metaplex/initAuctionManagerV2";
 import { validateSafetyDepositBoxV2 } from "../oyster/models/metaplex/validateSafetyDepositBoxV2";
 import {

@@ -1,17 +1,12 @@
+import { Auction, AuctionExtended } from "@metaplex-foundation/mpl-auction";
 import {
-  AccountInfo,
   SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { deserializeUnchecked, serialize } from "borsh";
 import BN from "bn.js";
-import { AccountParser } from "../contexts/accounts/types";
-import moment from "moment";
-import { findProgramAddress, StringPublicKey, toPublicKey } from "../../utils";
-import { programIds } from "../../utils";
-import { Auction, AuctionExtended } from "@metaplex-foundation/mpl-auction";
+import { serialize } from "borsh";
+import { programIds, StringPublicKey, toPublicKey } from "../../utils";
 export const AUCTION_PREFIX = "auction";
 export const METADATA = "metadata";
 export const EXTENDED = "extended";
@@ -79,53 +74,6 @@ export class BidState {
     this.max = args.max;
   }
 }
-
-export const AuctionParser: AccountParser = (
-  pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>
-) => ({
-  pubkey,
-  account,
-  info: decodeAuction(account.data),
-});
-
-export const decodeAuction = (buffer: Buffer) => {
-  return deserializeUnchecked(
-    AUCTION_SCHEMA,
-    AuctionData,
-    buffer
-  ) as AuctionData;
-};
-
-export const BidderPotParser: AccountParser = (
-  pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>
-) => ({
-  pubkey,
-  account,
-  info: decodeBidderPot(account.data),
-});
-
-export const decodeBidderPot = (buffer: Buffer) => {
-  return deserializeUnchecked(AUCTION_SCHEMA, BidderPot, buffer) as BidderPot;
-};
-
-export const AuctionDataExtendedParser: AccountParser = (
-  pubkey: StringPublicKey,
-  account: AccountInfo<Buffer>
-) => ({
-  pubkey,
-  account,
-  info: decodeAuctionDataExtended(account.data),
-});
-
-export const decodeAuctionDataExtended = (buffer: Buffer) => {
-  return deserializeUnchecked(
-    AUCTION_SCHEMA,
-    AuctionDataExtended,
-    buffer
-  ) as AuctionDataExtended;
-};
 
 export enum PriceFloorType {
   None = 0,
@@ -215,7 +163,7 @@ export class AuctionData {
   auctionDataExtended?: StringPublicKey;
 
   public timeToEnd(): CountdownState {
-    const now = moment().unix();
+    const now = ~~(Date.now() / 1000);
     const ended = { days: 0, hours: 0, minutes: 0, seconds: 0 };
     let endAt = this.endedAt?.toNumber() || 0;
 
@@ -245,7 +193,7 @@ export class AuctionData {
   }
 
   public ended() {
-    const now = moment().unix();
+    const now = ~~(Date.now() / 1000);
     if (!this.endedAt) return false;
 
     if (this.endedAt.toNumber() > now) return false;
@@ -607,14 +555,6 @@ export const AUCTION_SCHEMA = new Map<any, any>([
     },
   ],
 ]);
-
-export const decodeAuctionData = (buffer: Buffer) => {
-  return deserializeUnchecked(
-    AUCTION_SCHEMA,
-    AuctionData,
-    buffer
-  ) as AuctionData;
-};
 
 export async function createAuction(
   settings: CreateAuctionArgs,

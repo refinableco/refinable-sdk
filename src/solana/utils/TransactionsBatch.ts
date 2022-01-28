@@ -1,5 +1,5 @@
 import { Transaction } from "@metaplex-foundation/mpl-core";
-import { Keypair } from "@solana/web3.js";
+import type { Keypair } from "@solana/web3.js";
 
 interface TransactionsBatchParams {
   beforeTransactions?: Transaction[];

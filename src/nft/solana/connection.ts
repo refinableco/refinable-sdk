@@ -10,6 +10,7 @@ import {
   TransactionInstruction,
   TransactionSignature,
 } from "@solana/web3.js";
+import { sleep } from "../../solana/utils";
 
 export enum SequenceType {
   Sequential,
@@ -143,8 +144,6 @@ export async function sendSignedTransaction({
       skipPreflight: true,
     }
   );
-
-  connection;
 
   console.log("Started awaiting confirmation for", txid);
 
@@ -293,8 +292,4 @@ async function awaitTransactionSignatureConfirmation(
   done = true;
   console.log("Returning status", status);
   return status;
-}
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

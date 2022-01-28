@@ -38,16 +38,18 @@ export class SaleOffer extends Offer {
       blockchainId: this.blockchainId,
     });
 
-    await this.refinable.apiClient.request<
-      PurchaseItemMutation,
-      PurchaseItemMutationVariables
-    >(PURCHASE_ITEM, {
-      input: {
-        offerId: this.id,
-        amount,
-        transactionHash: result.txId,
-      },
-    });
+    if (result.txId) {
+      await this.refinable.apiClient.request<
+        PurchaseItemMutation,
+        PurchaseItemMutationVariables
+      >(PURCHASE_ITEM, {
+        input: {
+          offerId: this.id,
+          amount,
+          transactionHash: result.txId,
+        },
+      });
+    }
 
     return result;
   }

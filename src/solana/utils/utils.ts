@@ -1,10 +1,7 @@
+import { TokenAccount } from "@metaplex-foundation/mpl-core";
 import { MintInfo } from "@solana/spl-token";
-import { TokenInfo } from "@solana/spl-token-registry";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { TokenAccount } from "../oyster";
-
-export type KnownTokenMap = Map<string, TokenInfo>;
 
 export const findProgramAddress = async (
   seeds: (Buffer | Uint8Array)[],
@@ -24,7 +21,7 @@ export function toLamports(
   }
 
   const amount =
-    typeof account === "number" ? account : account.info.amount?.toNumber();
+    typeof account === "number" ? account : account.data.amount?.toNumber();
 
   const precision = Math.pow(10, mint?.decimals || 0);
   return Math.floor(amount * precision);
@@ -44,7 +41,7 @@ export function fromLamports(
       ? account
       : BN.isBN(account)
       ? account.toNumber()
-      : account.info.amount.toNumber()
+      : account.data.amount.toNumber()
   );
 
   const precision = Math.pow(10, mint?.decimals || 9);

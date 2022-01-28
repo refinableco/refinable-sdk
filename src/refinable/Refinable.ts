@@ -6,7 +6,7 @@ import {
 import { RefinableEvmClient } from "./RefinableEvmClient";
 import { RefinableSolanaClient } from "./RefinableSolanaClient";
 import merge from "merge-options-default";
-import { omit } from "lodash";
+import omit from "lodash.omit";
 
 export enum ClientType {
   Solana = "Solana",

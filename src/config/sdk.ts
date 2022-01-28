@@ -39,8 +39,12 @@ export const getContractsTags = (
       ];
     case Environment.Local:
       return [
-        ContractTag.SaleV3_0_0,
-        ContractTag.AuctionV3_1_0,
+        chain === ChainType.BSC
+          ? ContractTag.SaleV4_0_0
+          : ContractTag.SaleV3_0_1,
+        chain === ChainType.BSC
+          ? ContractTag.AuctionV4_0_0
+          : ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,

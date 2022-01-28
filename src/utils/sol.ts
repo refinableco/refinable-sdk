@@ -1,11 +1,10 @@
-import { AnyPublicKey, TokenAccount } from "@metaplex-foundation/mpl-core";
+import type { AnyPublicKey, TokenAccount } from "@metaplex-foundation/mpl-core";
 import {
-  AccountInfo,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Connection, TransactionInstruction } from "@solana/web3.js";
+import type { Connection, TransactionInstruction } from "@solana/web3.js";
 import { toPublicKey } from "../solana/utils";
 
 export function toLamports(

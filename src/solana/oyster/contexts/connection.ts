@@ -1,8 +1,6 @@
 import { Wallet } from "@metaplex/js";
-import { ENV as ChainId, TokenInfo } from "@solana/spl-token-registry";
 import {
   Blockhash,
-  clusterApiUrl,
   Commitment,
   Connection,
   FeeCalculator,
@@ -16,57 +14,15 @@ import {
 } from "@solana/web3.js";
 import { sleep } from "../../utils/utils";
 
+export declare enum ChainId {
+  MainnetBeta = 101,
+  Testnet = 102,
+  Devnet = 103,
+}
+
 interface BlockhashAndFeeCalculator {
   blockhash: Blockhash;
   feeCalculator: FeeCalculator;
-}
-
-export type ENV =
-  | "mainnet-beta"
-  | "mainnet-beta (Solana)"
-  | "mainnet-beta (Serum)"
-  | "testnet"
-  | "devnet"
-  | "localnet"
-  | "lending";
-
-export const ENDPOINTS = [
-  {
-    name: "mainnet-beta" as ENV,
-    endpoint: "https://api.metaplex.solana.com/",
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: "mainnet-beta (Solana)" as ENV,
-    endpoint: "https://api.mainnet-beta.solana.com",
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: "mainnet-beta (Serum)" as ENV,
-    endpoint: "https://solana-api.projectserum.com/",
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: "testnet" as ENV,
-    endpoint: clusterApiUrl("testnet"),
-    ChainId: ChainId.Testnet,
-  },
-  {
-    name: "devnet" as ENV,
-    endpoint: clusterApiUrl("devnet"),
-    ChainId: ChainId.Devnet,
-  },
-];
-
-const DEFAULT = ENDPOINTS[0].endpoint;
-
-interface ConnectionConfig {
-  connection: Connection;
-  endpoint: string;
-  env: ENV;
-  setEndpoint: (val: string) => void;
-  tokens: TokenInfo[];
-  tokenMap: Map<string, TokenInfo>;
 }
 
 export const getErrorForTransaction = async (

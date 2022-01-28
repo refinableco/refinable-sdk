@@ -1,4 +1,4 @@
-import { Commitment } from "@solana/web3.js";
+import type { Commitment } from "@solana/web3.js";
 
 export enum Environment {
   Mainnet = "mainnet",

@@ -30,7 +30,7 @@ async function main() {
     await nft.cancelSale({ blockchainId });
   */
 
-  console.log("Done putting item on sale");
+  console.log("Done cancelling sale");
 }
 
 main();
