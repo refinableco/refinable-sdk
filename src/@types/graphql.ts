@@ -221,10 +221,22 @@ export enum ContentType {
   VerifiedContent = "VERIFIED_CONTENT",
 }
 
+export type Contract = {
+  __typename?: "Contract";
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  contractId?: Maybe<Scalars["String"]>;
+};
+
 export type ContractCount = {
   __typename?: "ContractCount";
   minted: Scalars["Int"];
   transfered: Scalars["Int"];
+};
+
+export type ContractInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
 };
 
 export type ContractOutput = {
@@ -243,7 +255,6 @@ export enum ContractTag {
   AuctionV3_0_0 = "AUCTION_v3_0_0",
   AuctionV3_1_0 = "AUCTION_v3_1_0",
   AuctionV3_1_1 = "AUCTION_v3_1_1",
-  AuctionV4_0_0 = "AUCTION_v4_0_0",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
   SaleV1_0_0 = "SALE_v1_0_0",
   SaleV2_0_0 = "SALE_v2_0_0",
@@ -319,8 +330,7 @@ export type CreatePurchaseInput = {
 
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contracts: Array<ContractInput>;
   customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
@@ -729,7 +739,7 @@ export type Mutation = {
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
-  refreshMetadata: RefreshMetadataOutput;
+  refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
@@ -978,7 +988,9 @@ export type QueryAuctionArgs = {
 };
 
 export type QueryCollectionArgs = {
-  slug: Scalars["String"];
+  chainId?: Maybe<Scalars["Int"]>;
+  contractAddress?: Maybe<Scalars["String"]>;
+  slug?: Maybe<Scalars["String"]>;
 };
 
 export type QueryCollectionMetadataValuesArgs = {
@@ -1057,7 +1069,8 @@ export type QuerySearchArgs = {
 };
 
 export type QueryStoreArgs = {
-  domain: Scalars["String"];
+  domain?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
   isExternal?: Maybe<Scalars["Boolean"]>;
 };
 
@@ -1078,12 +1091,6 @@ export type RefreshMetadataInput = {
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
   type: Scalars["String"];
-};
-
-export type RefreshMetadataOutput = {
-  __typename?: "RefreshMetadataOutput";
-  error?: Maybe<Scalars["String"]>;
-  success: Scalars["Boolean"];
 };
 
 export type RoyaltiesInput = {
@@ -1137,8 +1144,7 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contracts: Array<Contract>;
   creator: Scalars["String"];
   customLinks?: Maybe<Array<CustomLink>>;
   description: Scalars["String"];
@@ -1148,7 +1154,9 @@ export type Store = {
   externalCustomLink?: Maybe<Scalars["String"]>;
   favicon: Scalars["String"];
   fontFamily?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
+  items: ItemsWithOffersResponse;
   logo: Scalars["String"];
   logoHeight?: Maybe<Scalars["Float"]>;
   name: Scalars["String"];
@@ -1159,6 +1167,12 @@ export type Store = {
   telegram?: Maybe<Scalars["String"]>;
   twitter?: Maybe<Scalars["String"]>;
   website?: Maybe<Scalars["String"]>;
+};
+
+export type StoreItemsArgs = {
+  filter?: Maybe<CollectionMetadataFilterInput>;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type Subscription = {
@@ -1289,8 +1303,7 @@ export type UpdateStore = {
 
 export type UpdateStoreInput = {
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contracts: Array<ContractInput>;
   customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
@@ -2034,7 +2047,7 @@ export type RefreshMetadataMutationVariables = Exact<{
 
 export type RefreshMetadataMutation = {
   __typename?: "Mutation";
-  refreshMetadata: { __typename?: "RefreshMetadataOutput"; success: boolean };
+  refreshMetadata: boolean;
 };
 
 export type UploadFileMutationVariables = Exact<{

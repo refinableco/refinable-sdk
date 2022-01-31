@@ -61,8 +61,6 @@ export const GET_USER_ITEMS = gql`
 
 export const REFRESH_METADATA = gql`
   mutation refreshMetadata($input: RefreshMetadataInput!) {
-    refreshMetadata(input: $input) {
-      success
-    }
+    refreshMetadata(input: $input)
   }
 `;
