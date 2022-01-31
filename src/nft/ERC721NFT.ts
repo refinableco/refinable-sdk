@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { TransactionResponse } from "@ethersproject/abstract-provider";
+import { ethers } from "ethers";
 import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
@@ -9,22 +8,28 @@ import {
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
-import { Refinable } from "../Refinable";
-import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
+import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
+import EvmTransaction from "../transaction/EvmTransaction";
 import { optionalParam } from "../utils/utils";
-import { ethers } from "ethers";
+import { AbstractEvmNFT } from "./AbstractEvmNFT";
+import { PartialNFTItem } from "./AbstractNFT";
 
-export class ERC721NFT extends AbstractNFT {
-  constructor(refinable: Refinable, item: PartialNFTItem) {
+export class ERC721NFT extends AbstractEvmNFT {
+  constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
     super(TokenType.Erc721, refinable, item);
   }
 
-  async approve(operatorAddress: string): Promise<TransactionResponse> {
+  async approve(operatorAddress: string): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
     // TODO: we should actually use this but our contracts do not support it
     // return this.nftTokenContract.approve(operatorAddress, this.item.tokenId);
-    return nftTokenContract.setApprovalForAll(operatorAddress, true);
+    const setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+      operatorAddress,
+      true
+    );
+
+    return new EvmTransaction(setApprovalForAllTx);
   }
 
   async isApproved(operatorAddress: string) {
@@ -41,12 +46,15 @@ export class ERC721NFT extends AbstractNFT {
     return isApprovedForAll;
   }
 
-  async buy(
-    signature: string,
-    price: Price,
-    ownerEthAddress: string,
-    royaltyContractAddress?: string
-  ): Promise<TransactionResponse> {
+  async buy(params: {
+    signature?: string;
+    price: Price;
+    ownerEthAddress: string;
+    royaltyContractAddress?: string;
+  }): Promise<EvmTransaction> {
+    const { royaltyContractAddress, price, ownerEthAddress, signature } =
+      params;
+
     this.verifyItem();
 
     const saleContract = await this.refinable.contracts.getRefinableContract(
@@ -73,7 +81,7 @@ export class ERC721NFT extends AbstractNFT {
       priceWithServiceFee.amount
     );
 
-    const result = await this.saleContract.buy(
+    const buyTx = await this.saleContract.buy(
       // address _token
       this.item.contractAddress,
       // address _royaltyToken,
@@ -95,7 +103,7 @@ export class ERC721NFT extends AbstractNFT {
       })
     );
 
-    return result;
+    return new EvmTransaction(buyTx);
   }
 
   async putForSale(price: Price): Promise<SaleOffer> {
@@ -139,20 +147,22 @@ export class ERC721NFT extends AbstractNFT {
   async transfer(
     ownerEthAddress: string,
     recipientEthAddress: string
-  ): Promise<TransactionResponse> {
+  ): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
     // the method is overloaded, generally this is the one we want to use
-    return nftTokenContract["safeTransferFrom(address,address,uint256)"](
-      ownerEthAddress,
-      recipientEthAddress,
-      this.item.tokenId
-    );
+    const transferTx = await nftTokenContract[
+      "safeTransferFrom(address,address,uint256)"
+    ](ownerEthAddress, recipientEthAddress, this.item.tokenId);
+
+    return new EvmTransaction(transferTx);
   }
 
-  async burn(): Promise<TransactionResponse> {
+  async burn(): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    return nftTokenContract.burn(this.item.tokenId);
+    const burnTx = await nftTokenContract.burn(this.item.tokenId);
+
+    return new EvmTransaction(burnTx);
   }
 }

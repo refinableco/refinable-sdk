@@ -136,6 +136,7 @@ export const OfferFragment = gql`
       currency
     }
     signature
+    blockchainId
     auction {
       ...Auction
     }

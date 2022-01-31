@@ -4,6 +4,7 @@ import {
   TokenType,
   OfferType,
 } from "./@types/graphql";
+import { NftMap } from "./interfaces";
 import { Chain } from "./interfaces/Network";
 import { Environment } from "./types/RefinableOptions";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
@@ -19,8 +20,11 @@ import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyalty
 import { AuctionOffer } from "./offer/AuctionOffer";
 import { Offer, PartialOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
-import { NftMap, Refinable } from "./Refinable";
+import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
+import { RefinableSolanaClient } from "./refinable/RefinableSolanaClient";
 import * as is from "./utils/is";
+import { ClientType, Refinable } from "./refinable/Refinable";
+import { EvmTokenType } from "./nft/AbstractEvmNFT";
 export * from "./providers";
 
 export {
@@ -29,7 +33,11 @@ export {
   OfferType,
   PartialOffer,
   AbstractNFT,
+  ClientType,
+  EvmTokenType,
   Refinable,
+  RefinableEvmClient,
+  RefinableSolanaClient,
   NftMap,
   Chain,
   TokenType,
