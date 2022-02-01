@@ -10,6 +10,6 @@ export function selectChainType(chainId: Chain): ChainType {
   } else if ([Chain.Ethereum, Chain.EthereumRinkeby].includes(chainId)) {
     return ChainType.ETH;
   } else if ([Chain.PolygonMainnet, Chain.PolygonTestnet].includes(chainId)) {
-    return ChainType.ETH;
+    return ChainType.POLYGON;
   }
 }
