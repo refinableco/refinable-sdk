@@ -14,6 +14,7 @@ import {
   Price,
   PriceCurrency,
   TokenType,
+  ContractTypes,
 } from "../@types/graphql";
 import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
 import { chainMap } from "../config/chains";
@@ -102,11 +103,15 @@ export abstract class AbstractNFT {
 
   public async getTokenContract() {
     if (this.nftTokenContract) return this.nftTokenContract;
-
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Token]
+      : [ContractTypes.Erc721Token];
     const nftTokenContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        this.item.contractAddress
+        this.item.contractAddress,
+        type
       );
 
     this.nftTokenContract = nftTokenContract.toEthersContract();
@@ -196,11 +201,15 @@ export abstract class AbstractNFT {
   }> {
     await this.isValidRoyaltyContract(royaltyContractAddress);
     await this.approveIfNeeded(this.auctionContract.address);
-
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Auction]
+      : [ContractTypes.Erc721Auction];
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        this.auctionContract.address
+        this.auctionContract.address,
+        type
       );
     const isDiamondContract = currentAuctionContract.hasTagSemver(
       "AUCTION",
@@ -277,10 +286,14 @@ export abstract class AbstractNFT {
     ownerEthAddress?: string
   ): Promise<TransactionResponse> {
     this.verifyItem();
-
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Auction]
+      : [ContractTypes.Erc721Auction];
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       price,
-      auctionContractAddress
+      auctionContractAddress,
+      type
     );
     await this.approveForTokenIfNeeded(
       priceWithServiceFee,
@@ -302,7 +315,8 @@ export abstract class AbstractNFT {
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        auctionContractAddress
+        auctionContractAddress,
+        type
       );
     const ethersContracts = currentAuctionContract.toEthersContract();
     let result: TransactionResponse;
@@ -325,10 +339,15 @@ export abstract class AbstractNFT {
   }
 
   async getAuctionId(auctionContractAddress: string): Promise<string> {
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Auction]
+      : [ContractTypes.Erc721Auction];
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        auctionContractAddress
+        auctionContractAddress,
+        type
       );
 
     return currentAuctionContract
@@ -352,10 +371,15 @@ export abstract class AbstractNFT {
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<TransactionResponse> {
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Auction]
+      : [ContractTypes.Erc721Auction];
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        auctionContractAddress
+        auctionContractAddress,
+        type
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -388,10 +412,15 @@ export abstract class AbstractNFT {
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<TransactionResponse> {
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Auction]
+      : [ContractTypes.Erc721Auction];
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        auctionContractAddress
+        auctionContractAddress,
+        type
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -456,11 +485,13 @@ export abstract class AbstractNFT {
 
   public async getBuyServiceFee(
     serviceFeeUserAddress: string,
-    address: string
+    address: string,
+    type: ContractTypes[]
   ): Promise<number> {
     const contract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
-      serviceFeeUserAddress
+      serviceFeeUserAddress,
+      type
     );
     // Get ServiceFeeProxyAddress from user contract (sale or auction)
     const serviceFeeUserContract = new Contract(
@@ -509,11 +540,13 @@ export abstract class AbstractNFT {
   public async getPriceWithBuyServiceFee(
     price: Price,
     contractAddress: string,
+    type: ContractTypes[],
     amount = 1
   ): Promise<Price> {
     const serviceFeeBps = await this.getBuyServiceFee(
       contractAddress,
-      this.refinable.accountAddress
+      this.refinable.accountAddress,
+      type
     );
 
     const currency = this.getCurrency(price.currency);
@@ -532,10 +565,15 @@ export abstract class AbstractNFT {
   }
 
   async getMinBidIncrement(auctionContractAddress: string): Promise<number> {
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Auction]
+      : [ContractTypes.Erc721Auction];
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
-        auctionContractAddress
+        auctionContractAddress,
+        type
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -568,12 +606,17 @@ export abstract class AbstractNFT {
     }
 
     this.verifyItem();
+    const isERC1155 = this.type === TokenType.Erc1155;
+    const type = isERC1155
+      ? [ContractTypes.Erc1155Sale]
+      : [ContractTypes.Erc721Sale];
+
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
-      this.saleContract.address
+      this.saleContract.address,
+      type
     );
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
-    const isERC1155 = this.type === TokenType.Erc1155;
 
     if (isDiamondContract) {
       const paymentToken = this.getPaymentToken(price.currency);

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import {
+  ContractTypes,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -48,17 +49,18 @@ export class ERC721NFT extends AbstractNFT {
     royaltyContractAddress?: string
   ): Promise<TransactionResponse> {
     this.verifyItem();
-
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
-      this.saleContract.address
+      this.saleContract.address,
+      [ContractTypes.Erc721Sale]
     );
     await this.isValidRoyaltyContract(royaltyContractAddress);
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       price,
-      this.saleContract.address
+      this.saleContract.address,
+      [ContractTypes.Erc721Sale]
     );
 
     await this.approveForTokenIfNeeded(

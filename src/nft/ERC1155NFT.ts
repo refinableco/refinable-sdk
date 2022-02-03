@@ -2,6 +2,7 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 import {
+  ContractTypes,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -46,13 +47,15 @@ export class ERC1155NFT extends AbstractNFT {
     await this.isValidRoyaltyContract(royaltyContractAddress);
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
-      this.saleContract.address
+      this.saleContract.address,
+      [ContractTypes.Erc1155Sale]
     );
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       pricePerCopy,
       this.saleContract.address,
+      [ContractTypes.Erc1155Sale],
       amount
     );
 
