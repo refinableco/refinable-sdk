@@ -124,7 +124,7 @@ export class ERC1155NFT extends AbstractNFT {
     );
 
     if (launchpadDetails) {
-      await this.saleContract.setSaleInfo(
+      const saleInfoResponse = await this.saleContract.setSaleInfo(
         // address _token
         this.item.contractAddress,
         // uint256 _tokenId
@@ -136,6 +136,7 @@ export class ERC1155NFT extends AbstractNFT {
         // uint256 public sale date
         getUnixEpochTimeStampFromDate(launchpadDetails.publicStartDate)
       );
+      await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
     }
 
     const result = await this.refinable.apiClient.request<
