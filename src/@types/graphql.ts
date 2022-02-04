@@ -399,7 +399,6 @@ export type FinishMintOutput = {
 export type GetRefinableContractInput = {
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
-  types?: Maybe<Array<ContractTypes>>;
 };
 
 export type GetRefinableContractsInput = {
