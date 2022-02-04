@@ -399,6 +399,7 @@ export type FinishMintOutput = {
 export type GetRefinableContractInput = {
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
+  types?: Maybe<Array<ContractTypes>>;
 };
 
 export type GetRefinableContractsInput = {
@@ -540,6 +541,7 @@ export type ItemEdge = {
 
 export type ItemHistory = {
   __typename?: "ItemHistory";
+  causedBy?: Maybe<User>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   /** @deprecated As we are supporting multiple chains, the frontend will have the correct explorerUri */
   externalTxUrl?: Maybe<Scalars["String"]>;
@@ -868,6 +870,7 @@ export enum NotificationType {
   BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
   ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
   ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
+  NotifyOwnerOnCloseNotification = "NOTIFY_OWNER_ON_CLOSE_NOTIFICATION",
   RemindToCloseAuctionNotification = "REMIND_TO_CLOSE_AUCTION_NOTIFICATION",
 }
 
