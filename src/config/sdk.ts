@@ -39,9 +39,9 @@ export const getContractsTags = (
       ];
     case Environment.Local:
       return [
-        chain === ChainType.BSC
+        chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
           ? ContractTag.SaleV4_0_0
-          : ContractTag.SaleV3_0_1,
+          : ContractTag.SaleV3_1_0,
         chain === ChainType.BSC
           ? ContractTag.AuctionV4_0_0
           : ContractTag.AuctionV3_1_0,

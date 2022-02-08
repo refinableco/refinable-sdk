@@ -261,6 +261,7 @@ export enum ContractTag {
   SaleV2_0_0 = "SALE_v2_0_0",
   SaleV3_0_0 = "SALE_v3_0_0",
   SaleV3_0_1 = "SALE_v3_0_1",
+  SaleV3_1_0 = "SALE_v3_1_0",
   SaleV4_0_0 = "SALE_v4_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
@@ -313,6 +314,7 @@ export type CreateItemOutput = {
 export type CreateOffersInput = {
   contractAddress: Scalars["String"];
   endTime?: Maybe<Scalars["DateTime"]>;
+  launchpadDetails?: Maybe<LaunchpadDetails>;
   offerContractAddress?: Maybe<Scalars["String"]>;
   price?: Maybe<PriceInput>;
   signature?: Maybe<Scalars["String"]>;
@@ -711,6 +713,12 @@ export type ItemsWithOffersResponse = {
   edges?: Maybe<Array<ItemWithOfferEdge>>;
   pageInfo?: Maybe<ItemWithOfferPageInfo>;
   totalCount?: Maybe<Scalars["Float"]>;
+};
+
+export type LaunchpadDetails = {
+  privateStartDate: Scalars["DateTime"];
+  publicStartDate: Scalars["DateTime"];
+  vipStartDate: Scalars["DateTime"];
 };
 
 export type LoginInput = {

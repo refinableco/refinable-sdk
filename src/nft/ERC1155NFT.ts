@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import {
   ContractTypes,
   CreateOfferForEditionsMutation,
@@ -12,6 +12,7 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../Refinable";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 
@@ -97,7 +98,15 @@ export class ERC1155NFT extends AbstractNFT {
     );
   }
 
-  async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
+  async putForSale(
+    price: Price,
+    supply = 1,
+    launchpadDetails?: {
+      vipStartDate: Date;
+      privateStartDate: Date;
+      publicStartDate: Date;
+    }
+  ): Promise<SaleOffer> {
     this.verifyItem();
 
     const addressForApproval = this.transferProxyContract.address;
@@ -114,6 +123,22 @@ export class ERC1155NFT extends AbstractNFT {
       saleParamHash as string
     );
 
+    if (launchpadDetails) {
+      const saleInfoResponse = await this.saleContract.setSaleInfo(
+        // address _token
+        this.item.contractAddress,
+        // uint256 _tokenId
+        this.item.tokenId,
+        // uint256 vip sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.vipStartDate),
+        // uint256 private sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.privateStartDate),
+        // uint256 public sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.publicStartDate)
+      );
+      await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
+    }
+
     const result = await this.refinable.apiClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
@@ -128,6 +153,13 @@ export class ERC1155NFT extends AbstractNFT {
           amount: parseFloat(price.amount.toString()),
         },
         supply,
+        ...(launchpadDetails && {
+          launchpadDetails: {
+            vipStartDate: launchpadDetails.vipStartDate,
+            privateStartDate: launchpadDetails.privateStartDate,
+            publicStartDate: launchpadDetails.publicStartDate,
+          },
+        }),
       },
     });
 
