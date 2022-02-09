@@ -22,10 +22,10 @@ export class SaleOffer extends Offer {
   }
 
   public async buy(params?: BuyParams) {
-
-    let supply = await this.getSupplyOnSale()
+    let supply = await this.getSupplyOnSale();
 
     const amount = params.amount ?? 1;
+
     const result = await this.nft.buy(
       this.signature,
       this.price,
@@ -50,19 +50,16 @@ export class SaleOffer extends Offer {
   }
 
   public async cancelSale() {
-    let selling = await this.getSupplyOnSale()
+    let selling = await this.getSupplyOnSale();
 
-    return this.nft.cancelSale(this.price, this.signature,selling);
+    return this.nft.cancelSale(this.price, this.signature, selling);
   }
-
-
 
   /**
    * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
    */
-   private async getSupplyOnSale() {
-
-    if(this.nft instanceof ERC721NFT) return 1;
+  private async getSupplyOnSale() {
+    if (this.nft instanceof ERC721NFT) return 1;
 
     const saleParamsWithOfferSupply = await this.nft.getSaleParamsHash(
       this.price,

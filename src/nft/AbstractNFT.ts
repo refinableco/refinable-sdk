@@ -664,7 +664,7 @@ export abstract class AbstractNFT {
     }
   }
 
-  protected async approveIfNeeded(
+  public async approveIfNeeded(
     operatorAddress: string
   ): Promise<TransactionResponse | null> {
     const isContractDeployed =

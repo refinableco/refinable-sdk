@@ -22,6 +22,7 @@ import { SaleOffer } from "./offer/SaleOffer";
 import { NftMap, Refinable } from "./Refinable";
 import * as is from "./utils/is";
 export * from "./providers";
+export { NFTBatchBuilder } from "./nft/builder/NFTBatchBuilder";
 
 export {
   SaleOffer,

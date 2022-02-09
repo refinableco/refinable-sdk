@@ -18,24 +18,16 @@ import { optionalParam } from "../../utils/utils";
 import { ERC1155NFT } from "../ERC1155NFT";
 import { ERC721NFT } from "../ERC721NFT";
 import { Stream } from "form-data";
+import { NFTBatchBuilder } from "./NFTBatchBuilder";
+import {
+  IBuilder,
+  NftBuilderParams,
+  NftBuilderParamsWithFileStream,
+} from "./IBuilder";
 
-export interface NftBuilderParams
-  extends Omit<
-    CreateItemInput,
-    "royaltySettings" | "contractAddress" | "file"
-  > {
-  royalty?: IRoyalty;
-  contractAddress?: string;
-  file?: string;
-  nftFile?: Stream;
-}
-
-export interface NftBuilderParamsWithFileStream
-  extends Omit<NftBuilderParams, "file"> {
-  nftFile: Stream;
-}
-
-export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
+export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT>
+  implements IBuilder<NFTClass>
+{
   private signature: string;
   private item: CreateItemMutation["createItem"]["item"];
   public mintTransaction: TransactionResponse;
@@ -174,6 +166,8 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
     const result: TransactionResponse = await nftTokenContract.mint(
       ...mintArgs
     );
+
+    await result.wait(this.refinable.options.waitConfirmations);
 
     this.mintTransaction = result;
 
