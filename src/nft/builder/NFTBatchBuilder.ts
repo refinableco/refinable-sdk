@@ -110,16 +110,12 @@ export class NFTBatchBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
   }
 
   async launchpadWhitelist(types: WHITELIST_TYPE[], addresses: string[][]) {
-    const saleIds = await Promise.all(
-      this.items.map(async (item) => {
-        const saleId = await item.saleContract.getID(
-          this.refinable.accountAddress,
-          item.getItem().contractAddress,
-          item.getItem().tokenId
-        );
-        return saleId;
-      })
+    const saleIds = await this.items[0].saleContract.getIDBatch(
+      this.items.map(() => this.refinable.accountAddress),
+      this.items.map((item) => item.getItem().contractAddress),
+      this.items.map((item) => item.getItem().tokenId)
     );
+
     await this.items[0].saleContract.toggleAddressByBatch(
       saleIds,
       saleIds.map(() => types),
