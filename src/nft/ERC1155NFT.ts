@@ -29,7 +29,6 @@ export class ERC1155NFT extends AbstractNFT {
 
   async isApproved(operatorAddress: string): Promise<boolean> {
     const nftTokenContract = await this.getTokenContract();
-
     return nftTokenContract.isApprovedForAll(
       this.refinable.accountAddress,
       operatorAddress
