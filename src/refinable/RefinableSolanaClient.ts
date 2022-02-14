@@ -1,7 +1,6 @@
-import { Store } from "@metaplex-foundation/mpl-metaplex";
-import { Wallet } from "@metaplex/js";
+import type { Wallet } from "@metaplex/js";
 import type { Connection } from "@solana/web3.js";
-import { solanaChainIds, solanaStorePubKeys } from "../config/solana";
+import { solanaChainIds } from "../config/solana";
 import { PartialNFTItem } from "../nft/AbstractNFT";
 import { SPLNFT } from "../nft/SPLNFT";
 import { Options, RefinableSolanaOptions } from "../types/RefinableOptions";
@@ -12,7 +11,6 @@ import { RefinableBaseClient } from "./RefinableBaseClient";
 export class RefinableSolanaClient extends RefinableBaseClient<RefinableSolanaOptions> {
   public account: SolanaAccount;
   private _connection: Connection;
-  public store: Store;
 
   static async getAddress(provider: any): Promise<string> {
     return provider.publicKey.toBase58();
@@ -34,12 +32,7 @@ export class RefinableSolanaClient extends RefinableBaseClient<RefinableSolanaOp
     return refinable;
   }
 
-  async init() {
-    this.store = await Store.load(
-      this._connection,
-      solanaStorePubKeys[this.options.environment]
-    );
-  }
+  async init() {}
 
   constructor(
     public readonly provider: Wallet,

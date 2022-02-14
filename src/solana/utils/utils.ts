@@ -23,7 +23,7 @@ export function toLamports(
   const amount =
     typeof account === "number" ? account : account.data.amount?.toNumber();
 
-  const precision = Math.pow(10, mint?.decimals || 0);
+  const precision = Math.pow(10, mint?.decimals || 9);
   return Math.floor(amount * precision);
 }
 

@@ -1,21 +1,10 @@
-import { Auction, AuctionExtended } from "@metaplex-foundation/mpl-auction";
 import { Transaction } from "@metaplex-foundation/mpl-core";
-import {
-  AuctionManager,
-  EndAuction,
-  SafetyDepositConfig,
-  WinningConfigType,
-} from "@metaplex-foundation/mpl-metaplex";
-import {
-  Edition,
-  MasterEdition,
-  Metadata,
-  MetadataKey,
-} from "@metaplex-foundation/mpl-token-metadata";
-import { Vault } from "@metaplex-foundation/mpl-token-vault";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { actions as mpActions } from "@metaplex/js";
+import { BN, Program, Provider } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  NATIVE_MINT,
   Token,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
@@ -24,9 +13,9 @@ import {
   PublicKey,
   sendAndConfirmTransaction,
   SystemProgram,
+  SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
-import BN from "bn.js";
 import { AbstractNFT, AuctionOffer, SaleOffer } from "..";
 import {
   CreateOfferForEditionsMutation,
@@ -37,28 +26,31 @@ import {
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { RefinableSolanaClient } from "../refinable/RefinableSolanaClient";
-import { claimUnusedPrizes } from "../solana/actions/claimUnusedPrizes";
 import {
-  createAuctionManager as createAuctionWithManager,
-  SafetyDepositDraft,
-} from "../solana/actions/createAuctionManager";
-import { instantSale } from "../solana/actions/instantSale";
-import {
-  AmountRange,
-  PriceFloor,
-  PriceFloorType,
-  WinnerLimit,
-  WinnerLimitType,
-} from "../solana/oyster";
+  getAuctionHouseKey,
+  getAuctionHouseTradeState,
+  getBuyerEscrow,
+  getPriceWithMantissa,
+  getProgramAsSigner,
+  getRemainingAccounts,
+} from "../solana/ah";
+import { AuctionHouse, IDL } from "../solana/idl/auction_house";
+import { sendTransactionWithRetry } from "../solana/oyster";
 import { toPublicKey } from "../solana/utils";
 import SolanaTransaction from "../transaction/SolanaTransaction";
 import { getConnectionByChainId } from "../utils/connection";
-import { getOrCreateAssociatedAccountInfo, toLamports } from "../utils/sol";
+import { getOrCreateAssociatedAccountInfo } from "../utils/sol";
 import { PartialNFTItem } from "./AbstractNFT";
-import { sendTransactions, SequenceType } from "./solana/connection";
+
+const AUCTION_HOUSE_PROGRAM_ID = new PublicKey(
+  "hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk"
+);
+const treasuryMint = NATIVE_MINT;
+const authority = new PublicKey("64VQMnW5g8XeMTCxZxF8APSas2Vzpcg8QaPCa1upUXhJ");
 
 export class SPLNFT extends AbstractNFT {
   private connection: Connection;
+  private auctionHouseClient: Program<AuctionHouse>;
 
   constructor(
     protected readonly refinable: RefinableSolanaClient,
@@ -67,14 +59,30 @@ export class SPLNFT extends AbstractNFT {
     super(TokenType.Spl, refinable, item);
 
     this.connection = getConnectionByChainId(item.chainId);
+    this.auctionHouseClient = new Program<AuctionHouse>(
+      IDL,
+      AUCTION_HOUSE_PROGRAM_ID,
+      new Provider(
+        this.connection,
+        this.refinable.provider,
+        Provider.defaultOptions()
+      )
+    );
   }
 
   getSaleContractAddress() {
     return "does not exist";
   }
 
-  getBuyServiceFee() {
-    return 0;
+  async getBuyServiceFee() {
+    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+
+    const auctionHouseObj =
+      await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
+
+    if (!auctionHouseObj.sellerFeeBasisPoints) return 0;
+
+    return auctionHouseObj.sellerFeeBasisPoints / 100;
   }
 
   private getOrCreateTokenAccountAddress(
@@ -147,234 +155,310 @@ export class SPLNFT extends AbstractNFT {
     return new SolanaTransaction(txId, this.connection);
   }
 
-  async buy({ blockchainId }: { blockchainId: string }): Promise<SolanaTransaction> {
-    const vaultPubKey = new PublicKey(blockchainId);
+  async buy({
+    blockchainId,
+    price,
+    ownerEthAddress,
+  }: {
+    blockchainId: string;
+    price: Price;
+    ownerEthAddress: string;
+  }): Promise<SolanaTransaction> {
+    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
 
-    const auctionPDA = await Auction.getPDA(vaultPubKey);
+    const auctionHouseObj =
+      await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
-    const { lastTxId } = await instantSale({
-      connection: this.connection,
-      wallet: this.refinable.provider,
-      store: this.refinable.store.pubkey,
-      auction: auctionPDA,
-    });
+    const isNative = auctionHouseObj.treasuryMint.equals(NATIVE_MINT);
 
-    return new SolanaTransaction(lastTxId, this.connection);
+    const buyerPrice = new BN(
+      await getPriceWithMantissa(
+        price.amount,
+        auctionHouseObj.treasuryMint,
+        this.refinable.provider,
+        this.refinable.connection
+      )
+    );
+    const tokenSize = new BN(1);
+
+    const buyerTokenAccount = await Token.getAssociatedTokenAddress(
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+      TOKEN_PROGRAM_ID,
+      toPublicKey(this.item.tokenId),
+      toPublicKey(this.refinable.accountAddress)
+    );
+
+    const metadata = await Metadata.getPDA(toPublicKey(this.item.tokenId));
+
+    const sellerTokenAccount = await Token.getAssociatedTokenAddress(
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+      TOKEN_PROGRAM_ID,
+      toPublicKey(this.item.tokenId),
+      toPublicKey(ownerEthAddress)
+    );
+
+    const [programAsSigner, programAsSignerBump] = await getProgramAsSigner();
+
+    const [buyerEscrow, buyerEscrowBump] = await getBuyerEscrow(
+      auctionHouse,
+      this.refinable.accountAddress
+    );
+
+    const [buyerTradeState, buyerTradeStateBump] =
+      await getAuctionHouseTradeState(
+        auctionHouse,
+        toPublicKey(this.refinable.accountAddress),
+        sellerTokenAccount,
+        treasuryMint,
+        toPublicKey(this.item.tokenId),
+        tokenSize,
+        buyerPrice
+      );
+
+    const buyInstruction = await this.auctionHouseClient.instruction.buy(
+      buyerTradeStateBump,
+      buyerEscrowBump,
+      buyerPrice,
+      tokenSize,
+      {
+        accounts: {
+          wallet: toPublicKey(this.refinable.accountAddress),
+          paymentAccount: toPublicKey(this.refinable.accountAddress),
+          // Isnative check
+          transferAuthority: SystemProgram.programId,
+          treasuryMint,
+          tokenAccount: sellerTokenAccount,
+          metadata,
+          escrowPaymentAccount: buyerEscrow,
+          authority,
+          auctionHouse,
+          auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
+          buyerTradeState,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+      }
+    );
+
+    // Execute trade.
+    const zero = new BN(0);
+    const [sellerTradeState] = await getAuctionHouseTradeState(
+      auctionHouse,
+      toPublicKey(ownerEthAddress),
+      sellerTokenAccount,
+      treasuryMint,
+      toPublicKey(this.item.tokenId),
+      tokenSize,
+      buyerPrice
+    );
+
+    const [freeSellerTradeState, freeSellerTradeStateBump] =
+      await getAuctionHouseTradeState(
+        auctionHouse,
+        toPublicKey(ownerEthAddress),
+        sellerTokenAccount,
+        treasuryMint,
+        toPublicKey(this.item.tokenId),
+        tokenSize,
+        zero
+      );
+
+    const remainingAccounts = await getRemainingAccounts(
+      this.refinable.connection,
+      metadata,
+      isNative,
+      auctionHouseObj.treasuryMint
+    );
+
+    const executeSaleInstruction =
+      await this.auctionHouseClient.instruction.executeSale(
+        buyerEscrowBump,
+        freeSellerTradeStateBump,
+        programAsSignerBump,
+        buyerPrice,
+        tokenSize,
+        {
+          accounts: {
+            buyer: toPublicKey(this.refinable.accountAddress),
+            seller: toPublicKey(ownerEthAddress),
+            tokenAccount: sellerTokenAccount,
+            tokenMint: toPublicKey(this.item.tokenId),
+            metadata,
+            treasuryMint: auctionHouseObj.treasuryMint,
+            escrowPaymentAccount: buyerEscrow,
+            // TODO: Support other tokens
+            sellerPaymentReceiptAccount: toPublicKey(ownerEthAddress),
+            buyerReceiptTokenAccount: buyerTokenAccount,
+            authority: auctionHouseObj.authority,
+            auctionHouse,
+            auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
+            auctionHouseTreasury: auctionHouseObj.auctionHouseTreasury,
+            buyerTradeState,
+            sellerTradeState,
+            freeTradeState: freeSellerTradeState,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            ataProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            programAsSigner,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          remainingAccounts,
+        }
+      );
+
+    buyInstruction.keys
+      .filter((k) =>
+        k.pubkey.equals(toPublicKey(this.refinable.accountAddress))
+      )
+      .map((k) => (k.isSigner = true));
+
+    executeSaleInstruction.keys
+      .filter((k) =>
+        k.pubkey.equals(toPublicKey(this.refinable.accountAddress))
+      )
+      .map((k) => (k.isSigner = true));
+
+    const tx = await sendTransactionWithRetry(
+      this.refinable.connection,
+      this.refinable.provider,
+      [buyInstruction, executeSaleInstruction],
+      [],
+      "max"
+    );
+
+    return new SolanaTransaction(tx.txid, this.connection);
   }
 
   async cancelSale({
     blockchainId,
+    price,
+    selling,
   }: {
     blockchainId: string;
+    price: Price;
+    selling: number;
   }): Promise<SolanaTransaction> {
-    const vaultPubKey = new PublicKey(blockchainId);
+    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+    const auctionHouseObj =
+      await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
-    const auctionPDA = await Auction.getPDA(vaultPubKey);
-    const auctionExtendedPDA = await AuctionExtended.getPDA(vaultPubKey);
-    const auctionManagerPDA = await AuctionManager.getPDA(auctionPDA);
-
-    // get data for transactions
-    const auctionManager = await AuctionManager.load(
-      this.connection,
-      auctionManagerPDA
+    const buyerPrice = new BN(
+      await getPriceWithMantissa(
+        price.amount,
+        auctionHouseObj.treasuryMint,
+        this.refinable.provider,
+        this.refinable.connection
+      )
     );
-    const vault = await Vault.load(this.connection, blockchainId);
-    const auctionExtended = await AuctionExtended.load(
-      this.connection,
-      auctionExtendedPDA
-    );
-    const auction = await Auction.load(this.connection, auctionPDA);
-    const [safetyDepositBox] = await vault.getSafetyDepositBoxes(
-      this.connection
-    );
-    const safetyDepositConfigPDA = await SafetyDepositConfig.getPDA(
-      auctionManagerPDA,
-      safetyDepositBox.pubkey
-    );
-    const {
-      data: { winningConfigType, participationConfig },
-    } = await SafetyDepositConfig.load(this.connection, safetyDepositConfigPDA);
+    const tokenSize = new BN(selling);
 
-    ////
-
-    // 1. End Auction
-    const endAuctionTx = new EndAuction(
-      { feePayer: this.refinable.provider.publicKey },
-      {
-        store: this.refinable.store.pubkey,
-        auction: auctionPDA,
-        auctionManager: auctionManagerPDA,
-        auctionExtended: auctionExtendedPDA,
-        auctionManagerAuthority: toPublicKey(auctionManager.data.authority),
-      }
-    );
-
-    const claimInstructions = [];
-    const claimSigners = [];
-
-    // 2. Claim unused items
-    await claimUnusedPrizes(
-      this.connection,
-      this.refinable.store.pubkey.toBase58(),
-      this.refinable.provider,
-      {
-        auction,
-        vault,
-        auctionExt: auctionExtended,
-        auctionManager: auctionManager,
-        participationConfig,
-        safetyDeposit: safetyDepositBox,
-      },
-      {} as any,
-      claimSigners,
-      claimInstructions
-    );
-
-    const instructions = [endAuctionTx.instructions, ...claimInstructions];
-    const signers = [[], ...claimSigners];
-
-    const { lastTxId } = await sendTransactions(
-      this.connection,
-      this.refinable.provider,
-      instructions,
-      signers,
-      SequenceType.StopOnFailure
-    );
-
-    return new SolanaTransaction(lastTxId, this.connection);
-  }
-  private async getEditionInfo(metadata: Metadata, connection: Connection) {
-    try {
-      const edition = await Metadata.getEdition(connection, metadata.data.mint);
-
-      if (edition) {
-        if (
-          edition.data.key === MetadataKey.MasterEditionV1 ||
-          edition.data.key === MetadataKey.MasterEditionV2
-        ) {
-          return {
-            masterEdition: edition as MasterEdition,
-            edition: undefined,
-          };
-        }
-
-        // This is an Edition NFT. Pull the Parent (MasterEdition)
-        const masterEdition = await MasterEdition.load(
-          connection,
-          (edition as any).data.parent
-        );
-        if (masterEdition) {
-          return {
-            masterEdition,
-            edition: edition as Edition,
-          };
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-
-    return {
-      masterEdition: undefined,
-      edition: undefined,
-    };
-  }
-
-  private async getSafetyDepositDraft(
-    mint: string
-  ): Promise<SafetyDepositDraft> {
-    const tokenAccount = await Token.getAssociatedTokenAddress(
+    const sellerTokenAccount = await Token.getAssociatedTokenAddress(
       ASSOCIATED_TOKEN_PROGRAM_ID,
       TOKEN_PROGRAM_ID,
-      new PublicKey(mint),
-      this.refinable.provider.publicKey
+      toPublicKey(this.item.tokenId),
+      toPublicKey(this.refinable.accountAddress)
     );
 
-    const metadataAccount = await Metadata.getPDA(new PublicKey(mint));
-
-    const metadata = await Metadata.load(this.connection, metadataAccount);
-
-    const { masterEdition, edition } = await this.getEditionInfo(
-      metadata,
-      this.connection
-    );
-
-    let winningConfigType: WinningConfigType;
-    if (masterEdition?.data.key == MetadataKey.MasterEditionV1) {
-      winningConfigType = WinningConfigType.PrintingV1;
-    } else if (masterEdition?.data.key == MetadataKey.MasterEditionV2) {
-      if (masterEdition.data.maxSupply) {
-        winningConfigType = WinningConfigType.PrintingV2;
-      } else {
-        winningConfigType = WinningConfigType.Participation;
-      }
-    } else {
-      winningConfigType =
-        metadata.data.updateAuthority ===
-        (
-          this.refinable.provider.publicKey || SystemProgram.programId
-        ).toBase58()
-          ? WinningConfigType.FullRightsTransfer
-          : WinningConfigType.TokenOnlyTransfer;
-    }
-
-    if (tokenAccount) {
-      return {
-        holding: tokenAccount.toBase58(),
-        edition,
-        masterEdition,
-        metadata: {
-          account: metadata.info,
-          info: metadata.data as any,
-          pubkey: metadata.pubkey.toBase58(),
+    const txSig = await this.auctionHouseClient.rpc.cancel(
+      buyerPrice,
+      tokenSize,
+      {
+        accounts: {
+          wallet: new PublicKey(this.refinable.accountAddress),
+          tokenAccount: sellerTokenAccount,
+          tokenMint: toPublicKey(this.item.tokenId),
+          authority,
+          auctionHouse,
+          auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
+          tradeState: blockchainId,
+          tokenProgram: TOKEN_PROGRAM_ID,
         },
-        winningConfigType: WinningConfigType.FullRightsTransfer,
-        amountRanges: [
-          new AmountRange({
-            amount: new BN(1),
-            length: new BN(1),
-          }),
-        ],
-        participationConfig: null,
-      };
-    }
+      }
+    );
+
+    return new SolanaTransaction(txSig, this.connection);
   }
 
   async putForSale(price: Price): Promise<SaleOffer> {
+    console.log(price);
+
     const amount = 1;
-    const pt = this.getCurrency(price.currency);
-    const paymentMint = pt.address;
 
-    const winnerLimit = new WinnerLimit({
-      type: WinnerLimitType.Capped,
-      usize: new BN(1),
-    });
+    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+    const auctionHouseObj =
+      await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
-    const splPrice = new BN(toLamports(price.amount, pt).toString() ?? 0);
+    console.log(price.amount);
 
-    const sdb = await this.getSafetyDepositDraft(this._item.tokenId);
+    const buyerPrice = new BN(
+      await getPriceWithMantissa(
+        price.amount,
+        auctionHouseObj.treasuryMint,
+        this.refinable.provider,
+        this.refinable.connection
+      )
+    );
 
-    const createAuctionResult = await createAuctionWithManager(
-      this.connection,
-      this.refinable.provider,
-      this.refinable.store.pubkey.toBase58(),
+    console.log(buyerPrice.toNumber());
+
+    const sellerTokenAccount = await Token.getAssociatedTokenAddress(
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+      TOKEN_PROGRAM_ID,
+      toPublicKey(this.item.tokenId),
+      toPublicKey(this.refinable.accountAddress)
+    );
+
+    const tokenSize = new BN(amount);
+    const zero = new BN(0);
+
+    const [sellerTradeState, sellerTradeStateBump] =
+      await getAuctionHouseTradeState(
+        auctionHouse,
+        toPublicKey(this.refinable.accountAddress),
+        sellerTokenAccount,
+        treasuryMint,
+        toPublicKey(this.item.tokenId),
+        tokenSize,
+        buyerPrice
+      );
+    const [freeSellerTradeState, freeSellerTradeStateBump] =
+      await getAuctionHouseTradeState(
+        auctionHouse,
+        toPublicKey(this.refinable.accountAddress),
+        sellerTokenAccount,
+        treasuryMint,
+        toPublicKey(this.item.tokenId),
+        tokenSize,
+        zero
+      );
+
+    const [programAsSigner, programAsSignerBump] = await getProgramAsSigner();
+
+    const txSig = await this.auctionHouseClient.rpc.sell(
+      sellerTradeStateBump,
+      freeSellerTradeStateBump,
+      programAsSignerBump,
+      buyerPrice,
+      tokenSize,
       {
-        winners: winnerLimit,
-        endAuctionAt: null, // instant sale
-        auctionGap: null, // instant sale
-        priceFloor: new PriceFloor({
-          type: PriceFloorType.Minimum,
-          minPrice: splPrice,
-        }),
-        tokenMint: paymentMint,
-        gapTickSizePercentage: null,
-        tickSize: null,
-        instantSalePrice: splPrice,
-        name: null,
-      },
-      [sdb],
-      null,
-      paymentMint
+        accounts: {
+          wallet: new PublicKey(this.refinable.accountAddress),
+          tokenAccount: sellerTokenAccount,
+          metadata: (
+            await Metadata.getPDA(toPublicKey(this.item.tokenId))
+          ).toBase58(),
+          authority,
+          auctionHouse,
+          auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
+          sellerTradeState,
+          freeSellerTradeState,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          programAsSigner,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+      }
     );
 
     const result = await this.refinable.apiClient.request<
@@ -382,9 +466,9 @@ export class SPLNFT extends AbstractNFT {
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {
       input: {
-        transactionHash: createAuctionResult.lastTxId,
+        transactionHash: txSig,
         tokenId: this.item.tokenId,
-        blockchainId: createAuctionResult.vault,
+        blockchainId: sellerTradeState.toBase58(),
         type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
@@ -395,11 +479,8 @@ export class SPLNFT extends AbstractNFT {
       },
     });
 
-    if (createAuctionResult.lastTxId) {
-      await this.connection.confirmTransaction(
-        createAuctionResult.lastTxId,
-        "finalized"
-      );
+    if (txSig) {
+      await this.connection.confirmTransaction(txSig, "finalized");
     }
 
     return this.refinable.createOffer<OfferType.Sale>(
