@@ -675,7 +675,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
   }
 
-  protected async approveIfNeeded(
+  public async approveIfNeeded(
     operatorAddress: string
   ): Promise<Transaction | null> {
     const isContractDeployed =

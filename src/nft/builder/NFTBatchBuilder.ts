@@ -1,4 +1,4 @@
-import { AbstractNFT, Refinable, SaleOffer } from "../..";
+import { OfferType, RefinableEvmClient, SaleOffer } from "../..";
 import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
@@ -6,17 +6,17 @@ import {
 } from "../../@types/graphql";
 import { CREATE_OFFER } from "../../graphql/sale";
 import { getUnixEpochTimeStampFromDate } from "../../utils/time";
-import { OfferType } from "../..";
+import { AbstractEvmNFT } from "../AbstractEvmNFT";
 
 export enum WHITELIST_TYPE {
   VIP = 0,
   PRIVATE = 1,
 }
 
-export class NFTBatchBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
+export class NFTBatchBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
   constructor(
     private readonly items: NFTClass[],
-    private readonly refinable: Refinable
+    private readonly refinable: RefinableEvmClient
   ) {
     if (this.items.length === 0) {
       throw new Error("No items were passed");

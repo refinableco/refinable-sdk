@@ -5,7 +5,8 @@
       "es2015.promise",
       "dom",
       "es2015",
-      "es2019"
+      "es2019",
+      "es2020"
     ],
     "target": "es5",
     "module": "CommonJS",
