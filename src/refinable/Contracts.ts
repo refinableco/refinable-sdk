@@ -80,7 +80,11 @@ export class Contracts {
     return refinableContracts;
   }
 
-  async getRefinableContract(chainId: Chain, contractAddress: string) {
+  async getRefinableContract(
+    chainId: Chain,
+    contractAddress: string,
+    types: ContractTypes[]
+  ) {
     const hasContract = this.getCachedContract(chainId, contractAddress);
 
     if (hasContract) return hasContract;
@@ -89,7 +93,7 @@ export class Contracts {
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
-      input: { contractAddress, chainId: chainId },
+      input: { contractAddress, chainId, types },
     });
 
     return this.cacheContract(refinableContract);

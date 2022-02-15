@@ -224,10 +224,22 @@ export enum ContentType {
   VerifiedContent = "VERIFIED_CONTENT",
 }
 
+export type Contract = {
+  __typename?: "Contract";
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  contractId?: Maybe<Scalars["String"]>;
+};
+
 export type ContractCount = {
   __typename?: "ContractCount";
   minted: Scalars["Int"];
   transfered: Scalars["Int"];
+};
+
+export type ContractInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
 };
 
 export type ContractOutput = {
@@ -252,6 +264,7 @@ export enum ContractTag {
   SaleV2_0_0 = "SALE_v2_0_0",
   SaleV3_0_0 = "SALE_v3_0_0",
   SaleV3_0_1 = "SALE_v3_0_1",
+  SaleV3_1_0 = "SALE_v3_1_0",
   SaleV4_0_0 = "SALE_v4_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
@@ -304,11 +317,12 @@ export type CreateItemOutput = {
 export type CreateOffersInput = {
   blockchainId?: InputMaybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
-  endTime?: InputMaybe<Scalars["DateTime"]>;
-  offerContractAddress?: InputMaybe<Scalars["String"]>;
-  price?: InputMaybe<PriceInput>;
-  signature?: InputMaybe<Scalars["String"]>;
-  startTime?: InputMaybe<Scalars["DateTime"]>;
+  endTime?: Maybe<Scalars["DateTime"]>;
+  launchpadDetails?: Maybe<LaunchpadDetails>;
+  offerContractAddress?: Maybe<Scalars["String"]>;
+  price?: Maybe<PriceInput>;
+  signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
   supply: Scalars["Float"];
   tokenId: Scalars["String"];
   transactionHash?: InputMaybe<Scalars["String"]>;
@@ -323,8 +337,7 @@ export type CreatePurchaseInput = {
 
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contracts: Array<ContractInput>;
   customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
@@ -392,6 +405,7 @@ export type FinishMintOutput = {
 export type GetRefinableContractInput = {
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
+  types?: Maybe<Array<ContractTypes>>;
 };
 
 export type GetRefinableContractsInput = {
@@ -533,6 +547,7 @@ export type ItemEdge = {
 
 export type ItemHistory = {
   __typename?: "ItemHistory";
+  causedBy?: Maybe<User>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   /** @deprecated As we are supporting multiple chains, the frontend will have the correct explorerUri */
   externalTxUrl?: Maybe<Scalars["String"]>;
@@ -703,6 +718,12 @@ export type ItemsWithOffersResponse = {
   totalCount?: Maybe<Scalars["Float"]>;
 };
 
+export type LaunchpadDetails = {
+  privateStartDate: Scalars["DateTime"];
+  publicStartDate: Scalars["DateTime"];
+  vipStartDate: Scalars["DateTime"];
+};
+
 export type LoginInput = {
   chainId?: InputMaybe<Scalars["Float"]>;
   ethAddress: Scalars["String"];
@@ -733,6 +754,7 @@ export type Mutation = {
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
+  refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
@@ -790,6 +812,10 @@ export type MutationLoginArgs = {
 
 export type MutationPlaceAuctionBidArgs = {
   input: AuctionPlaceBidInput;
+};
+
+export type MutationRefreshMetadataArgs = {
+  input: RefreshMetadataInput;
 };
 
 export type MutationReportItemArgs = {
@@ -856,6 +882,7 @@ export enum NotificationType {
   BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
   ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
   ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
+  NotifyOwnerOnCloseNotification = "NOTIFY_OWNER_ON_CLOSE_NOTIFICATION",
   RemindToCloseAuctionNotification = "REMIND_TO_CLOSE_AUCTION_NOTIFICATION",
 }
 
@@ -977,7 +1004,9 @@ export type QueryAuctionArgs = {
 };
 
 export type QueryCollectionArgs = {
-  slug: Scalars["String"];
+  chainId?: Maybe<Scalars["Int"]>;
+  contractAddress?: Maybe<Scalars["String"]>;
+  slug?: Maybe<Scalars["String"]>;
 };
 
 export type QueryCollectionMetadataValuesArgs = {
@@ -1056,7 +1085,8 @@ export type QuerySearchArgs = {
 };
 
 export type QueryStoreArgs = {
-  domain: Scalars["String"];
+  domain?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
   isExternal?: Maybe<Scalars["Boolean"]>;
 };
 
@@ -1066,6 +1096,17 @@ export type QueryTopUsersArgs = {
 
 export type QueryUserArgs = {
   ethAddress: Scalars["String"];
+};
+
+export type QueryVerificationTokenArgs = {
+  data: VerificationTokenInput;
+};
+
+export type RefreshMetadataInput = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+  tokenId: Scalars["String"];
+  type: Scalars["String"];
 };
 
 export type RoyaltiesInput = {
@@ -1119,8 +1160,7 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contracts: Array<Contract>;
   creator: Scalars["String"];
   customLinks?: Maybe<Array<CustomLink>>;
   description: Scalars["String"];
@@ -1130,7 +1170,9 @@ export type Store = {
   externalCustomLink?: Maybe<Scalars["String"]>;
   favicon: Scalars["String"];
   fontFamily?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
+  items: ItemsWithOffersResponse;
   logo: Scalars["String"];
   logoHeight?: Maybe<Scalars["Float"]>;
   name: Scalars["String"];
@@ -1141,6 +1183,12 @@ export type Store = {
   telegram?: Maybe<Scalars["String"]>;
   twitter?: Maybe<Scalars["String"]>;
   website?: Maybe<Scalars["String"]>;
+};
+
+export type StoreItemsArgs = {
+  filter?: Maybe<CollectionMetadataFilterInput>;
+  paging: PagingInput;
+  sort?: Maybe<SortInput>;
 };
 
 export type Subscription = {
@@ -1272,8 +1320,7 @@ export type UpdateStore = {
 
 export type UpdateStoreInput = {
   backgroundColor: Scalars["String"];
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contracts: Array<ContractInput>;
   customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
@@ -2019,6 +2066,15 @@ export type GetUserItemsQuery = {
       }
     | null
     | undefined;
+};
+
+export type RefreshMetadataMutationVariables = Exact<{
+  input: RefreshMetadataInput;
+}>;
+
+export type RefreshMetadataMutation = {
+  __typename?: "Mutation";
+  refreshMetadata: boolean;
 };
 
 export type UploadFileMutationVariables = Exact<{

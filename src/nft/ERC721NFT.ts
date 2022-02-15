@@ -1,5 +1,6 @@
-import { ethers } from "ethers";
+import { constants } from "ethers";
 import {
+  ContractTypes,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -10,6 +11,7 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
@@ -56,17 +58,18 @@ export class ERC721NFT extends AbstractEvmNFT {
       params;
 
     this.verifyItem();
-
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
-      this.saleContract.address
+      this.saleContract.address,
+      [ContractTypes.Erc721Sale]
     );
     await this.isValidRoyaltyContract(royaltyContractAddress);
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       price,
-      this.saleContract.address
+      this.saleContract.address,
+      [ContractTypes.Erc721Sale]
     );
 
     await this.approveForTokenIfNeeded(
@@ -87,7 +90,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       // address _royaltyToken,
       ...optionalParam(
         !isDiamondContract,
-        royaltyContractAddress ?? ethers.constants.AddressZero
+        royaltyContractAddress ?? constants.AddressZero
       ),
       // uint256 _tokenId
       this.item.tokenId,
@@ -106,7 +109,15 @@ export class ERC721NFT extends AbstractEvmNFT {
     return new EvmTransaction(buyTx);
   }
 
-  async putForSale(price: Price): Promise<SaleOffer> {
+  async putForSale(
+    price: Price,
+    supply: number = 1,
+    launchpadDetails?: {
+      vipStartDate: Date;
+      privateStartDate: Date;
+      publicStartDate: Date;
+    }
+  ): Promise<SaleOffer> {
     this.verifyItem();
     const addressForApproval = this.transferProxyContract.address;
 
@@ -120,6 +131,22 @@ export class ERC721NFT extends AbstractEvmNFT {
     const signedHash = await this.refinable.personalSign(
       saleParamsHash as string
     );
+
+    if (launchpadDetails) {
+      const saleInfoResponse = await this.saleContract.setSaleInfo(
+        // address _token
+        this.item.contractAddress,
+        // uint256 _tokenId
+        this.item.tokenId,
+        // uint256 vip sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.vipStartDate),
+        // uint256 private sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.privateStartDate),
+        // uint256 public sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.publicStartDate)
+      );
+      await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
+    }
 
     const result = await this.refinable.apiClient.request<
       CreateOfferForEditionsMutation,
@@ -135,6 +162,13 @@ export class ERC721NFT extends AbstractEvmNFT {
           amount: parseFloat(price.amount.toString()),
         },
         supply: 1,
+        ...(launchpadDetails && {
+          launchpadDetails: {
+            vipStartDate: launchpadDetails.vipStartDate,
+            privateStartDate: launchpadDetails.privateStartDate,
+            publicStartDate: launchpadDetails.publicStartDate,
+          },
+        }),
       },
     });
 

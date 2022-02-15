@@ -1,15 +1,17 @@
 import { ethers } from "ethers";
 import {
+  ContractTypes,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
   Price,
-  TokenType,
+  TokenType
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
+import { getUnixEpochTimeStampFromDate } from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
@@ -32,7 +34,6 @@ export class ERC1155NFT extends AbstractEvmNFT {
 
   async isApproved(operatorAddress: string): Promise<boolean> {
     const nftTokenContract = await this.getTokenContract();
-
     return nftTokenContract.isApprovedForAll(
       this.refinable.accountAddress,
       operatorAddress
@@ -60,13 +61,15 @@ export class ERC1155NFT extends AbstractEvmNFT {
     await this.isValidRoyaltyContract(royaltyContractAddress);
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
-      this.saleContract.address
+      this.saleContract.address,
+      [ContractTypes.Erc1155Sale]
     );
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       pricePerCopy,
       this.saleContract.address,
+      [ContractTypes.Erc1155Sale],
       amount
     );
 
@@ -111,7 +114,15 @@ export class ERC1155NFT extends AbstractEvmNFT {
     return new EvmTransaction(buyTx);
   }
 
-  async putForSale(price: Price, supply = 1): Promise<SaleOffer> {
+  async putForSale(
+    price: Price,
+    supply = 1,
+    launchpadDetails?: {
+      vipStartDate: Date;
+      privateStartDate: Date;
+      publicStartDate: Date;
+    }
+  ): Promise<SaleOffer> {
     this.verifyItem();
 
     const addressForApproval = this.transferProxyContract.address;
@@ -128,6 +139,22 @@ export class ERC1155NFT extends AbstractEvmNFT {
       saleParamHash as string
     );
 
+    if (launchpadDetails) {
+      const saleInfoResponse = await this.saleContract.setSaleInfo(
+        // address _token
+        this.item.contractAddress,
+        // uint256 _tokenId
+        this.item.tokenId,
+        // uint256 vip sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.vipStartDate),
+        // uint256 private sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.privateStartDate),
+        // uint256 public sale date
+        getUnixEpochTimeStampFromDate(launchpadDetails.publicStartDate)
+      );
+      await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
+    }
+
     const result = await this.refinable.apiClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
@@ -142,6 +169,13 @@ export class ERC1155NFT extends AbstractEvmNFT {
           amount: parseFloat(price.amount.toString()),
         },
         supply,
+        ...(launchpadDetails && {
+          launchpadDetails: {
+            vipStartDate: launchpadDetails.vipStartDate,
+            privateStartDate: launchpadDetails.privateStartDate,
+            publicStartDate: launchpadDetails.publicStartDate,
+          },
+        }),
       },
     });
 

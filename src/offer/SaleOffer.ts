@@ -8,7 +8,7 @@ import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { Transaction } from "../transaction/Transaction";
-import { isERC1155 } from "../utils/is";
+import { isERC1155Item } from "../utils/is";
 import { Offer, PartialOffer } from "./Offer";
 
 interface BuyParams {
@@ -70,7 +70,7 @@ export class SaleOffer extends Offer {
    * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
    */
   private async getSupplyOnSale() {
-    if (isERC1155(this.nft)) {
+    if (isERC1155Item(this.nft)) {
       const saleParamsWithOfferSupply = await this.nft.getSaleParamsHash(
         this.price,
         this.user?.ethAddress,

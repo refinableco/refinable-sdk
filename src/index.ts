@@ -26,6 +26,7 @@ import * as is from "./utils/is";
 import { ClientType, Refinable } from "./refinable/Refinable";
 import { EvmTokenType } from "./nft/AbstractEvmNFT";
 export * from "./providers";
+export { NFTBatchBuilder } from "./nft/builder/NFTBatchBuilder";
 
 export {
   SaleOffer,

@@ -1,12 +1,5 @@
 import { TransactionResponse } from "@ethersproject/providers";
-import { Stream } from "form-data";
-import {
-  AbstractNFT,
-  CreateItemInput,
-  IRoyalty,
-  RefinableEvmClient,
-  TokenType,
-} from "../..";
+import { AbstractNFT, RefinableEvmClient, TokenType } from "../..";
 import {
   CreateItemMutation,
   CreateItemMutationVariables,
@@ -14,29 +7,20 @@ import {
   FinishMintMutationVariables,
 } from "../../@types/graphql";
 import { CREATE_ITEM, FINISH_MINT } from "../../graphql/mint";
-import { isERC1155 } from "../../utils/is";
+import { isERC1155Item } from "../../utils/is";
 import { optionalParam } from "../../utils/utils";
 import { AbstractEvmNFT } from "../AbstractEvmNFT";
 import { ERC1155NFT } from "../ERC1155NFT";
 import { ERC721NFT } from "../ERC721NFT";
+import {
+  IBuilder,
+  NftBuilderParams,
+  NftBuilderParamsWithFileStream,
+} from "./IBuilder";
 
-export interface NftBuilderParams
-  extends Omit<
-    CreateItemInput,
-    "royaltySettings" | "contractAddress" | "file"
-  > {
-  royalty?: IRoyalty;
-  contractAddress?: string;
-  file?: string;
-  nftFile?: Stream;
-}
-
-export interface NftBuilderParamsWithFileStream
-  extends Omit<NftBuilderParams, "file"> {
-  nftFile: Stream;
-}
-
-export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
+export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
+  implements IBuilder<NFTClass>
+{
   private signature: string;
   private item: CreateItemMutation["createItem"]["item"];
   public mintTransaction: TransactionResponse;
@@ -159,7 +143,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
       // RoyaltyLibrary.RoyaltyShareDetails[] memory _royaltyShares
       this.royaltySettings?.shares,
       // uint256 _supply - Only for ERC1155
-      ...optionalParam(isERC1155(this.item), this.item.supply.toString()),
+      ...optionalParam(isERC1155Item(this.item), this.item.supply.toString()),
       // string memory _uri,
       this.item.properties.ipfsDocument,
     ];
@@ -187,6 +171,8 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
     const result: TransactionResponse = await nftTokenContract.mint(
       ...mintArgs
     );
+
+    await result.wait(this.refinable.options.waitConfirmations);
 
     this.mintTransaction = result;
 

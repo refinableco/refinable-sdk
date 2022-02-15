@@ -9,5 +9,5 @@ export const isAuctionOffer = (offer: Offer): offer is AuctionOffer =>
 export const isSaleOffer = (offer: Offer): offer is SaleOffer =>
   offer.type === OfferType.Sale;
 
-export const isERC1155 = (item: { type: TokenType }): item is ERC1155NFT =>
+export const isERC1155Item = (item: { type: TokenType }): item is ERC1155NFT =>
   item.type === TokenType.Erc1155;

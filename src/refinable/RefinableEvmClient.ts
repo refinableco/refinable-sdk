@@ -1,9 +1,10 @@
 import type { Signer } from "ethers";
 import utils from "ethers/lib/utils";
 import { GraphQLClient } from "graphql-request";
+import { NFTBuilder } from "..";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
 import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
-import { NFTBuilder, NftBuilderParams } from "../nft/builder/NFTBuilder";
+import { NftBuilderParams } from "../nft/builder/IBuilder";
 import { Options, RefinableEvmOptions } from "../types/RefinableOptions";
 import EvmAccount from "./account/EvmAccount";
 import { Contracts } from "./Contracts";
