@@ -105,8 +105,8 @@ export abstract class AbstractNFT {
     if (this.nftTokenContract) return this.nftTokenContract;
     const isERC1155 = this.type === TokenType.Erc1155;
     const type = isERC1155
-      ? [ContractTypes.Erc1155Token]
-      : [ContractTypes.Erc721Token];
+      ? [ContractTypes.Erc1155Token, ContractTypes.Erc1155WhitelistedToken]
+      : [ContractTypes.Erc721Token, ContractTypes.Erc721WhitelistedToken];
     const nftTokenContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
