@@ -8,11 +8,9 @@ import {
   CreateOfferForEditionsMutation,
   OfferType,
   Price,
-  RefreshMetadataMutation,
-  TokenType,
+  TokenType
 } from "../@types/graphql";
 import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
-import { REFRESH_METADATA } from "../graphql/items";
 import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
 import { AuctionOffer } from "../offer/AuctionOffer";
@@ -503,25 +501,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
 
     return new EvmTransaction(cancelTx);
-  }
-
-  async refreshMetadata() {
-    this.verifyItem();
-
-    const response =
-      await this.refinable.apiClient.request<RefreshMetadataMutation>(
-        REFRESH_METADATA,
-        {
-          input: {
-            tokenId: this.item.tokenId,
-            contractAddress: this.item.contractAddress,
-            chainId: this.item.chainId,
-            type: this.type,
-          },
-        }
-      );
-
-    return response.refreshMetadata;
   }
 
   async airdrop(recipients: string[]): Promise<EvmTransaction> {

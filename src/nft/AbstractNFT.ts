@@ -1,6 +1,12 @@
 import { utils } from "ethers";
-import { Price, PriceCurrency, TokenType } from "../@types/graphql";
+import {
+  Price,
+  PriceCurrency,
+  RefreshMetadataMutation,
+  TokenType,
+} from "../@types/graphql";
 import { chainMap } from "../config/chains";
+import { REFRESH_METADATA } from "../graphql/items";
 import { IChainConfig } from "../interfaces/Config";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
@@ -106,6 +112,25 @@ export abstract class AbstractNFT {
   ): Promise<Transaction>;
 
   abstract airdrop(recipients: string[]): Promise<Transaction>;
+
+  async refreshMetadata() {
+    this.verifyItem();
+
+    const response =
+      await this.refinable.apiClient.request<RefreshMetadataMutation>(
+        REFRESH_METADATA,
+        {
+          input: {
+            tokenId: this.item.tokenId,
+            contractAddress: this.item.contractAddress,
+            chainId: this.item.chainId,
+            type: this.type,
+          },
+        }
+      );
+
+    return response.refreshMetadata;
+  }
 
   protected getPaymentToken(priceCurrency: PriceCurrency) {
     const currency = this._chain.supportedCurrencies.find(

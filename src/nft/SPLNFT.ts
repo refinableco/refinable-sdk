@@ -381,15 +381,11 @@ export class SPLNFT extends AbstractNFT {
   }
 
   async putForSale(price: Price): Promise<SaleOffer> {
-    console.log(price);
-
     const amount = 1;
 
     const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
-
-    console.log(price.amount);
 
     const buyerPrice = new BN(
       await getPriceWithMantissa(
@@ -399,8 +395,6 @@ export class SPLNFT extends AbstractNFT {
         this.refinable.connection
       )
     );
-
-    console.log(buyerPrice.toNumber());
 
     const sellerTokenAccount = await Token.getAssociatedTokenAddress(
       ASSOCIATED_TOKEN_PROGRAM_ID,
