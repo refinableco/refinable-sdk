@@ -73,8 +73,5 @@
   },
   "resolutions": {
     "buffer": "~6.0.3"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
   }
 }
