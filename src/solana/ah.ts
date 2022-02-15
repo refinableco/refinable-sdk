@@ -142,25 +142,30 @@ export const getRemainingAccounts = async (
 
   const metadataData = await Metadata.load(connection, metadataPDA);
 
-  for (let i = 0; i < metadataData.data.data.creators.length; i++) {
-    remainingAccounts.push({
-      pubkey: toPublicKey(metadataData.data.data.creators[i].address),
-      isWritable: true,
-      isSigner: false,
-    });
-    if (!isNative) {
+  if (
+    metadataData.data.data?.creators &&
+    Array.isArray(metadataData.data.data.creators)
+  ) {
+    for (let i = 0; i < metadataData.data.data.creators.length; i++) {
       remainingAccounts.push({
-        pubkey: (
-          await Token.getAssociatedTokenAddress(
-            ASSOCIATED_TOKEN_PROGRAM_ID,
-            TOKEN_PROGRAM_ID,
-            treasuryMint,
-            remainingAccounts[remainingAccounts.length - 1].pubkey
-          )
-        )[0],
+        pubkey: toPublicKey(metadataData.data.data.creators[i].address),
         isWritable: true,
         isSigner: false,
       });
+      if (!isNative) {
+        remainingAccounts.push({
+          pubkey: (
+            await Token.getAssociatedTokenAddress(
+              ASSOCIATED_TOKEN_PROGRAM_ID,
+              TOKEN_PROGRAM_ID,
+              treasuryMint,
+              remainingAccounts[remainingAccounts.length - 1].pubkey
+            )
+          )[0],
+          isWritable: true,
+          isSigner: false,
+        });
+      }
     }
   }
 
