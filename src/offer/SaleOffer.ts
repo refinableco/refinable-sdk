@@ -7,6 +7,7 @@ import {
 import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { Transaction } from "../transaction/Transaction";
 import { isERC1155 } from "../utils/is";
 import { Offer, PartialOffer } from "./Offer";
 
@@ -54,7 +55,7 @@ export class SaleOffer extends Offer {
     return result;
   }
 
-  public async cancelSale() {
+  public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {
     const selling = await this.getSupplyOnSale();
 
     return this.nft.cancelSale({
@@ -62,7 +63,7 @@ export class SaleOffer extends Offer {
       signature: this.signature,
       selling,
       blockchainId: this.blockchainId,
-    });
+    }) as Promise<T>;
   }
 
   /**
