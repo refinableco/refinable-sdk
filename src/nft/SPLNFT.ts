@@ -387,8 +387,6 @@ export class SPLNFT extends AbstractNFT {
   }
 
   async putForSale(price: Price): Promise<SaleOffer> {
-    console.log(price);
-
     const amount = 1;
 
     const auctionHouse = await getAuctionHouseKey(
