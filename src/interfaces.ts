@@ -1,5 +1,5 @@
 import { TokenType } from "./@types/graphql";
-import { AbstractNFT } from "./nft/AbstractNFT";
+import { AbstractEvmNFT } from "./nft/AbstractEvmNFT";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
 
@@ -16,6 +16,6 @@ export type SingleKeys<K> = [K] extends (K extends NftMapTypes ? [K] : string)
   ? K
   : string;
 
-export type ClassType<A extends NftMapTypes, F extends AbstractNFT> =
+export type ClassType<A extends NftMapTypes, F extends AbstractEvmNFT> =
   | Extract<Tuples<TokenType, F>, [A, any]>[1]
   | F;
