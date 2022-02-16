@@ -204,6 +204,13 @@ export class NFTBuilder<NFTClass extends AbstractNFT = AbstractNFT>
       this.buildData.nftFile
     );
 
+    // in case it's a video, we can choose to add an image
+    if (this.buildData.thumbnailFileStream) {
+      this.buildData.thumbnail = await this.refinable.uploadFile(
+        this.buildData.thumbnailFileStream
+      );
+    }
+
     await this.create();
     await this.mint();
     return this.finishMint() as Promise<NFTClass>;

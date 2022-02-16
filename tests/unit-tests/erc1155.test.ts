@@ -49,10 +49,34 @@ describe("Refinable", () => {
           supply: 11,
         })
         .createAndMint();
-      const minredItem = nft.getItem();
-      expect(minredItem.chainId).toEqual(Chain.Local);
-      expect(minredItem.supply).toEqual(11);
-      expect(minredItem.contractAddress).toBeDefined();
+      const mintedItem = nft.getItem();
+      expect(mintedItem.chainId).toEqual(Chain.Local);
+      expect(mintedItem.supply).toEqual(11);
+      expect(mintedItem.contractAddress).toBeDefined();
+    });
+    it("Should mint an ERC721 token with video and image", async () => {
+      const fileStream = fs.createReadStream(
+        path.resolve(__dirname, "../assets/image.jpg")
+      );
+      const videoFileStream = fs.createReadStream(
+        path.resolve(__dirname, "../assets/video.mp4")
+      );
+      const nft = await refinable
+        .nftBuilder()
+        .erc1155({
+          nftFile: videoFileStream,
+          thumbnailFileStream: fileStream,
+          description: "some test description",
+          name: "The Test NFT",
+          royalty: new StandardRoyaltyStrategy([]),
+          chainId: Chain.Local,
+          supply: 11,
+        })
+        .createAndMint();
+      const mintedItem = nft.getItem();
+      expect(mintedItem.chainId).toEqual(Chain.Local);
+      expect(mintedItem.supply).toEqual(1);
+      expect(mintedItem.contractAddress).toBeDefined();
     });
     it("should put for sale", async () => {
       const fileStream = fs.createReadStream(
