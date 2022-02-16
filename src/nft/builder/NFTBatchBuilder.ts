@@ -48,13 +48,12 @@ export class NFTBatchBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT> {
       await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
     }
 
+    const addressForApproval = this.items[0].transferProxyContract.address;
+    await this.items[0].approveIfNeeded(addressForApproval);
+
     const responses = await Promise.allSettled(
       this.items.map(async (item) => {
         item.verifyItem();
-
-        const addressForApproval = item.transferProxyContract.address;
-
-        await item.approveIfNeeded(addressForApproval);
 
         const saleParamsHash = await item.getSaleParamsHash(
           price,

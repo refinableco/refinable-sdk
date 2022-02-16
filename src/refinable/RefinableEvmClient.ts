@@ -3,7 +3,8 @@ import utils from "ethers/lib/utils";
 import { GraphQLClient } from "graphql-request";
 import { NFTBuilder } from "..";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
-import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
+import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
+import { PartialNFTItem } from "../nft/AbstractNFT";
 import { NftBuilderParams } from "../nft/builder/IBuilder";
 import { Options, RefinableEvmOptions } from "../types/RefinableOptions";
 import EvmAccount from "./account/EvmAccount";
@@ -103,7 +104,7 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
 
   createNft<K extends NftMapTypes>(
     item: PartialNFTItem & { type: SingleKeys<K> }
-  ): ClassType<K, AbstractNFT> {
+  ): ClassType<K, AbstractEvmNFT> {
     if (!item) return null;
 
     const Class = nftMap[item.type as NftMapTypes];
