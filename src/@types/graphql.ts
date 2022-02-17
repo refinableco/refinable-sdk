@@ -314,7 +314,7 @@ export type CreateItemOutput = {
 export type CreateOffersInput = {
   contractAddress: Scalars["String"];
   endTime?: Maybe<Scalars["DateTime"]>;
-  launchpadDetails?: Maybe<LaunchpadDetails>;
+  launchpadDetails?: Maybe<LaunchpadDetailsInput>;
   offerContractAddress?: Maybe<Scalars["String"]>;
   price?: Maybe<PriceInput>;
   signature?: Maybe<Scalars["String"]>;
@@ -327,6 +327,7 @@ export type CreateOffersInput = {
 
 export type CreatePurchaseInput = {
   amount: Scalars["Int"];
+  metadata?: Maybe<PurchaseMetadata>;
   offerId: Scalars["String"];
   transactionHash: Scalars["String"];
 };
@@ -716,6 +717,13 @@ export type ItemsWithOffersResponse = {
 };
 
 export type LaunchpadDetails = {
+  __typename?: "LaunchpadDetails";
+  privateStartDate: Scalars["DateTime"];
+  publicStartDate: Scalars["DateTime"];
+  vipStartDate: Scalars["DateTime"];
+};
+
+export type LaunchpadDetailsInput = {
   privateStartDate: Scalars["DateTime"];
   publicStartDate: Scalars["DateTime"];
   vipStartDate: Scalars["DateTime"];
@@ -725,6 +733,7 @@ export type LoginInput = {
   chainId?: Maybe<Scalars["Float"]>;
   ethAddress: Scalars["String"];
   signature: Scalars["String"];
+  source?: Maybe<Scalars["String"]>;
   walletType?: Maybe<Scalars["String"]>;
 };
 
@@ -897,6 +906,7 @@ export type Offer = {
   auction?: Maybe<Auction>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
+  launchpadDetails?: Maybe<LaunchpadDetails>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
   supply: Scalars["Int"];
@@ -961,6 +971,12 @@ export type Properties = {
 export type Purchase = {
   __typename?: "Purchase";
   transactionHash: Scalars["String"];
+};
+
+export type PurchaseMetadata = {
+  acceptedTOS?: Maybe<Scalars["Boolean"]>;
+  createdAt: Scalars["DateTime"];
+  email?: Maybe<Scalars["String"]>;
 };
 
 export type Query = {

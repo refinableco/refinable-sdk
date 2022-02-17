@@ -3,6 +3,7 @@ import {
   Price,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
+  PurchaseMetadata,
 } from "../@types/graphql";
 import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT } from "../nft/AbstractNFT";
@@ -21,7 +22,7 @@ export class SaleOffer extends Offer {
     super(refinable, offer, nft);
   }
 
-  public async buy(params?: BuyParams) {
+  public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
     let supply = await this.getSupplyOnSale();
 
     const amount = params.amount ?? 1;
@@ -35,6 +36,10 @@ export class SaleOffer extends Offer {
       amount
     );
 
+    if (metadata) {
+      metadata.createdAt = new Date();
+    }
+
     await this.refinable.apiClient.request<
       PurchaseItemMutation,
       PurchaseItemMutationVariables
@@ -43,6 +48,7 @@ export class SaleOffer extends Offer {
         offerId: this.id,
         amount,
         transactionHash: result.hash,
+        metadata,
       },
     });
 
