@@ -13,11 +13,16 @@ export interface NftBuilderParams
   contractAddress?: string;
   file?: string;
   nftFile?: Stream;
+  // in case it's a video, we can choose to add an image
+  thumbnailFileStream?: Stream;
 }
 
 export interface NftBuilderParamsWithFileStream
   extends Omit<NftBuilderParams, "file"> {
   nftFile: Stream;
+
+  // in case it's a video, we can choose to add an image
+  thumbnailFileStream?: Stream;
 }
 
 export interface IBuilder<NFTClass extends AbstractNFT = AbstractNFT> {
