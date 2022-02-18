@@ -82,7 +82,7 @@ export class SPLNFT extends AbstractNFT {
 
     if (!auctionHouseObj.sellerFeeBasisPoints) return 0;
 
-    return auctionHouseObj.sellerFeeBasisPoints / 100;
+    return auctionHouseObj.sellerFeeBasisPoints;
   }
 
   private getOrCreateTokenAccountAddress(
