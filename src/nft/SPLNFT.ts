@@ -176,7 +176,7 @@ export class SPLNFT extends AbstractNFT {
         price.amount,
         auctionHouseObj.treasuryMint,
         this.refinable.provider,
-        this.refinable.connection
+        this.connection
       )
     );
     const tokenSize = new BN(1);
@@ -265,7 +265,7 @@ export class SPLNFT extends AbstractNFT {
       );
 
     const remainingAccounts = await getRemainingAccounts(
-      this.refinable.connection,
+      this.connection,
       metadata,
       isNative,
       auctionHouseObj.treasuryMint
@@ -320,7 +320,7 @@ export class SPLNFT extends AbstractNFT {
       .map((k) => (k.isSigner = true));
 
     const tx = await sendTransactionWithRetry(
-      this.refinable.connection,
+      this.connection,
       this.refinable.provider,
       [buyInstruction, executeSaleInstruction],
       [],
@@ -348,7 +348,7 @@ export class SPLNFT extends AbstractNFT {
         price.amount,
         auctionHouseObj.treasuryMint,
         this.refinable.provider,
-        this.refinable.connection
+        this.connection
       )
     );
     const tokenSize = new BN(selling);
@@ -392,7 +392,7 @@ export class SPLNFT extends AbstractNFT {
         price.amount,
         auctionHouseObj.treasuryMint,
         this.refinable.provider,
-        this.refinable.connection
+        this.connection
       )
     );
 
