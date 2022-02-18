@@ -47,6 +47,7 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
   public contracts: Contracts;
 
   static async getAddress(provider: any): Promise<string> {
+    console.log({ provider });
     return provider.getAddress();
   }
 
