@@ -17,9 +17,8 @@ export default class EvmAccount implements Account {
 
     let result = null;
     const decimals = await this.getTokenDecimals(tokenAddress);
-    
+
     try {
-      
       const token = new ethers.Contract(
         tokenAddress,
         [
@@ -87,8 +86,12 @@ export default class EvmAccount implements Account {
    * Balance of Native currency.(converted from wei).
    * @return {Promise<string>}
    */
-  public async getBalance(): Promise<string> {
-    const result = await this.refinable.provider.getBalance();
+  public async getBalance(chainId: number): Promise<string> {
+    const getBalancePromise = chainId
+      ? this.refinable.getProviderByChainId(chainId).getBalance(this.ethAddress)
+      : this.refinable.provider.getBalance();
+
+    const result = await getBalancePromise;
     return ethers.utils.formatEther(result).toString();
   }
 }

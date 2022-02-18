@@ -1,6 +1,8 @@
+import { JsonRpcProvider } from "@ethersproject/providers";
 import { Signer, utils } from "ethers";
 import { GraphQLClient } from "graphql-request";
-import { NFTBuilder } from "..";
+import { Chain, NFTBuilder } from "..";
+import { getChainByNetworkId } from "../config/chains";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { PartialNFTItem } from "../nft/AbstractNFT";
@@ -112,5 +114,10 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
     if (!Class) throw new Error("Item type not supported");
 
     return new Class(this, item);
+  }
+
+  getProviderByChainId(chainId: Chain) {
+    const chain = getChainByNetworkId(chainId);
+    return new JsonRpcProvider(chain.nodeUri[0]);
   }
 }
