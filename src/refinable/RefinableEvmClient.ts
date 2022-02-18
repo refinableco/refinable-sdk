@@ -1,5 +1,4 @@
-import type { Signer } from "ethers";
-import utils from "ethers/lib/utils";
+import { Signer, utils } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { NFTBuilder } from "..";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
@@ -45,6 +44,7 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
   public contracts: Contracts;
 
   static async getAddress(provider: any): Promise<string> {
+    console.log({ provider });
     return provider.getAddress();
   }
 
