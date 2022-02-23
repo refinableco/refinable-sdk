@@ -86,7 +86,7 @@ export default class EvmAccount implements Account {
    * Balance of Native currency.(converted from wei).
    * @return {Promise<string>}
    */
-  public async getBalance(chainId: number): Promise<string> {
+  public async getBalance(chainId?: number): Promise<string> {
     const getBalancePromise = chainId
       ? this.refinable.getProviderByChainId(chainId).getBalance(this.ethAddress)
       : this.refinable.provider.getBalance();
