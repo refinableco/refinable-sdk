@@ -8,7 +8,7 @@ import {
   CreateOfferForEditionsMutation,
   OfferType,
   Price,
-  TokenType
+  TokenType,
 } from "../@types/graphql";
 import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -94,8 +94,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     const isERC1155 = isERC1155Item(this);
     const type = isERC1155
-    ? [ContractTypes.Erc1155Token, ContractTypes.Erc1155WhitelistedToken]
-    : [ContractTypes.Erc721Token, ContractTypes.Erc721WhitelistedToken];
+      ? [ContractTypes.Erc1155Token, ContractTypes.Erc1155WhitelistedToken]
+      : [ContractTypes.Erc721Token, ContractTypes.Erc721WhitelistedToken];
 
     const nftTokenContract =
       await this.refinable.contracts.getRefinableContract(
@@ -442,7 +442,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     let endAuctionTx: TransactionResponse;
 
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
-      endAuctionTx = ethersContract.endAuction(
+      endAuctionTx = await ethersContract.endAuction(
         // uint256 tokenId
         this.item.tokenId,
         ownerEthAddress
@@ -454,7 +454,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
       assert(!!auctionId, "AuctionId must be defined");
 
-      endAuctionTx = ethersContract.endAuction(auctionId);
+      endAuctionTx = await ethersContract.endAuction(auctionId);
     }
 
     return new EvmTransaction(endAuctionTx);
