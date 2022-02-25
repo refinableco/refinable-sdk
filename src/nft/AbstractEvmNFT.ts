@@ -41,7 +41,12 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   getSaleContractAddress(): string {
-    return this.saleContract.address;
+    // Error if User is on a wrong chain, if this is the case, we can just return null
+    try {
+      return this.saleContract.address;
+    } catch {}
+
+    return null;
   }
 
   get saleContract(): Contract {
