@@ -331,6 +331,7 @@ export type CreateOffersInput = {
 
 export type CreatePurchaseInput = {
   amount: Scalars["Int"];
+  metadata?: Maybe<PurchaseMetadata>;
   offerId: Scalars["String"];
   transactionHash: Scalars["String"];
 };
@@ -991,6 +992,12 @@ export type Properties = {
 export type Purchase = {
   __typename?: "Purchase";
   transactionHash: Scalars["String"];
+};
+
+export type PurchaseMetadata = {
+  acceptedTOS?: Maybe<Scalars["Boolean"]>;
+  createdAt: Scalars["DateTime"];
+  email?: Maybe<Scalars["String"]>;
 };
 
 export type Query = {

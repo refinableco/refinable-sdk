@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import {
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
+  PurchaseMetadata,
 } from "../@types/graphql";
 import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT } from "../nft/AbstractNFT";
@@ -25,8 +26,9 @@ export class SaleOffer extends Offer {
     super(refinable, offer, nft);
   }
 
-  public async buy(params?: BuyParams) {
-    const supply = await this.getSupplyOnSale();
+  public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
+    let supply = await this.getSupplyOnSale();
+
     const amount = params.amount ?? 1;
 
     const result = await this.nft.buy({
@@ -35,9 +37,13 @@ export class SaleOffer extends Offer {
       ownerEthAddress: this.user?.ethAddress,
       royaltyContractAddress: params.royaltyContractAddress,
       supply,
-      amount,
       blockchainId: this.blockchainId,
+      amount,
     });
+
+    if (metadata) {
+      metadata.createdAt = new Date();
+    }
 
     if (result.txId) {
       await this.refinable.apiClient.request<
@@ -48,6 +54,7 @@ export class SaleOffer extends Offer {
           offerId: this.id,
           amount,
           transactionHash: result.txId,
+          metadata,
         },
       });
     }
