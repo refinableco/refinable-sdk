@@ -225,7 +225,7 @@ export class SPLNFT extends AbstractNFT {
           wallet: toPublicKey(this.refinable.accountAddress),
           paymentAccount: toPublicKey(this.refinable.accountAddress),
           // Isnative check
-          transferAuthority: SystemProgram.programId,
+          transferAuthority: toPublicKey(this.refinable.accountAddress),
           treasuryMint,
           tokenAccount: sellerTokenAccount,
           metadata,
