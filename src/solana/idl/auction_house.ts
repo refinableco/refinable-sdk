@@ -185,7 +185,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "feeWithdrawalDestination",
@@ -291,7 +291,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -366,7 +366,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -426,7 +426,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -511,7 +511,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -613,7 +613,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -694,7 +694,7 @@ export type AuctionHouse = {
         },
         {
           "name": "transferAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -720,7 +720,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -1332,7 +1332,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "feeWithdrawalDestination",
@@ -1438,7 +1438,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -1513,7 +1513,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -1573,7 +1573,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -1658,7 +1658,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -1760,7 +1760,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
@@ -1841,7 +1841,7 @@ export const IDL: AuctionHouse = {
         },
         {
           "name": "transferAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1867,7 +1867,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "auctionHouse",
