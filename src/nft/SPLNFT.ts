@@ -72,7 +72,10 @@ export class SPLNFT extends AbstractNFT {
   }
 
   async getBuyServiceFee() {
-    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(
+      this.item.chainId,
+      treasuryMint
+    );
 
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
@@ -161,7 +164,10 @@ export class SPLNFT extends AbstractNFT {
     price: Price;
     ownerEthAddress: string;
   }): Promise<SolanaTransaction> {
-    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(
+      this.item.chainId,
+      treasuryMint
+    );
 
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
@@ -336,7 +342,10 @@ export class SPLNFT extends AbstractNFT {
     price: Price;
     selling: number;
   }): Promise<SolanaTransaction> {
-    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(
+      this.item.chainId,
+      treasuryMint
+    );
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
@@ -380,7 +389,6 @@ export class SPLNFT extends AbstractNFT {
   async putForSale(price: Price): Promise<SaleOffer> {
     const amount = 1;
 
-    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
