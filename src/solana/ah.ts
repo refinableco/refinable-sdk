@@ -8,21 +8,22 @@ import {
 import { Connection, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { Buffer } from "buffer";
+import { Chain } from "..";
+import { solanaAuctionHouseAuthority } from "../config/solana";
 import { toPublicKey } from "./utils";
 
-const AUCTION_HOUSE_PROGRAM_ID = new PublicKey(
-  "hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk"
+export const AUCTION_HOUSE_PROGRAM_ID = new PublicKey(
+  "FineRZwrZJxL4cd3vvjqeD4L5QtTohFCVJja22q5SCYg"
 );
 
 const PREFIX = Buffer.from("auction_house");
-const FEE_PAYER = Buffer.from("fee_payer");
-const TREASURY = Buffer.from("treasury");
 const SIGNER = Buffer.from("signer");
 
 export const getAuctionHouseKey = async (
-  authority: PublicKey,
+  chain: Chain,
   treasuryMint: PublicKey
 ) => {
+  const authority = solanaAuctionHouseAuthority[chain];
   const [auctionHouse] = await PublicKey.findProgramAddress(
     [PREFIX, authority.toBuffer(), treasuryMint.toBuffer()],
     AUCTION_HOUSE_PROGRAM_ID

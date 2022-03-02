@@ -1,5 +1,5 @@
 export type AuctionHouse = {
-  "version": "0.0.0",
+  "version": "1.0.0",
   "name": "auction_house",
   "instructions": [
     {
@@ -185,7 +185,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "feeWithdrawalDestination",
@@ -291,7 +291,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -366,7 +366,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -426,7 +426,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -511,7 +511,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -613,7 +613,7 @@ export type AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -681,6 +681,99 @@ export type AuctionHouse = {
     },
     {
       "name": "buy",
+      "accounts": [
+        {
+          "name": "wallet",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "paymentAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadata",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "escrowPaymentAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "auctionHouse",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "auctionHouseFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "buyerTradeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "tradeStateBump",
+          "type": "u8"
+        },
+        {
+          "name": "escrowPaymentBump",
+          "type": "u8"
+        },
+        {
+          "name": "buyerPrice",
+          "type": "u64"
+        },
+        {
+          "name": "tokenSize",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "publicBuy",
       "accounts": [
         {
           "name": "wallet",
@@ -837,122 +930,122 @@ export type AuctionHouse = {
   ],
   "errors": [
     {
-      "code": 300,
+      "code": 6000,
       "name": "PublicKeyMismatch",
       "msg": "PublicKeyMismatch"
     },
     {
-      "code": 301,
+      "code": 6001,
       "name": "InvalidMintAuthority",
       "msg": "InvalidMintAuthority"
     },
     {
-      "code": 302,
+      "code": 6002,
       "name": "UninitializedAccount",
       "msg": "UninitializedAccount"
     },
     {
-      "code": 303,
+      "code": 6003,
       "name": "IncorrectOwner",
       "msg": "IncorrectOwner"
     },
     {
-      "code": 304,
+      "code": 6004,
       "name": "PublicKeysShouldBeUnique",
       "msg": "PublicKeysShouldBeUnique"
     },
     {
-      "code": 305,
+      "code": 6005,
       "name": "StatementFalse",
       "msg": "StatementFalse"
     },
     {
-      "code": 306,
+      "code": 6006,
       "name": "NotRentExempt",
       "msg": "NotRentExempt"
     },
     {
-      "code": 307,
+      "code": 6007,
       "name": "NumericalOverflow",
       "msg": "NumericalOverflow"
     },
     {
-      "code": 308,
+      "code": 6008,
       "name": "ExpectedSolAccount",
       "msg": "Expected a sol account but got an spl token account instead"
     },
     {
-      "code": 309,
+      "code": 6009,
       "name": "CannotExchangeSOLForSol",
       "msg": "Cannot exchange sol for sol"
     },
     {
-      "code": 310,
+      "code": 6010,
       "name": "SOLWalletMustSign",
       "msg": "If paying with sol, sol wallet must be signer"
     },
     {
-      "code": 311,
+      "code": 6011,
       "name": "CannotTakeThisActionWithoutAuctionHouseSignOff",
       "msg": "Cannot take this action without auction house signing too"
     },
     {
-      "code": 312,
+      "code": 6012,
       "name": "NoPayerPresent",
       "msg": "No payer present on this txn"
     },
     {
-      "code": 313,
+      "code": 6013,
       "name": "DerivedKeyInvalid",
       "msg": "Derived key invalid"
     },
     {
-      "code": 314,
+      "code": 6014,
       "name": "MetadataDoesntExist",
       "msg": "Metadata doesn't exist"
     },
     {
-      "code": 315,
+      "code": 6015,
       "name": "InvalidTokenAmount",
       "msg": "Invalid token amount"
     },
     {
-      "code": 316,
+      "code": 6016,
       "name": "BothPartiesNeedToAgreeToSale",
       "msg": "Both parties need to agree to this sale"
     },
     {
-      "code": 317,
+      "code": 6017,
       "name": "CannotMatchFreeSalesWithoutAuctionHouseOrSellerSignoff",
       "msg": "Cannot match free sales unless the auction house or seller signs off"
     },
     {
-      "code": 318,
+      "code": 6018,
       "name": "SaleRequiresSigner",
       "msg": "This sale requires a signer"
     },
     {
-      "code": 319,
+      "code": 6019,
       "name": "OldSellerNotInitialized",
       "msg": "Old seller not initialized"
     },
     {
-      "code": 320,
+      "code": 6020,
       "name": "SellerATACannotHaveDelegate",
       "msg": "Seller ata cannot have a delegate set"
     },
     {
-      "code": 321,
+      "code": 6021,
       "name": "BuyerATACannotHaveDelegate",
       "msg": "Buyer ata cannot have a delegate set"
     },
     {
-      "code": 322,
+      "code": 6022,
       "name": "NoValidSignerPresent",
       "msg": "No valid signer present"
     },
     {
-      "code": 323,
+      "code": 6023,
       "name": "InvalidBasisPoints",
       "msg": "BP must be less than or equal to 10000"
     }
@@ -960,7 +1053,7 @@ export type AuctionHouse = {
 };
 
 export const IDL: AuctionHouse = {
-  "version": "0.0.0",
+  "version": "1.0.0",
   "name": "auction_house",
   "instructions": [
     {
@@ -1146,7 +1239,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "feeWithdrawalDestination",
@@ -1252,7 +1345,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -1327,7 +1420,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -1387,7 +1480,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -1472,7 +1565,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -1574,7 +1667,7 @@ export const IDL: AuctionHouse = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "auctionHouse",
@@ -1642,6 +1735,99 @@ export const IDL: AuctionHouse = {
     },
     {
       "name": "buy",
+      "accounts": [
+        {
+          "name": "wallet",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "paymentAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadata",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "escrowPaymentAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "auctionHouse",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "auctionHouseFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "buyerTradeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "tradeStateBump",
+          "type": "u8"
+        },
+        {
+          "name": "escrowPaymentBump",
+          "type": "u8"
+        },
+        {
+          "name": "buyerPrice",
+          "type": "u64"
+        },
+        {
+          "name": "tokenSize",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "publicBuy",
       "accounts": [
         {
           "name": "wallet",
@@ -1798,122 +1984,122 @@ export const IDL: AuctionHouse = {
   ],
   "errors": [
     {
-      "code": 300,
+      "code": 6000,
       "name": "PublicKeyMismatch",
       "msg": "PublicKeyMismatch"
     },
     {
-      "code": 301,
+      "code": 6001,
       "name": "InvalidMintAuthority",
       "msg": "InvalidMintAuthority"
     },
     {
-      "code": 302,
+      "code": 6002,
       "name": "UninitializedAccount",
       "msg": "UninitializedAccount"
     },
     {
-      "code": 303,
+      "code": 6003,
       "name": "IncorrectOwner",
       "msg": "IncorrectOwner"
     },
     {
-      "code": 304,
+      "code": 6004,
       "name": "PublicKeysShouldBeUnique",
       "msg": "PublicKeysShouldBeUnique"
     },
     {
-      "code": 305,
+      "code": 6005,
       "name": "StatementFalse",
       "msg": "StatementFalse"
     },
     {
-      "code": 306,
+      "code": 6006,
       "name": "NotRentExempt",
       "msg": "NotRentExempt"
     },
     {
-      "code": 307,
+      "code": 6007,
       "name": "NumericalOverflow",
       "msg": "NumericalOverflow"
     },
     {
-      "code": 308,
+      "code": 6008,
       "name": "ExpectedSolAccount",
       "msg": "Expected a sol account but got an spl token account instead"
     },
     {
-      "code": 309,
+      "code": 6009,
       "name": "CannotExchangeSOLForSol",
       "msg": "Cannot exchange sol for sol"
     },
     {
-      "code": 310,
+      "code": 6010,
       "name": "SOLWalletMustSign",
       "msg": "If paying with sol, sol wallet must be signer"
     },
     {
-      "code": 311,
+      "code": 6011,
       "name": "CannotTakeThisActionWithoutAuctionHouseSignOff",
       "msg": "Cannot take this action without auction house signing too"
     },
     {
-      "code": 312,
+      "code": 6012,
       "name": "NoPayerPresent",
       "msg": "No payer present on this txn"
     },
     {
-      "code": 313,
+      "code": 6013,
       "name": "DerivedKeyInvalid",
       "msg": "Derived key invalid"
     },
     {
-      "code": 314,
+      "code": 6014,
       "name": "MetadataDoesntExist",
       "msg": "Metadata doesn't exist"
     },
     {
-      "code": 315,
+      "code": 6015,
       "name": "InvalidTokenAmount",
       "msg": "Invalid token amount"
     },
     {
-      "code": 316,
+      "code": 6016,
       "name": "BothPartiesNeedToAgreeToSale",
       "msg": "Both parties need to agree to this sale"
     },
     {
-      "code": 317,
+      "code": 6017,
       "name": "CannotMatchFreeSalesWithoutAuctionHouseOrSellerSignoff",
       "msg": "Cannot match free sales unless the auction house or seller signs off"
     },
     {
-      "code": 318,
+      "code": 6018,
       "name": "SaleRequiresSigner",
       "msg": "This sale requires a signer"
     },
     {
-      "code": 319,
+      "code": 6019,
       "name": "OldSellerNotInitialized",
       "msg": "Old seller not initialized"
     },
     {
-      "code": 320,
+      "code": 6020,
       "name": "SellerATACannotHaveDelegate",
       "msg": "Seller ata cannot have a delegate set"
     },
     {
-      "code": 321,
+      "code": 6021,
       "name": "BuyerATACannotHaveDelegate",
       "msg": "Buyer ata cannot have a delegate set"
     },
     {
-      "code": 322,
+      "code": 6022,
       "name": "NoValidSignerPresent",
       "msg": "No valid signer present"
     },
     {
-      "code": 323,
+      "code": 6023,
       "name": "InvalidBasisPoints",
       "msg": "BP must be less than or equal to 10000"
     }

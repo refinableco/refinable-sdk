@@ -27,6 +27,7 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { RefinableSolanaClient } from "../refinable/RefinableSolanaClient";
 import {
+  AUCTION_HOUSE_PROGRAM_ID,
   getAuctionHouseKey,
   getAuctionHouseTradeState,
   getBuyerEscrow,
@@ -42,11 +43,7 @@ import { getConnectionByChainId } from "../utils/connection";
 import { getOrCreateAssociatedAccountInfo } from "../utils/sol";
 import { PartialNFTItem } from "./AbstractNFT";
 
-const AUCTION_HOUSE_PROGRAM_ID = new PublicKey(
-  "hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk"
-);
 const treasuryMint = NATIVE_MINT;
-const authority = new PublicKey("64VQMnW5g8XeMTCxZxF8APSas2Vzpcg8QaPCa1upUXhJ");
 
 export class SPLNFT extends AbstractNFT {
   private connection: Connection;
@@ -75,7 +72,7 @@ export class SPLNFT extends AbstractNFT {
   }
 
   async getBuyServiceFee() {
-    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
 
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
@@ -164,7 +161,7 @@ export class SPLNFT extends AbstractNFT {
     price: Price;
     ownerEthAddress: string;
   }): Promise<SolanaTransaction> {
-    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
 
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
@@ -209,7 +206,7 @@ export class SPLNFT extends AbstractNFT {
         auctionHouse,
         toPublicKey(this.refinable.accountAddress),
         sellerTokenAccount,
-        treasuryMint,
+        auctionHouseObj.treasuryMint,
         toPublicKey(this.item.tokenId),
         tokenSize,
         buyerPrice
@@ -226,11 +223,11 @@ export class SPLNFT extends AbstractNFT {
           paymentAccount: toPublicKey(this.refinable.accountAddress),
           // Isnative check
           transferAuthority: toPublicKey(this.refinable.accountAddress),
-          treasuryMint,
+          treasuryMint: auctionHouseObj.treasuryMint,
           tokenAccount: sellerTokenAccount,
           metadata,
           escrowPaymentAccount: buyerEscrow,
-          authority,
+          authority: auctionHouseObj.authority,
           auctionHouse,
           auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
           buyerTradeState,
@@ -247,7 +244,7 @@ export class SPLNFT extends AbstractNFT {
       auctionHouse,
       toPublicKey(ownerEthAddress),
       sellerTokenAccount,
-      treasuryMint,
+      auctionHouseObj.treasuryMint,
       toPublicKey(this.item.tokenId),
       tokenSize,
       buyerPrice
@@ -258,7 +255,7 @@ export class SPLNFT extends AbstractNFT {
         auctionHouse,
         toPublicKey(ownerEthAddress),
         sellerTokenAccount,
-        treasuryMint,
+        auctionHouseObj.treasuryMint,
         toPublicKey(this.item.tokenId),
         tokenSize,
         zero
@@ -339,7 +336,7 @@ export class SPLNFT extends AbstractNFT {
     price: Price;
     selling: number;
   }): Promise<SolanaTransaction> {
-    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
@@ -368,7 +365,7 @@ export class SPLNFT extends AbstractNFT {
           wallet: new PublicKey(this.refinable.accountAddress),
           tokenAccount: sellerTokenAccount,
           tokenMint: toPublicKey(this.item.tokenId),
-          authority,
+          authority: auctionHouseObj.authority,
           auctionHouse,
           auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
           tradeState: blockchainId,
@@ -383,7 +380,7 @@ export class SPLNFT extends AbstractNFT {
   async putForSale(price: Price): Promise<SaleOffer> {
     const amount = 1;
 
-    const auctionHouse = await getAuctionHouseKey(authority, treasuryMint);
+    const auctionHouse = await getAuctionHouseKey(this.item.chainId, treasuryMint);
     const auctionHouseObj =
       await this.auctionHouseClient.account.auctionHouse.fetch(auctionHouse);
 
@@ -411,7 +408,7 @@ export class SPLNFT extends AbstractNFT {
         auctionHouse,
         toPublicKey(this.refinable.accountAddress),
         sellerTokenAccount,
-        treasuryMint,
+        auctionHouseObj.treasuryMint,
         toPublicKey(this.item.tokenId),
         tokenSize,
         buyerPrice
@@ -421,7 +418,7 @@ export class SPLNFT extends AbstractNFT {
         auctionHouse,
         toPublicKey(this.refinable.accountAddress),
         sellerTokenAccount,
-        treasuryMint,
+        auctionHouseObj.treasuryMint,
         toPublicKey(this.item.tokenId),
         tokenSize,
         zero
@@ -442,7 +439,7 @@ export class SPLNFT extends AbstractNFT {
           metadata: (
             await Metadata.getPDA(toPublicKey(this.item.tokenId))
           ).toBase58(),
-          authority,
+          authority: auctionHouseObj.authority,
           auctionHouse,
           auctionHouseFeeAccount: auctionHouseObj.auctionHouseFeeAccount,
           sellerTradeState,
