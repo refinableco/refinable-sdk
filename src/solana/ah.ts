@@ -23,7 +23,7 @@ export const getAuctionHouseKey = async (
   chain: Chain,
   treasuryMint: PublicKey
 ) => {
-  const authority = solanaAuctionHouseAuthority[chain];
+  const authority = new PublicKey(solanaAuctionHouseAuthority[chain]);
   const [auctionHouse] = await PublicKey.findProgramAddress(
     [PREFIX, authority.toBuffer(), treasuryMint.toBuffer()],
     AUCTION_HOUSE_PROGRAM_ID
