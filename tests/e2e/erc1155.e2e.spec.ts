@@ -9,6 +9,7 @@ import {
   RefinableEvmClient,
   StandardRoyaltyStrategy,
 } from "../../src";
+import { ContractTypes } from "../../src/@types/graphql";
 
 describe("Refinable", () => {
   let refinable: RefinableEvmClient;
@@ -239,4 +240,14 @@ describe("Refinable", () => {
       }
     });
   });
+
+
+  // create a collection
+  describe.only("Collection", () => {
+    it('can create a collection', async () => {
+      await refinable.contracts.createContract(ContractTypes.Erc1155WhitelistedToken, Chain.BscTestnet, "test1", "test1");
+    })
+  })
+  // add minter by ethers
+
 });

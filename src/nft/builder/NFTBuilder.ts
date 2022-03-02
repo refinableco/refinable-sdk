@@ -135,6 +135,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
         this.item.contractAddress
       );
 
+    console.log("========this.signature: ", this.signature);
     const mintArgs: any = [
       // uint256 _tokenId
       this.item.tokenId,
@@ -168,11 +169,15 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       this.refinable.provider
     );
 
+    console.log("============00000000000000");
+
     const result: TransactionResponse = await nftTokenContract.mint(
       ...mintArgs
     );
 
+    console.log("============111111111111111");
     await result.wait(this.refinable.options.waitConfirmations);
+    console.log("============222222222222222");
 
     this.mintTransaction = result;
 
@@ -223,7 +228,8 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
 
     await this.create();
     await this.mint();
-    return this.finishMint() as Promise<NFTClass>;
+    const res = this.finishMint() as Promise<NFTClass>;
+    return res;
   }
 
   private async useDefaultMintContractIfUndefined() {

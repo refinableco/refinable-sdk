@@ -9,6 +9,7 @@ import {
   RefinableEvmClient,
   StandardRoyaltyStrategy,
 } from "../../src";
+import { ContractTypes } from "../../src/@types/graphql";
 
 describe("Refinable", () => {
   let refinable: RefinableEvmClient;

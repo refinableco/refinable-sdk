@@ -9,7 +9,7 @@
     "build": "tsc",
     "prepare": "yarn build",
     "test": "jest --runInBand --testPathIgnorePatterns=.*e2e.spec.ts",
-    "test:e2e": "env-cmd jest --runInBand --runTestsByPath './tests/e2e'",
+    "test:e2e": "env-cmd jest --runInBand --runTestsByPath './tests/e2e/*.ts'",
     "test:silent": "yarn test --silent=true",
     "test:watch": "yarn test --watch",
     "generate-types": "graphql-codegen"
@@ -70,6 +70,9 @@
     "tslib": "^2.3.1",
     "typescript": "^4.3.5",
     "utf-8-validate": "^5.0.7"
+  },
+  "browser": {
+    "crypto": false
   },
   "resolutions": {
     "buffer": "~6.0.3"

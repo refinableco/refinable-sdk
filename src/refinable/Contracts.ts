@@ -1,5 +1,6 @@
 import { RefinableEvmClient, TokenType } from "..";
 import {
+  ContractTag,
   ContractTypes,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
@@ -7,16 +8,20 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  Token
+  Token,
 } from "../@types/graphql";
 import { getContractsTags } from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
-  GET_REFINABLE_CONTRACTS
+  GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
+import { ContractFactory } from "ethers";
+import EvmTransaction from "../transaction/EvmTransaction";
+import { readFileSync } from "fs";
+import path from "path";
 
 export class Contracts {
   private cachedContracts: {
@@ -97,6 +102,17 @@ export class Contracts {
     });
 
     return this.cacheContract(refinableContract);
+  }
+
+  async getRefinableContractABI(types: ContractTypes[], tags: ContractTag[]) {
+    const { refinableContract } = await this.refinable.apiClient.request<
+      RefinableContractQuery,
+      RefinableContractQueryVariables
+    >(GET_REFINABLE_CONTRACT, {
+      input: { types, tags },
+    });
+
+    return refinableContract?.contractABI;
   }
 
   async getMintableContracts() {
@@ -185,5 +201,47 @@ export class Contracts {
     };
 
     return contract;
+  }
+
+  async createContract(
+    type:
+      | ContractTypes.Erc721WhitelistedToken
+      | ContractTypes.Erc1155WhitelistedToken,
+    chainId: Chain,
+    name: string,
+    ticker: string
+  ) {
+    const abi = await this.getRefinableContractABI(
+      [type],
+      [ContractTag.TokenV3_0_0]
+    );
+    const contractByteCode: string =
+      type === ContractTypes.Erc1155WhitelistedToken
+        ? readFileSync(
+            path.resolve(__dirname, "../bytecode/1155WhitelistedV3.txt")
+          ).toString()
+        : readFileSync("../bytecode/721WhitelistedV3.txt").toString();
+    const factory = new ContractFactory(
+      abi,
+      contractByteCode,
+      this.refinable.provider
+    );
+    const contract = await factory.deploy(
+      name,
+      ticker,
+      this.refinable.accountAddress,
+      "0xD2E49cfd5c03a72a838a2fC6bB5f6b46927e731A",
+      "https://api.refinable.com/contractMetadata/{address}", // contractURI
+      "https://ipfs.refinable.com/ipfs/", // uri
+      "https://ipfs.refinable.com/ipfs/" // uri]);
+    );
+
+    await contract.deployed();
+    console.log("======contract deployed: ", contract.address);
+
+    const res = await contract.addMinter(this.refinable.accountAddress);
+    console.log("======add minter: ", res);
+
+    return new EvmTransaction(contract.deployTransaction);
   }
 }

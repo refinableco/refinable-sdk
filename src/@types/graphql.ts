@@ -1,7 +1,6 @@
 /* eslint-disable */
 // THIS IS A GENERATED FILE, DO NOT EDIT IT!
 export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = {
   [K in keyof T]: T[K];
 };
@@ -95,13 +94,13 @@ export type AuthUser = {
 export type AuthUserItemsArgs = {
   filter: UserItemFilterInput;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type AuthUserItemsOnOfferArgs = {
-  filter?: InputMaybe<UserItemOnOfferFilterInput>;
+  filter?: Maybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type Bid = {
@@ -145,9 +144,9 @@ export type Collection = {
 };
 
 export type CollectionItemsArgs = {
-  filter?: InputMaybe<CollectionMetadataFilterInput>;
+  filter?: Maybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type CollectionEdge = {
@@ -157,15 +156,15 @@ export type CollectionEdge = {
 };
 
 export type CollectionMetadataFilterInput = {
-  auctionType?: InputMaybe<AuctionType>;
-  chainIds?: InputMaybe<Array<Scalars["String"]>>;
-  collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
-  contentType?: InputMaybe<ContentType>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
+  auctionType?: Maybe<AuctionType>;
+  chainIds?: Maybe<Array<Scalars["String"]>>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
+  contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
   metadata: Scalars["JSON"];
-  offerTypes?: InputMaybe<Array<OfferType>>;
-  tagName?: InputMaybe<Scalars["String"]>;
-  titleQuery?: InputMaybe<Scalars["String"]>;
+  offerTypes?: Maybe<Array<OfferType>>;
+  tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
 };
 
 export type CollectionMetadataValues = {
@@ -180,7 +179,7 @@ export type CollectionMetadataValues = {
 
 export type CollectionMetadataValuesInput = {
   collectionIds: Array<Scalars["String"]>;
-  contractAddresses?: InputMaybe<Array<Scalars["String"]>>;
+  contractAddresses?: Maybe<Array<Scalars["String"]>>;
 };
 
 export type CollectionPageInfo = {
@@ -209,7 +208,7 @@ export type CollectionStatistics = {
 };
 
 export type CollectionsFilterInput = {
-  chainIds?: InputMaybe<Array<Scalars["Float"]>>;
+  chainIds?: Maybe<Array<Scalars["Float"]>>;
 };
 
 export type CollectionsResponse = {
@@ -294,17 +293,17 @@ export type CreateEventInput = {
 };
 
 export type CreateItemInput = {
-  airdropAddresses?: InputMaybe<Array<Scalars["String"]>>;
+  airdropAddresses?: Maybe<Array<Scalars["String"]>>;
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
-  description?: InputMaybe<Scalars["String"]>;
+  description?: Maybe<Scalars["String"]>;
   file: Scalars["String"];
-  marketingDescription?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  royaltySettings?: InputMaybe<RoyaltySettingsInput>;
+  marketingDescription?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
+  royaltySettings?: Maybe<RoyaltySettingsInput>;
   supply: Scalars["Float"];
-  tags?: InputMaybe<Array<TagInput>>;
-  thumbnail?: InputMaybe<Scalars["String"]>;
+  tags?: Maybe<Array<TagInput>>;
+  thumbnail?: Maybe<Scalars["String"]>;
   type: Scalars["String"];
 };
 
@@ -315,17 +314,17 @@ export type CreateItemOutput = {
 };
 
 export type CreateOffersInput = {
-  blockchainId?: InputMaybe<Scalars["String"]>;
+  blockchainId?: Maybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
-  endTime?: InputMaybe<Scalars["DateTime"]>;
-  launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
-  offerContractAddress?: InputMaybe<Scalars["String"]>;
-  price?: InputMaybe<PriceInput>;
-  signature?: InputMaybe<Scalars["String"]>;
-  startTime?: InputMaybe<Scalars["DateTime"]>;
+  endTime?: Maybe<Scalars["DateTime"]>;
+  launchpadDetails?: Maybe<LaunchpadDetailsInput>;
+  offerContractAddress?: Maybe<Scalars["String"]>;
+  price?: Maybe<PriceInput>;
+  signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
   supply: Scalars["Float"];
   tokenId: Scalars["String"];
-  transactionHash?: InputMaybe<Scalars["String"]>;
+  transactionHash?: Maybe<Scalars["String"]>;
   type: Scalars["String"];
 };
 
@@ -338,20 +337,20 @@ export type CreatePurchaseInput = {
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
   contracts: Array<ContractInput>;
-  customLinks?: InputMaybe<Array<CustomLinkInput>>;
+  customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
-  discord?: InputMaybe<Scalars["String"]>;
+  discord?: Maybe<Scalars["String"]>;
   domain: Scalars["String"];
   email: Scalars["String"];
   favicon: Scalars["String"];
-  instagram?: InputMaybe<Scalars["String"]>;
+  instagram?: Maybe<Scalars["String"]>;
   logo: Scalars["String"];
   logoHeight: Scalars["Float"];
   name: Scalars["String"];
   primaryColor: Scalars["String"];
-  telegram?: InputMaybe<Scalars["String"]>;
-  twitter?: InputMaybe<Scalars["String"]>;
-  website?: InputMaybe<Scalars["String"]>;
+  telegram?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type CustomLink = {
@@ -403,15 +402,16 @@ export type FinishMintOutput = {
 };
 
 export type GetRefinableContractInput = {
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
-  types?: InputMaybe<Array<ContractTypes>>;
+  chainId?: Maybe<Scalars["Float"]>;
+  contractAddress?: Maybe<Scalars["String"]>;
+  tags?: Maybe<Array<ContractTag>>;
+  types?: Maybe<Array<ContractTypes>>;
 };
 
 export type GetRefinableContractsInput = {
-  chainId?: InputMaybe<Scalars["Float"]>;
-  tags?: InputMaybe<Array<ContractTag>>;
-  types?: InputMaybe<Array<ContractTypes>>;
+  chainId?: Maybe<Scalars["Float"]>;
+  tags?: Maybe<Array<ContractTag>>;
+  types?: Maybe<Array<ContractTypes>>;
 };
 
 export type GetUploadUrlOutput = {
@@ -435,19 +435,19 @@ export type HotResult = ItemWithOffer;
 export type HottestTagsFilterInput = {
   interval: Taginterval;
   /** Amount of records to show, max is 50 */
-  limit?: InputMaybe<Scalars["Int"]>;
+  limit?: Maybe<Scalars["Int"]>;
 };
 
 export type ImportCollectionInput = {
   chainId: Scalars["Float"];
-  contractABI?: InputMaybe<Scalars["String"]>;
+  contractABI?: Maybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
   description: Scalars["String"];
   iconUrl: Scalars["String"];
-  metadataUrlTemplate?: InputMaybe<Scalars["String"]>;
+  metadataUrlTemplate?: Maybe<Scalars["String"]>;
   name: Scalars["String"];
   slug: Scalars["String"];
-  type?: InputMaybe<TokenType>;
+  type?: Maybe<TokenType>;
 };
 
 export type ImportCollectionOutput = {
@@ -463,7 +463,7 @@ export type ImportItemInput = {
   apiUrl: Scalars["String"];
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
-  tags?: InputMaybe<Array<TagInput>>;
+  tags?: Maybe<Array<TagInput>>;
   tokenId: Scalars["String"];
 };
 
@@ -484,12 +484,12 @@ export type ImportItemPreviewInput = {
 
 export type ImportSolanaCollectionInput = {
   chainId: Scalars["Float"];
-  creator?: InputMaybe<Scalars["String"]>;
+  creator?: Maybe<Scalars["String"]>;
   description: Scalars["String"];
   iconUrl: Scalars["String"];
   name: Scalars["String"];
   slug: Scalars["String"];
-  updateAuthority?: InputMaybe<Scalars["String"]>;
+  updateAuthority?: Maybe<Scalars["String"]>;
 };
 
 export type Item = {
@@ -511,6 +511,7 @@ export type Item = {
   owners: Array<ItemOwner>;
   properties: Properties;
   reason?: Maybe<Scalars["String"]>;
+  royalties?: Maybe<Scalars["Float"]>;
   similarItems: Array<ItemWithOffer>;
   supply: Scalars["Float"];
   tags: Array<Tag>;
@@ -523,7 +524,7 @@ export type Item = {
 };
 
 export type ItemAvailableUserSupplyArgs = {
-  ethAddress?: InputMaybe<Scalars["String"]>;
+  ethAddress?: Maybe<Scalars["String"]>;
 };
 
 export type ItemHistoryArgs = {
@@ -531,7 +532,7 @@ export type ItemHistoryArgs = {
 };
 
 export type ItemNextEditionForSaleArgs = {
-  ethAddress?: InputMaybe<Scalars["String"]>;
+  ethAddress?: Maybe<Scalars["String"]>;
 };
 
 export type ItemSimilarItemsArgs = {
@@ -539,7 +540,7 @@ export type ItemSimilarItemsArgs = {
 };
 
 export type ItemUserSupplyArgs = {
-  ethAddress?: InputMaybe<Scalars["String"]>;
+  ethAddress?: Maybe<Scalars["String"]>;
 };
 
 export type ItemAttribute = {
@@ -647,12 +648,12 @@ export type ItemReportEdge = {
 };
 
 export type ItemReportFilterInput = {
-  active?: InputMaybe<Scalars["Boolean"]>;
-  reason?: InputMaybe<ItemReportReason>;
+  active?: Maybe<Scalars["Boolean"]>;
+  reason?: Maybe<ItemReportReason>;
 };
 
 export type ItemReportInput = {
-  comment?: InputMaybe<Scalars["String"]>;
+  comment?: Maybe<Scalars["String"]>;
   itemId: Scalars["String"];
   reason: ItemReportReason;
 };
@@ -704,14 +705,14 @@ export type ItemWithOfferPageInfo = {
 };
 
 export type ItemsFilterInput = {
-  auctionType?: InputMaybe<AuctionType>;
-  chainIds?: InputMaybe<Array<Scalars["String"]>>;
-  collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
-  contentType?: InputMaybe<ContentType>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
-  offerTypes?: InputMaybe<Array<OfferType>>;
-  tagName?: InputMaybe<Scalars["String"]>;
-  titleQuery?: InputMaybe<Scalars["String"]>;
+  auctionType?: Maybe<AuctionType>;
+  chainIds?: Maybe<Array<Scalars["String"]>>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
+  contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
+  offerTypes?: Maybe<Array<OfferType>>;
+  tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
 };
 
 export type ItemsResponse = {
@@ -742,12 +743,12 @@ export type LaunchpadDetailsInput = {
 };
 
 export type LoginInput = {
-  chainId?: InputMaybe<Scalars["Float"]>;
+  chainId?: Maybe<Scalars["Float"]>;
   ethAddress: Scalars["String"];
   signature: Scalars["String"];
-  source?: InputMaybe<Scalars["String"]>;
-  type?: InputMaybe<UserType>;
-  walletType?: InputMaybe<Scalars["String"]>;
+  source?: Maybe<Scalars["String"]>;
+  type?: Maybe<UserType>;
+  walletType?: Maybe<Scalars["String"]>;
 };
 
 export type MetadataValuePossibility = {
@@ -910,7 +911,7 @@ export enum NotificationType {
 }
 
 export type NotificationsFilterInput = {
-  status?: InputMaybe<NotificationsFilterType>;
+  status?: Maybe<NotificationsFilterType>;
 };
 
 export enum NotificationsFilterType {
@@ -942,13 +943,13 @@ export enum OfferType {
 
 export type PagingInput = {
   /** Paginate after opaque cursor */
-  after?: InputMaybe<Scalars["String"]>;
+  after?: Maybe<Scalars["String"]>;
   /** Paginate before opaque cursor */
-  before?: InputMaybe<Scalars["String"]>;
+  before?: Maybe<Scalars["String"]>;
   /** Paginate first */
-  first?: InputMaybe<Scalars["Float"]>;
+  first?: Maybe<Scalars["Float"]>;
   /** Paginate last */
-  last?: InputMaybe<Scalars["Float"]>;
+  last?: Maybe<Scalars["Float"]>;
 };
 
 export type Price = {
@@ -983,6 +984,7 @@ export type Properties = {
   imagePreview?: Maybe<Scalars["String"]>;
   ipfsDocument?: Maybe<Scalars["String"]>;
   ipfsUrl?: Maybe<Scalars["String"]>;
+  mimeType?: Maybe<Scalars["String"]>;
   originalFileUrl?: Maybe<Scalars["String"]>;
   originalThumbnailUrl?: Maybe<Scalars["String"]>;
   thumbnailUrl?: Maybe<Scalars["String"]>;
@@ -1024,13 +1026,14 @@ export type Query = {
 };
 
 export type QueryAuctionArgs = {
-  id?: InputMaybe<Scalars["ID"]>;
+  id?: Maybe<Scalars["ID"]>;
 };
 
 export type QueryCollectionArgs = {
-  chainId?: InputMaybe<Scalars["Int"]>;
-  contractAddress?: InputMaybe<Scalars["String"]>;
-  slug?: InputMaybe<Scalars["String"]>;
+  chainId?: Maybe<Scalars["Int"]>;
+  collectionId?: Maybe<Scalars["String"]>;
+  contractAddress?: Maybe<Scalars["String"]>;
+  slug?: Maybe<Scalars["String"]>;
 };
 
 export type QueryCollectionMetadataValuesArgs = {
@@ -1038,9 +1041,9 @@ export type QueryCollectionMetadataValuesArgs = {
 };
 
 export type QueryCollectionsArgs = {
-  filter?: InputMaybe<CollectionsFilterInput>;
+  filter?: Maybe<CollectionsFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type QueryContractCountArgs = {
@@ -1055,7 +1058,7 @@ export type QueryGetUploadUrlArgs = {
 };
 
 export type QueryHotItemsArgs = {
-  limit?: InputMaybe<Scalars["Int"]>;
+  limit?: Maybe<Scalars["Int"]>;
   type: AssetType;
 };
 
@@ -1073,18 +1076,18 @@ export type QueryItemArgs = {
 };
 
 export type QueryItemsOnOfferArgs = {
-  filter?: InputMaybe<ItemsFilterInput>;
+  filter?: Maybe<ItemsFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type QueryNotificationsArgs = {
-  filter?: InputMaybe<NotificationsFilterInput>;
+  filter?: Maybe<NotificationsFilterInput>;
   paging: PagingInput;
 };
 
 export type QueryOfferArgs = {
-  id?: InputMaybe<Scalars["ID"]>;
+  id?: Maybe<Scalars["ID"]>;
 };
 
 export type QueryRefinableContractArgs = {
@@ -1096,26 +1099,26 @@ export type QueryRefinableContractsArgs = {
 };
 
 export type QueryReportsArgs = {
-  filter?: InputMaybe<ItemReportFilterInput>;
+  filter?: Maybe<ItemReportFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type QuerySearchArgs = {
   filter: SearchFilterInput;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
   type: AssetType;
 };
 
 export type QueryStoreArgs = {
-  domain?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  isExternal?: InputMaybe<Scalars["Boolean"]>;
+  domain?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
+  isExternal?: Maybe<Scalars["Boolean"]>;
 };
 
 export type QueryTopUsersArgs = {
-  limit?: InputMaybe<Scalars["Int"]>;
+  limit?: Maybe<Scalars["Int"]>;
 };
 
 export type QueryUserArgs = {
@@ -1135,9 +1138,9 @@ export type RoyaltiesInput = {
 };
 
 export type RoyaltySettingsInput = {
-  royaltyBps?: InputMaybe<Scalars["Float"]>;
+  royaltyBps?: Maybe<Scalars["Float"]>;
   royaltyStrategy: RoyaltyStrategy;
-  shares?: InputMaybe<Array<RoyaltiesInput>>;
+  shares?: Maybe<Array<RoyaltiesInput>>;
 };
 
 export enum RoyaltyStrategy {
@@ -1146,15 +1149,15 @@ export enum RoyaltyStrategy {
 }
 
 export type SearchFilterInput = {
-  auctionType?: InputMaybe<AuctionType>;
-  chainIds?: InputMaybe<Array<Scalars["String"]>>;
-  collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
-  contentType?: InputMaybe<ContentType>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
-  offerTypes?: InputMaybe<Array<OfferType>>;
-  query?: InputMaybe<Scalars["String"]>;
-  tagName?: InputMaybe<Scalars["String"]>;
-  titleQuery?: InputMaybe<Scalars["String"]>;
+  auctionType?: Maybe<AuctionType>;
+  chainIds?: Maybe<Array<Scalars["String"]>>;
+  collectionSlugs?: Maybe<Array<Scalars["String"]>>;
+  contentType?: Maybe<ContentType>;
+  currencies?: Maybe<Array<PriceCurrency>>;
+  offerTypes?: Maybe<Array<OfferType>>;
+  query?: Maybe<Scalars["String"]>;
+  tagName?: Maybe<Scalars["String"]>;
+  titleQuery?: Maybe<Scalars["String"]>;
 };
 
 export type SearchResponse = {
@@ -1179,6 +1182,7 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
+  collectionIds: Array<Scalars["String"]>;
   contracts: Array<Contract>;
   creator: Scalars["String"];
   customLinks?: Maybe<Array<CustomLink>>;
@@ -1205,9 +1209,9 @@ export type Store = {
 };
 
 export type StoreItemsArgs = {
-  filter?: InputMaybe<CollectionMetadataFilterInput>;
+  filter?: Maybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type Subscription = {
@@ -1340,31 +1344,31 @@ export type UpdateStore = {
 export type UpdateStoreInput = {
   backgroundColor: Scalars["String"];
   contracts: Array<ContractInput>;
-  customLinks?: InputMaybe<Array<CustomLinkInput>>;
+  customLinks?: Maybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
-  discord?: InputMaybe<Scalars["String"]>;
+  discord?: Maybe<Scalars["String"]>;
   domain: Scalars["String"];
   email: Scalars["String"];
   favicon: Scalars["String"];
-  instagram?: InputMaybe<Scalars["String"]>;
+  instagram?: Maybe<Scalars["String"]>;
   logo: Scalars["String"];
   logoHeight: Scalars["Float"];
   name: Scalars["String"];
   primaryColor: Scalars["String"];
-  telegram?: InputMaybe<Scalars["String"]>;
-  twitter?: InputMaybe<Scalars["String"]>;
-  website?: InputMaybe<Scalars["String"]>;
+  telegram?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export type UpdateUserInput = {
-  description?: InputMaybe<Scalars["String"]>;
-  email?: InputMaybe<Scalars["String"]>;
-  instagram?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  profileBanner?: InputMaybe<Scalars["String"]>;
-  profileImage?: InputMaybe<Scalars["String"]>;
-  twitter?: InputMaybe<Scalars["String"]>;
-  website?: InputMaybe<Scalars["String"]>;
+  description?: Maybe<Scalars["String"]>;
+  email?: Maybe<Scalars["String"]>;
+  instagram?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
+  profileBanner?: Maybe<Scalars["String"]>;
+  profileImage?: Maybe<Scalars["String"]>;
+  twitter?: Maybe<Scalars["String"]>;
+  website?: Maybe<Scalars["String"]>;
 };
 
 export enum UploadType {
@@ -1396,13 +1400,13 @@ export type User = {
 export type UserItemsArgs = {
   filter: UserItemFilterInput;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type UserItemsOnOfferArgs = {
-  filter?: InputMaybe<UserItemOnOfferFilterInput>;
+  filter?: Maybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 };
 
 export type UserItemFilterInput = {
@@ -1415,7 +1419,7 @@ export enum UserItemFilterType {
 }
 
 export type UserItemOnOfferFilterInput = {
-  type?: InputMaybe<OfferType>;
+  type?: Maybe<OfferType>;
 };
 
 export enum UserRoles {
@@ -1431,7 +1435,7 @@ export enum UserType {
 
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
-  type?: InputMaybe<UserType>;
+  type?: Maybe<UserType>;
 };
 
 export type UndefinedEdge = {
@@ -1849,9 +1853,9 @@ export type OfferFragment = {
 
 export type GetUserOfferItemsQueryVariables = Exact<{
   ethAddress: Scalars["String"];
-  filter?: InputMaybe<UserItemOnOfferFilterInput>;
+  filter?: Maybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
-  sort?: InputMaybe<SortInput>;
+  sort?: Maybe<SortInput>;
 }>;
 
 export type GetUserOfferItemsQuery = {
