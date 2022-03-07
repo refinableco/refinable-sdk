@@ -78,7 +78,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
       options
     );
 
-    const graphqlUrl = apiUrl[this._options.environment];
+    const graphqlUrl = apiUrl[this._options.environment];    
 
     this._apiKey = apiOrBearerToken;
     this.apiClient = new GraphQLClient(graphqlUrl, {

@@ -11,6 +11,7 @@ import {
   RefinableEvmClient,
   SaleOffer,
   StandardRoyaltyStrategy,
+  TokenType,
 } from "../../src";
 import {
   LaunchpadCountDownType,
@@ -337,6 +338,7 @@ describe("ERC721 - E2E", () => {
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
+        
       });
     });
     describe("Cancel", () => {
