@@ -22,6 +22,18 @@ export interface PartialNFTItem {
   totalSupply?: number;
 }
 
+export interface NFTBuyParams {
+  signature: string;
+  price: Price;
+  ownerEthAddress: string;
+  royaltyContractAddress?: string;
+  supply: number;
+  amount?: number;
+  blockchainId: string;
+  startTime?: Date;
+  endTime?: Date;
+}
+
 export abstract class AbstractNFT {
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
@@ -61,21 +73,16 @@ export abstract class AbstractNFT {
     supply?: number,
     ownerEthAddress?: string
   ): Promise<Transaction>;
-  abstract putForSale(price: Price, supply?: number): Promise<SaleOffer>;
+  abstract putForSale(params: {
+    price: Price;
+    supply?: number;
+  }): Promise<SaleOffer>;
   abstract transfer(
     ownerEthAddress: string,
     recipientEthAddress: string,
     supply?: number
   ): Promise<Transaction>;
-  abstract buy(params: {
-    blockchainId: string;
-    signature?: string;
-    price: Price;
-    ownerEthAddress: string;
-    royaltyContractAddress?: string;
-    supply?: number;
-    amount?: number;
-  }): Promise<Transaction>;
+  abstract buy(params: NFTBuyParams): Promise<Transaction>;
 
   abstract putForAuction({
     price,

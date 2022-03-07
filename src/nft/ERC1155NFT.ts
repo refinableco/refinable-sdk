@@ -5,16 +5,21 @@ import {
   CreateOfferForEditionsMutationVariables,
   OfferType,
   Price,
-  TokenType
+  TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
-import { getUnixEpochTimeStampFromDate } from "../utils/time";
+import {
+  getUnixEpochTimeStampFromDate,
+  getUnixEpochTimeStampFromDateOr0,
+} from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
+import { ERCSaleID, SaleVersion } from "./ERCSaleId";
+import { SaleInfo } from "./interfaces/SaleInfo";
 
 export class ERC1155NFT extends AbstractEvmNFT {
   constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
@@ -41,119 +46,96 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async buy(params: {
-    signature?: string;
+    signature: string;
     price: Price;
     ownerEthAddress: string;
     royaltyContractAddress?: string;
-    supply?: number;
+    supply: number;
     amount?: number;
+    blockchainId: string;
+    startTime?: Date;
+    endTime?: Date;
   }): Promise<EvmTransaction> {
-    const {
-      signature,
-      price: pricePerCopy,
-      ownerEthAddress,
-      royaltyContractAddress,
-      supply = 1,
-      amount = 1,
-    } = params;
-
-    this.verifyItem();
-    await this.isValidRoyaltyContract(royaltyContractAddress);
-    const saleContract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      this.saleContract.address,
-      [ContractTypes.Erc1155Sale]
-    );
-    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
-
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
-      pricePerCopy,
-      this.saleContract.address,
-      [ContractTypes.Erc1155Sale],
-      amount
-    );
-
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
-      this.saleContract.address
-    );
-
-    const paymentToken = this.getPaymentToken(pricePerCopy.currency);
-    const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
-    const value = this.parseCurrency(
-      pricePerCopy.currency,
-      priceWithServiceFee.amount
-    );
-
-    const buyTx = await this.saleContract.buy(
-      // address _token
-      this.item.contractAddress,
-      // address _royaltyToken
-      ...optionalParam(
-        !isDiamondContract,
-        royaltyContractAddress ?? ethers.constants.AddressZero
-      ),
-      // uint256 _tokenId
-      this.item.tokenId,
-      // address _payToken
-      paymentToken,
-      // address payable _owner
-      ownerEthAddress,
-      // uint256 _selling
-      supply,
-      // uint256 _buying
-      amount,
-      // bytes memory _signature
-      signature,
-      // If currency is Native, send msg.value
-      ...optionalParam(isNativeCurrency, {
-        value,
-      })
-    );
-
-    return new EvmTransaction(buyTx);
+    return this._buy({
+      royaltyContractAddress: params.royaltyContractAddress,
+      price: params.price,
+      ownerEthAddress: params.ownerEthAddress,
+      signature: params.signature,
+      endTime: params.endTime,
+      startTime: params.startTime,
+      blockchainId: params.blockchainId,
+      supply: params.supply,
+      amount: params.amount,
+    });
   }
 
-  async putForSale(
-    price: Price,
-    supply = 1,
+  async buyUsingVoucher(
+    params: {
+      signature: string;
+      price: Price;
+      ownerEthAddress: string;
+      royaltyContractAddress?: string;
+      supply: number;
+      amount?: number;
+      blockchainId: string;
+      startTime?: Date;
+      endTime?: Date;
+    },
+    voucher: any
+  ): Promise<EvmTransaction> {
+    return this._buy({
+      royaltyContractAddress: params.royaltyContractAddress,
+      price: params.price,
+      ownerEthAddress: params.ownerEthAddress,
+      signature: params.signature,
+      endTime: params.endTime,
+      startTime: params.startTime,
+      blockchainId: params.blockchainId,
+      supply: params.supply,
+      amount: params.amount,
+      voucher,
+    });
+  }
+
+  async putForSale(params: {
+    price: Price;
+    startTime?: Date;
+    endTime?: Date;
+    supply?: number;
     launchpadDetails?: {
-      vipStartDate: Date;
-      privateStartDate: Date;
-      publicStartDate: Date;
-    }
-  ): Promise<SaleOffer> {
+      vipStartDate?: Date;
+      vipWhitelist?: string[];
+      privateStartDate?: Date;
+      privateWhitelist?: string[];
+    };
+  }): Promise<SaleOffer> {
+    const {
+      price,
+      startTime = new Date(),
+      endTime,
+      launchpadDetails,
+      supply = 1,
+    } = params;
+
     this.verifyItem();
 
     const addressForApproval = this.transferProxyContract.address;
 
     await this.approveIfNeeded(addressForApproval);
 
-    const saleParamHash = await this.getSaleParamsHash(
+    const saleParamHash = await this.getSaleParamsHash({
       price,
-      this.refinable.accountAddress,
-      supply
-    );
+      ethAddress: this.refinable.accountAddress,
+      supply,
+      isV2: true,
+    });
 
     const signedHash = await this.refinable.personalSign(
       saleParamHash as string
     );
 
-    if (launchpadDetails) {
-      const saleInfoResponse = await this.saleContract.setSaleInfo(
-        // address _token
-        this.item.contractAddress,
-        // uint256 _tokenId
-        this.item.tokenId,
-        // uint256 vip sale date
-        getUnixEpochTimeStampFromDate(launchpadDetails.vipStartDate),
-        // uint256 private sale date
-        getUnixEpochTimeStampFromDate(launchpadDetails.privateStartDate),
-        // uint256 public sale date
-        getUnixEpochTimeStampFromDate(launchpadDetails.publicStartDate)
-      );
-      await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
-    }
+    const saleId = await this.getSaleId();
+    const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
 
     const result = await this.refinable.apiClient.request<
       CreateOfferForEditionsMutation,
@@ -169,13 +151,10 @@ export class ERC1155NFT extends AbstractEvmNFT {
           amount: parseFloat(price.amount.toString()),
         },
         supply,
-        ...(launchpadDetails && {
-          launchpadDetails: {
-            vipStartDate: launchpadDetails.vipStartDate,
-            privateStartDate: launchpadDetails.privateStartDate,
-            publicStartDate: launchpadDetails.publicStartDate,
-          },
-        }),
+        startTime,
+        endTime,
+        launchpadDetails,
+        blockchainId,
       },
     });
 
