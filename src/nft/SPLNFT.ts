@@ -386,7 +386,7 @@ export class SPLNFT extends AbstractNFT {
     return new SolanaTransaction(txSig, this.connection);
   }
 
-  async putForSale(price: Price): Promise<SaleOffer> {
+  async putForSale(params: { price: Price }): Promise<SaleOffer> {
     const amount = 1;
 
     const auctionHouse = await getAuctionHouseKey(
@@ -399,7 +399,7 @@ export class SPLNFT extends AbstractNFT {
 
     const buyerPrice = new BN(
       await getPriceWithMantissa(
-        price.amount,
+        params.price.amount,
         auctionHouseObj.treasuryMint,
         this.refinable.provider,
         this.connection
@@ -476,8 +476,8 @@ export class SPLNFT extends AbstractNFT {
         type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
-          currency: price.currency,
-          amount: parseFloat(price.amount.toString()),
+          currency: params.price.currency,
+          amount: parseFloat(params.price.amount.toString()),
         },
         supply: amount,
       },

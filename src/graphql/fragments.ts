@@ -127,6 +127,8 @@ export const OfferFragment = gql`
     active
     supply
     totalSupply
+    startTime
+    endTime
     user {
       id
       ethAddress
@@ -140,6 +142,8 @@ export const OfferFragment = gql`
     auction {
       ...Auction
     }
+    whitelistVoucher
+    whitelistStage
   }
   ${AuctionFragment}
 `;

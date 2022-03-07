@@ -331,7 +331,7 @@ export type CreateOffersInput = {
 
 export type CreatePurchaseInput = {
   amount: Scalars["Int"];
-  metadata?: Maybe<PurchaseMetadata>;
+  metadata?: InputMaybe<PurchaseMetadata>;
   offerId: Scalars["String"];
   transactionHash: Scalars["String"];
 };
@@ -512,6 +512,7 @@ export type Item = {
   owners: Array<ItemOwner>;
   properties: Properties;
   reason?: Maybe<Scalars["String"]>;
+  royalties?: Maybe<Scalars["Float"]>;
   similarItems: Array<ItemWithOffer>;
   supply: Scalars["Float"];
   tags: Array<Tag>;
@@ -729,17 +730,26 @@ export type ItemsWithOffersResponse = {
   totalCount?: Maybe<Scalars["Float"]>;
 };
 
+export enum LaunchpadCountDownType {
+  Live = "LIVE",
+  Private = "PRIVATE",
+  Public = "PUBLIC",
+  Vip = "VIP",
+}
+
 export type LaunchpadDetails = {
   __typename?: "LaunchpadDetails";
-  privateStartDate: Scalars["DateTime"];
-  publicStartDate: Scalars["DateTime"];
-  vipStartDate: Scalars["DateTime"];
+  privateStartDate?: Maybe<Scalars["DateTime"]>;
+  /** @deprecated Deprecated in favour of offer.startTime */
+  publicStartDate?: Maybe<Scalars["DateTime"]>;
+  vipStartDate?: Maybe<Scalars["DateTime"]>;
 };
 
 export type LaunchpadDetailsInput = {
-  privateStartDate: Scalars["DateTime"];
-  publicStartDate: Scalars["DateTime"];
-  vipStartDate: Scalars["DateTime"];
+  privateStartDate?: InputMaybe<Scalars["DateTime"]>;
+  privateWhitelist?: InputMaybe<Array<Scalars["String"]>>;
+  vipStartDate?: InputMaybe<Scalars["DateTime"]>;
+  vipWhitelist?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 export type LoginInput = {
@@ -925,15 +935,19 @@ export type Offer = {
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
   createdAt?: Maybe<Scalars["DateTime"]>;
+  endTime?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
   launchpadDetails?: Maybe<LaunchpadDetails>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
   supply: Scalars["Int"];
   totalSupply: Scalars["Int"];
   type: OfferType;
   unlistedAt?: Maybe<Scalars["DateTime"]>;
   user: User;
+  whitelistStage: LaunchpadCountDownType;
+  whitelistVoucher?: Maybe<Scalars["JSON"]>;
 };
 
 export enum OfferType {
@@ -984,6 +998,7 @@ export type Properties = {
   imagePreview?: Maybe<Scalars["String"]>;
   ipfsDocument?: Maybe<Scalars["String"]>;
   ipfsUrl?: Maybe<Scalars["String"]>;
+  mimeType?: Maybe<Scalars["String"]>;
   originalFileUrl?: Maybe<Scalars["String"]>;
   originalThumbnailUrl?: Maybe<Scalars["String"]>;
   thumbnailUrl?: Maybe<Scalars["String"]>;
@@ -995,9 +1010,9 @@ export type Purchase = {
 };
 
 export type PurchaseMetadata = {
-  acceptedTOS?: Maybe<Scalars["Boolean"]>;
+  acceptedTOS?: InputMaybe<Scalars["Boolean"]>;
   createdAt: Scalars["DateTime"];
-  email?: Maybe<Scalars["String"]>;
+  email?: InputMaybe<Scalars["String"]>;
 };
 
 export type Query = {
@@ -1036,6 +1051,7 @@ export type QueryAuctionArgs = {
 
 export type QueryCollectionArgs = {
   chainId?: InputMaybe<Scalars["Int"]>;
+  collectionId?: InputMaybe<Scalars["String"]>;
   contractAddress?: InputMaybe<Scalars["String"]>;
   slug?: InputMaybe<Scalars["String"]>;
 };
@@ -1186,8 +1202,10 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
+  collectionIds: Array<Scalars["String"]>;
   contracts: Array<Contract>;
   creator: Scalars["String"];
+  customGa?: Maybe<Scalars["String"]>;
   customLinks?: Maybe<Array<CustomLink>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
@@ -1347,6 +1365,7 @@ export type UpdateStore = {
 export type UpdateStoreInput = {
   backgroundColor: Scalars["String"];
   contracts: Array<ContractInput>;
+  customGa?: InputMaybe<Scalars["String"]>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
@@ -1797,8 +1816,12 @@ export type OfferFragment = {
   active: boolean;
   supply: number;
   totalSupply: number;
+  startTime?: any | null | undefined;
+  endTime?: any | null | undefined;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
+  whitelistVoucher?: any | null | undefined;
+  whitelistStage: LaunchpadCountDownType;
   user: {
     __typename?: "User";
     id: string;
@@ -1971,6 +1994,88 @@ export type GetUserOfferItemsQuery = {
             | null
             | undefined;
         };
+      }
+    | null
+    | undefined;
+};
+
+export type GetOfferQueryVariables = Exact<{
+  id: Scalars["ID"];
+}>;
+
+export type GetOfferQuery = {
+  __typename?: "Query";
+  offer?:
+    | {
+        __typename?: "Offer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistVoucher?: any | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
       }
     | null
     | undefined;
@@ -2184,8 +2289,12 @@ export type CreateOfferForEditionsMutation = {
     active: boolean;
     supply: number;
     totalSupply: number;
+    startTime?: any | null | undefined;
+    endTime?: any | null | undefined;
     signature?: string | null | undefined;
     blockchainId?: string | null | undefined;
+    whitelistVoucher?: any | null | undefined;
+    whitelistStage: LaunchpadCountDownType;
     user: {
       __typename?: "User";
       id: string;

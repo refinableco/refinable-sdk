@@ -1,6 +1,4 @@
-import { constants } from "ethers";
 import {
-  ContractTypes,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   OfferType,
@@ -11,10 +9,9 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
-import { getUnixEpochTimeStampFromDate } from "../utils/time";
-import { optionalParam } from "../utils/utils";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
+import { ERCSaleID, SaleVersion } from "./ERCSaleId";
 
 export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
@@ -49,104 +46,83 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async buy(params: {
-    signature?: string;
+    signature: string;
+    blockchainId: string;
     price: Price;
     ownerEthAddress: string;
     royaltyContractAddress?: string;
+    startTime?: Date;
+    endTime?: Date;
   }): Promise<EvmTransaction> {
-    const { royaltyContractAddress, price, ownerEthAddress, signature } =
-      params;
-
-    this.verifyItem();
-    const saleContract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      this.saleContract.address,
-      [ContractTypes.Erc721Sale]
-    );
-    await this.isValidRoyaltyContract(royaltyContractAddress);
-    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
-
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
-      price,
-      this.saleContract.address,
-      [ContractTypes.Erc721Sale]
-    );
-
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
-      this.saleContract.address
-    );
-
-    const paymentToken = this.getPaymentToken(price.currency);
-    const isNativeCurrency = this.isNativeCurrency(price.currency);
-    const value = this.parseCurrency(
-      price.currency,
-      priceWithServiceFee.amount
-    );
-
-    const buyTx = await this.saleContract.buy(
-      // address _token
-      this.item.contractAddress,
-      // address _royaltyToken,
-      ...optionalParam(
-        !isDiamondContract,
-        royaltyContractAddress ?? constants.AddressZero
-      ),
-      // uint256 _tokenId
-      this.item.tokenId,
-      // address _payToken
-      paymentToken,
-      // address payable _owner
-      ownerEthAddress,
-      // bytes memory _signature
-      signature,
-      // If currency is native, send msg.value
-      ...optionalParam(isNativeCurrency, {
-        value,
-      })
-    );
-
-    return new EvmTransaction(buyTx);
+    return this._buy({
+      royaltyContractAddress: params.royaltyContractAddress,
+      price: params.price,
+      ownerEthAddress: params.ownerEthAddress,
+      signature: params.signature,
+      endTime: params.endTime,
+      startTime: params.startTime,
+      blockchainId: params.blockchainId,
+      supply: 1,
+      amount: 1,
+    });
   }
 
-  async putForSale(
-    price: Price,
-    supply: number = 1,
+  async buyUsingVoucher(
+    params: {
+      signature: string;
+      blockchainId: string;
+      price: Price;
+      ownerEthAddress: string;
+      royaltyContractAddress?: string;
+      startTime?: Date;
+      endTime?: Date;
+    },
+    voucher: any
+  ): Promise<EvmTransaction> {
+    return this._buy({
+      royaltyContractAddress: params.royaltyContractAddress,
+      price: params.price,
+      ownerEthAddress: params.ownerEthAddress,
+      signature: params.signature,
+      endTime: params.endTime,
+      startTime: params.startTime,
+      blockchainId: params.blockchainId,
+      supply: 1,
+      amount: 1,
+      voucher,
+    });
+  }
+
+  async putForSale(params: {
+    price: Price;
+    startTime?: Date;
+    endTime?: Date;
     launchpadDetails?: {
-      vipStartDate: Date;
-      privateStartDate: Date;
-      publicStartDate: Date;
-    }
-  ): Promise<SaleOffer> {
+      vipStartDate?: Date;
+      vipWhitelist?: string[];
+      privateStartDate?: Date;
+      privateWhitelist?: string[];
+    };
+  }): Promise<SaleOffer> {
+    const { price, startTime, endTime, launchpadDetails } = params;
     this.verifyItem();
-    const addressForApproval = this.transferProxyContract.address;
 
-    await this.approveIfNeeded(addressForApproval);
+    await this.approveIfNeeded(this.transferProxyContract.address);
 
-    const saleParamsHash = await this.getSaleParamsHash(
+    const saleParamsHash = await this.getSaleParamsHash({
       price,
-      this.refinable.accountAddress
-    );
+      ethAddress: this.refinable.accountAddress,
+      startTime,
+      endTime,
+      isV2: true,
+    });
 
     const signedHash = await this.refinable.personalSign(
       saleParamsHash as string
     );
 
-    if (launchpadDetails) {
-      const saleInfoResponse = await this.saleContract.setSaleInfo(
-        // address _token
-        this.item.contractAddress,
-        // uint256 _tokenId
-        this.item.tokenId,
-        // uint256 vip sale date
-        getUnixEpochTimeStampFromDate(launchpadDetails.vipStartDate),
-        // uint256 private sale date
-        getUnixEpochTimeStampFromDate(launchpadDetails.privateStartDate),
-        // uint256 public sale date
-        getUnixEpochTimeStampFromDate(launchpadDetails.publicStartDate)
-      );
-      await saleInfoResponse.wait(this.refinable.options.waitConfirmations);
-    }
+    const saleId = await this.getSaleId();
+    const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
 
     const result = await this.refinable.apiClient.request<
       CreateOfferForEditionsMutation,
@@ -161,14 +137,11 @@ export class ERC721NFT extends AbstractEvmNFT {
           currency: price.currency,
           amount: parseFloat(price.amount.toString()),
         },
+        startTime,
+        endTime,
         supply: 1,
-        ...(launchpadDetails && {
-          launchpadDetails: {
-            vipStartDate: launchpadDetails.vipStartDate,
-            privateStartDate: launchpadDetails.privateStartDate,
-            publicStartDate: launchpadDetails.publicStartDate,
-          },
-        }),
+        launchpadDetails,
+        blockchainId,
       },
     });
 

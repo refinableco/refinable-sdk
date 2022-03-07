@@ -18,6 +18,10 @@ export interface PartialOffer
     | "totalSupply"
     | "auction"
     | "blockchainId"
+    | "startTime"
+    | "endTime"
+    | "whitelistVoucher"
+    | "whitelistStage"
   > {}
 
 export class Offer implements PartialOffer {
@@ -28,6 +32,10 @@ export class Offer implements PartialOffer {
   price: Price;
   totalSupply: number;
   auction?: AuctionFragment;
+  startTime?: Date | null | undefined;
+  endTime?: Date | null | undefined;
+  whitelistVoucher?: OfferFragment["whitelistVoucher"];
+  whitelistStage: OfferFragment["whitelistStage"];
   user: { id: string; ethAddress?: string };
 
   constructor(

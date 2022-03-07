@@ -41,7 +41,7 @@ export class Contracts {
     if (this.baseContracts?.[chainId]) {
       return this.baseContracts[chainId];
     }
-    const networkId = await this.refinable.provider.getChainId();
+    const networkId = 1337;
     const tags = getContractsTags(
       this.refinable.options.environment,
       networkId

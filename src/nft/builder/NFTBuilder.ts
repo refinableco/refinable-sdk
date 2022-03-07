@@ -162,7 +162,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
         // _primaryRoyaltyShares - Not supported yet through the SDK
         []
       );
-    }
+    }    
 
     const nftTokenContract = tokenContract.toEthersContract(
       this.refinable.provider
