@@ -31,7 +31,7 @@ export const getContractsTags = (
         v4ContractChains.includes(chain)
           ? ContractTag.SaleV4_0_0
           : ContractTag.SaleV3_1_0,
-        chain === ChainType.POLYGON
+        v4ContractChains.includes(chain)
           ? ContractTag.AuctionV4_0_0
           : ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
@@ -43,7 +43,7 @@ export const getContractsTags = (
         chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
           ? ContractTag.SaleV4_0_0
           : ContractTag.SaleV3_1_0,
-        chain === ChainType.BSC
+        chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
           ? ContractTag.AuctionV4_0_0
           : ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
