@@ -142,7 +142,12 @@ export const OfferFragment = gql`
     auction {
       ...Auction
     }
-    whitelistVoucher
+    whitelistVoucher {
+      whitelistType
+      limit
+      signature
+      startTime
+    }
     whitelistStage
   }
   ${AuctionFragment}

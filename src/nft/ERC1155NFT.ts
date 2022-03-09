@@ -3,6 +3,7 @@ import {
   ContractTypes,
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
+  LaunchpadDetailsInput,
   OfferType,
   Price,
   TokenType,
@@ -11,15 +12,11 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
-import {
-  getUnixEpochTimeStampFromDate,
-  getUnixEpochTimeStampFromDateOr0,
-} from "../utils/time";
-import { optionalParam } from "../utils/utils";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
-import { ERCSaleID, SaleVersion } from "./ERCSaleId";
-import { SaleInfo } from "./interfaces/SaleInfo";
+import { ERCSaleID } from "./ERCSaleId";
+import { SaleVersion } from "./interfaces/SaleInfo";
+import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export class ERC1155NFT extends AbstractEvmNFT {
   constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
@@ -81,7 +78,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
       startTime?: Date;
       endTime?: Date;
     },
-    voucher: any
+    voucher: WhitelistVoucherParams & { startTime: Date }
   ): Promise<EvmTransaction> {
     return this._buy({
       royaltyContractAddress: params.royaltyContractAddress,
@@ -102,12 +99,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
     startTime?: Date;
     endTime?: Date;
     supply?: number;
-    launchpadDetails?: {
-      vipStartDate?: Date;
-      vipWhitelist?: string[];
-      privateStartDate?: Date;
-      privateWhitelist?: string[];
-    };
+    launchpadDetails?: LaunchpadDetailsInput;
   }): Promise<SaleOffer> {
     const {
       price,
@@ -127,6 +119,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
       price,
       ethAddress: this.refinable.accountAddress,
       supply,
+      ...(!!startTime && { startTime }),
       isV2: true,
     });
 

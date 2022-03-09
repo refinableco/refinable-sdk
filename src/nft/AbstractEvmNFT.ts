@@ -27,7 +27,8 @@ import {
 import { optionalParam } from "../utils/utils";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
-import { SaleInfo } from "./interfaces/SaleInfo";
+import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
+import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
 
@@ -60,7 +61,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     return this.saleContract.getID(
       this.refinable.accountAddress,
       this.item.contractAddress,
-      this.item.chainId
+      this.item.tokenId
     );
   }
 
@@ -736,7 +737,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     amount?: number;
     startTime?: Date;
     endTime?: Date;
-    voucher?: any;
+    voucher?: WhitelistVoucherParams & { startTime: Date };
   }): Promise<EvmTransaction> {
     const {
       signature,
@@ -772,12 +773,12 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       priceWithServiceFee.amount
     );
 
-    const saleID = ERCSaleID.fromBlockchainId(blockchainId);    
+    const saleID = ERCSaleID.fromBlockchainId(blockchainId);
 
     const saleInfo: SaleInfo = {
       royaltyToken: royaltyContractAddress ?? constants.AddressZero,
       payToken: paymentToken,
-      saleVersion: saleID?.version ?? 0,
+      saleVersion: saleID?.version ?? SaleVersion.V1,
       seller: ownerEthAddress,
       signature,
       startTime: getUnixEpochTimeStampFromDateOr0(startTime),
@@ -786,8 +787,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       buying: amount,
     };
 
+    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
     const method = params.voucher ? "buyUsingVoucher" : "buy";
-
     const buyTx = await this.saleContract[method](
       // address _token
       this.item.contractAddress,
@@ -796,7 +797,10 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       // SaleInfo memory _saleInfo
       saleInfo,
       // WhitelistVoucherParams memory voucher - optional
-      ...optionalParam(params.voucher, params.voucher),
+      ...optionalParam(params.voucher != null, {
+        ...params.voucher,
+        startTime: getUnixEpochTimeStampFromDateOr0(params.voucher?.startTime),
+      }),
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {
         value,

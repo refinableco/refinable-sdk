@@ -1,6 +1,7 @@
 import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
+  LaunchpadDetailsInput,
   OfferType,
   Price,
   TokenType,
@@ -11,7 +12,8 @@ import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
-import { ERCSaleID, SaleVersion } from "./ERCSaleId";
+import { ERCSaleID } from "./ERCSaleId";
+import { SaleVersion } from "./interfaces/SaleInfo";
 
 export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
@@ -97,12 +99,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     price: Price;
     startTime?: Date;
     endTime?: Date;
-    launchpadDetails?: {
-      vipStartDate?: Date;
-      vipWhitelist?: string[];
-      privateStartDate?: Date;
-      privateWhitelist?: string[];
-    };
+    launchpadDetails?: LaunchpadDetailsInput;
   }): Promise<SaleOffer> {
     const { price, startTime, endTime, launchpadDetails } = params;
     this.verifyItem();

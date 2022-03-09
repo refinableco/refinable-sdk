@@ -20,7 +20,7 @@ import {
 import { uploadFile } from "../graphql/utils";
 import { Account } from "../interfaces/Account";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import { PartialOffer } from "../offer/Offer";
+import { PartialOfferInput } from "../offer/Offer";
 import { OfferFactory } from "../offer/OfferFactory";
 import {
   Environment,
@@ -78,7 +78,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
       options
     );
 
-    const graphqlUrl = apiUrl[this._options.environment];    
+    const graphqlUrl = apiUrl[this._options.environment];
 
     this._apiKey = apiOrBearerToken;
     this.apiClient = new GraphQLClient(graphqlUrl, {
@@ -92,7 +92,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   abstract init(): void | Promise<void>;
 
   createOffer<K extends OfferType>(
-    offer: PartialOffer & { type: K },
+    offer: PartialOfferInput & { type: K },
     nft: AbstractNFT
   ) {
     return OfferFactory.createOffer<K>(this, offer, nft);
@@ -125,7 +125,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     return this.getItemsWithOffer(paging, after, OfferType.Sale);
   }
 
-  async getOffer(id: string): Promise<OfferFragment> {    
+  async getOffer(id: string): Promise<OfferFragment> {
     const queryResponse = await this.apiClient.request<
       GetOfferQuery,
       GetOfferQueryVariables
