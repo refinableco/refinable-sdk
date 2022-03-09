@@ -265,6 +265,7 @@ export enum ContractTag {
   SaleV3_0_0 = "SALE_v3_0_0",
   SaleV3_0_1 = "SALE_v3_0_1",
   SaleV3_1_0 = "SALE_v3_1_0",
+  SaleV3_2_0 = "SALE_v3_2_0",
   SaleV4_0_0 = "SALE_v4_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
@@ -739,17 +740,24 @@ export enum LaunchpadCountDownType {
 
 export type LaunchpadDetails = {
   __typename?: "LaunchpadDetails";
-  privateStartDate?: Maybe<Scalars["DateTime"]>;
-  /** @deprecated Deprecated in favour of offer.startTime */
-  publicStartDate?: Maybe<Scalars["DateTime"]>;
-  vipStartDate?: Maybe<Scalars["DateTime"]>;
+  stages: Array<LaunchpadStage>;
 };
 
 export type LaunchpadDetailsInput = {
-  privateStartDate?: InputMaybe<Scalars["DateTime"]>;
-  privateWhitelist?: InputMaybe<Array<Scalars["String"]>>;
-  vipStartDate?: InputMaybe<Scalars["DateTime"]>;
-  vipWhitelist?: InputMaybe<Array<Scalars["String"]>>;
+  stages?: InputMaybe<Array<LaunchpadStageInput>>;
+};
+
+export type LaunchpadStage = {
+  __typename?: "LaunchpadStage";
+  stage: WhitelistType;
+  startTime?: Maybe<Scalars["DateTime"]>;
+  whitelist?: Maybe<Array<Scalars["String"]>>;
+};
+
+export type LaunchpadStageInput = {
+  stage: WhitelistType;
+  startTime?: InputMaybe<Scalars["DateTime"]>;
+  whitelist?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 export type LoginInput = {
@@ -947,7 +955,7 @@ export type Offer = {
   unlistedAt?: Maybe<Scalars["DateTime"]>;
   user: User;
   whitelistStage: LaunchpadCountDownType;
-  whitelistVoucher?: Maybe<Scalars["JSON"]>;
+  whitelistVoucher?: Maybe<WhitelistVoucher>;
 };
 
 export enum OfferType {
@@ -1460,6 +1468,20 @@ export type VerificationTokenInput = {
   type?: InputMaybe<UserType>;
 };
 
+export enum WhitelistType {
+  Private = "PRIVATE",
+  Public = "PUBLIC",
+  Vip = "VIP",
+}
+
+export type WhitelistVoucher = {
+  __typename?: "WhitelistVoucher";
+  limit: Scalars["Float"];
+  signature: Scalars["String"];
+  startTime: Scalars["DateTime"];
+  whitelistType: WhitelistType;
+};
+
 export type UndefinedEdge = {
   __typename?: "undefinedEdge";
   cursor: Scalars["String"];
@@ -1820,7 +1842,6 @@ export type OfferFragment = {
   endTime?: any | null | undefined;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
-  whitelistVoucher?: any | null | undefined;
   whitelistStage: LaunchpadCountDownType;
   user: {
     __typename?: "User";
@@ -1872,6 +1893,16 @@ export type OfferFragment = {
             }
           | null
           | undefined;
+      }
+    | null
+    | undefined;
+  whitelistVoucher?:
+    | {
+        __typename?: "WhitelistVoucher";
+        whitelistType: WhitelistType;
+        limit: number;
+        signature: string;
+        startTime: any;
       }
     | null
     | undefined;
@@ -2017,7 +2048,6 @@ export type GetOfferQuery = {
         endTime?: any | null | undefined;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
-        whitelistVoucher?: any | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: {
           __typename?: "User";
@@ -2073,6 +2103,16 @@ export type GetOfferQuery = {
                   }
                 | null
                 | undefined;
+            }
+          | null
+          | undefined;
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
             }
           | null
           | undefined;
@@ -2293,7 +2333,6 @@ export type CreateOfferForEditionsMutation = {
     endTime?: any | null | undefined;
     signature?: string | null | undefined;
     blockchainId?: string | null | undefined;
-    whitelistVoucher?: any | null | undefined;
     whitelistStage: LaunchpadCountDownType;
     user: {
       __typename?: "User";
@@ -2345,6 +2384,16 @@ export type CreateOfferForEditionsMutation = {
               }
             | null
             | undefined;
+        }
+      | null
+      | undefined;
+    whitelistVoucher?:
+      | {
+          __typename?: "WhitelistVoucher";
+          whitelistType: WhitelistType;
+          limit: number;
+          signature: string;
+          startTime: any;
         }
       | null
       | undefined;

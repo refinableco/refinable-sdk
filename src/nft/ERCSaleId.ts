@@ -1,7 +1,4 @@
-export enum SaleVersion {
-  V1 = 1,
-  V2 = 1,
-}
+import { SaleVersion } from "./interfaces/SaleInfo";
 
 export class ERCSaleID {
   constructor(

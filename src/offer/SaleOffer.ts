@@ -7,11 +7,12 @@ import {
 } from "../@types/graphql";
 import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT, NFTBuyParams } from "../nft/AbstractNFT";
-import { ERCSaleID, SaleVersion } from "../nft/ERCSaleId";
+import { ERCSaleID } from "../nft/ERCSaleId";
+import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { Transaction } from "../transaction/Transaction";
 import { isERC1155Item, isEVMNFT } from "../utils/is";
-import { Offer, PartialOffer } from "./Offer";
+import { Offer, PartialOfferInput } from "./Offer";
 
 interface BuyParams {
   royaltyContractAddress?: string;
@@ -21,14 +22,14 @@ interface BuyParams {
 export class SaleOffer extends Offer {
   constructor(
     refinable: RefinableBaseClient,
-    offer: PartialOffer,
+    offer: PartialOfferInput,
     nft: AbstractNFT
   ) {
     super(refinable, offer, nft);
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
-    let supply = await this.getSupplyOnSale();    
+    let supply = await this.getSupplyOnSale();
 
     const buyParams: NFTBuyParams = {
       signature: this.signature,
@@ -43,13 +44,9 @@ export class SaleOffer extends Offer {
     };
 
     let result: Transaction;
-    console.log( this.whitelistVoucher);
-    
+
     if (this?.whitelistVoucher && isEVMNFT(this.nft)) {
-      result = await this.nft.buyUsingVoucher(
-        buyParams,
-        this.whitelistVoucher
-      );
+      result = await this.nft.buyUsingVoucher(buyParams, this.whitelistVoucher);
     } else {
       result = await this.nft.buy(buyParams);
     }
