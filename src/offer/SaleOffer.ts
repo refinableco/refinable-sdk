@@ -33,7 +33,7 @@ export class SaleOffer extends Offer {
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
-    let supply = await this.getSupplyOnSale();    
+    let supply = await this.getSupplyOnSale();
 
     const buyParams: NFTBuyParams = {
       signature: this.signature,

@@ -6,6 +6,10 @@ import {
   WhitelistVoucher,
 } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
+import {
+  WhitelistType,
+  WhitelistVoucherParams,
+} from "../nft/interfaces/Voucher";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 
 export interface PartialOfferInput
@@ -42,6 +46,24 @@ export interface PartialOffer
     | "whitelistVoucher"
   > {}
 
+export interface PartialOffer
+  extends Pick<
+    PartialOfferInput,
+    | "id"
+    | "type"
+    | "signature"
+    | "price"
+    | "user"
+    | "totalSupply"
+    | "auction"
+    | "blockchainId"
+    | "startTime"
+    | "endTime"
+    | "whitelistStage"
+  > {
+  whitelistVoucher?: WhitelistVoucherParams;
+}
+
 export class Offer implements PartialOffer {
   id: string;
   type: OfferType;
@@ -62,5 +84,13 @@ export class Offer implements PartialOffer {
     protected readonly nft: AbstractNFT
   ) {
     Object.assign(this, offer);
+    if (offer.whitelistVoucher) {
+      this.whitelistVoucher = {
+        ...offer.whitelistVoucher,
+        whitelistType: WhitelistType[
+          offer.whitelistVoucher.whitelistType
+        ] as unknown as WhitelistType,
+      };
+    }
   }
 }
