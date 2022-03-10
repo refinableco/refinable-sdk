@@ -7,14 +7,14 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  Token
+  Token,
 } from "../@types/graphql";
 import { getContractsTags } from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
-  GET_REFINABLE_CONTRACTS
+  GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
 

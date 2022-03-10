@@ -116,7 +116,7 @@ describe("SPL", () => {
 
     const tx = await offer.cancelSale<SolanaTransaction>();
 
-    await tx.wait('finalized');
+    await tx.wait("finalized");
 
     expect(
       (
@@ -132,8 +132,10 @@ describe("SPL", () => {
     await sleep(2000);
 
     offer = await nft.putForSale({
-      currency: PriceCurrency.Sol,
-      amount: 2,
+      price: {
+        currency: PriceCurrency.Sol,
+        amount: 2,
+      },
     });
 
     expect(

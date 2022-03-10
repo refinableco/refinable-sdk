@@ -16,6 +16,8 @@ import {
   IRoyalty,
   RoyaltySettingsInput,
 } from "./nft/royaltyStrategies/Royalty";
+export * from "./nft/interfaces/SaleInfo";
+export * from "./nft/interfaces/Voucher";
 import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
 import { SPLNFT } from "./nft/SPLNFT";
 import { AuctionOffer } from "./offer/AuctionOffer";

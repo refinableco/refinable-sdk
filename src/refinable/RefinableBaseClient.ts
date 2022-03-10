@@ -2,18 +2,25 @@ import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
 import {
+  GetOfferQuery,
+  GetOfferQueryVariables,
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
+  OfferFragment,
   UserItemFilterType,
 } from "../@types/graphql";
 import { apiUrl } from "../config/sdk";
-import { GET_USER_ITEMS, GET_USER_OFFER_ITEMS } from "../graphql/items";
+import {
+  GET_OFFER,
+  GET_USER_ITEMS,
+  GET_USER_OFFER_ITEMS,
+} from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { Account } from "../interfaces/Account";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import { PartialOffer } from "../offer/Offer";
+import { PartialOfferInput } from "../offer/Offer";
 import { OfferFactory } from "../offer/OfferFactory";
 import {
   Environment,
@@ -65,7 +72,11 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   ) {
     if (!apiOrBearerToken) throw new Error("No authentication key present");
 
-    this._options = merge(defaultOptions as any, defaultClientOptions ?? {}, options);
+    this._options = merge(
+      defaultOptions as any,
+      defaultClientOptions ?? {},
+      options
+    );
 
     const graphqlUrl = apiUrl[this._options.environment];
 
@@ -81,7 +92,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   abstract init(): void | Promise<void>;
 
   createOffer<K extends OfferType>(
-    offer: PartialOffer & { type: K },
+    offer: PartialOfferInput & { type: K },
     nft: AbstractNFT
   ) {
     return OfferFactory.createOffer<K>(this, offer, nft);
@@ -112,6 +123,17 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     return this.getItemsWithOffer(paging, after, OfferType.Sale);
+  }
+
+  async getOffer(id: string): Promise<OfferFragment> {
+    const queryResponse = await this.apiClient.request<
+      GetOfferQuery,
+      GetOfferQueryVariables
+    >(GET_OFFER, {
+      id,
+    });
+
+    return queryResponse?.offer;
   }
 
   async getItemsOnAuction(

@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { ItemWithOfferFragment, UserItemsFragment } from "./fragments";
+import { ItemWithOfferFragment, OfferFragment, UserItemsFragment } from "./fragments";
 
 export const GET_USER_OFFER_ITEMS = gql`
   query getUserOfferItems(
@@ -29,6 +29,16 @@ export const GET_USER_OFFER_ITEMS = gql`
   }
 
   ${ItemWithOfferFragment}
+`;
+
+export const GET_OFFER = gql`
+  query getOffer($id: ID!) {
+    offer(id: $id) {
+      ...Offer
+    }
+  }
+
+  ${OfferFragment}
 `;
 
 export const GET_USER_ITEMS = gql`
