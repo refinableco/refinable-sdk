@@ -61,7 +61,7 @@ export interface PartialOffer
     | "endTime"
     | "whitelistStage"
   > {
-  whitelistVoucher?: WhitelistVoucherParams;
+  whitelistVoucher?: WhitelistVoucherParams | WhitelistVoucher;
 }
 
 export class Offer implements PartialOffer {
@@ -84,6 +84,8 @@ export class Offer implements PartialOffer {
     protected readonly nft: AbstractNFT
   ) {
     Object.assign(this, offer);
+
+    // convert graphql to domain type
     if (offer.whitelistVoucher) {
       this.whitelistVoucher = {
         ...offer.whitelistVoucher,
