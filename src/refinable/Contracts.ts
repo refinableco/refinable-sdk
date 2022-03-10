@@ -7,14 +7,14 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  Token
+  Token,
 } from "../@types/graphql";
 import { getContractsTags } from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
-  GET_REFINABLE_CONTRACTS
+  GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
 
@@ -41,7 +41,7 @@ export class Contracts {
     if (this.baseContracts?.[chainId]) {
       return this.baseContracts[chainId];
     }
-    const networkId = 1337;
+    const networkId = await this.refinable.provider.getChainId();
     const tags = getContractsTags(
       this.refinable.options.environment,
       networkId
