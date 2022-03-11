@@ -17,6 +17,8 @@ import {
   GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
+import { ContractFactory } from "ethers";
+import EvmTransaction from "../transaction/EvmTransaction";
 
 export class Contracts {
   private cachedContracts: {
@@ -185,5 +187,45 @@ export class Contracts {
     };
 
     return contract;
+  }
+
+  async createContract(
+    type:
+      | ContractTypes.Erc721WhitelistedToken
+      | ContractTypes.Erc1155WhitelistedToken,
+    chainId: Chain,
+    name: string,
+    ticker: string
+  ) {
+    const { abi }: { abi: any } =
+      type === ContractTypes.Erc1155WhitelistedToken
+        ? await import("../artifacts/abi/ERC1155WhitelistedV3.json")
+        : await import("../artifacts/abi/ERC721WhitelistedV3.json");
+    const { bytecode: contractByteCode }: { bytecode: string } =
+      type === ContractTypes.Erc1155WhitelistedToken
+        ? await import("../artifacts/bytecode/ERC1155WhitelistedV3.json")
+        : await import("../artifacts/bytecode/ERC721WhitelistedV3.json");
+
+    const factory = new ContractFactory(
+      abi,
+      contractByteCode,
+      this.refinable.provider
+    );
+    const contract = await factory.deploy(
+      name,
+      ticker,
+      this.refinable.accountAddress,
+      "0xD2E49cfd5c03a72a838a2fC6bB5f6b46927e731A",
+      "https://api.refinable.com/contractMetadata/{address}", // contractURI
+      "https://ipfs.refinable.com/ipfs/" // uri
+    );
+
+    await contract.deployed();
+    console.log("======contract deployed: ", contract.address);
+
+    const res = await contract.addMinter(this.refinable.accountAddress);
+    console.log("======add minter: ", res);
+
+    return new EvmTransaction(contract.deployTransaction);
   }
 }
