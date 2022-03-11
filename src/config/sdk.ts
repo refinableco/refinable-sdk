@@ -9,7 +9,6 @@ export const apiUrl = {
   [Environment.Local]: "http://localhost:8001/graphql",
 };
 
-const v4ContractChains = [ChainType.POLYGON];
 export const getContractsTags = (
   environment: Environment,
   chainId: Chain
@@ -27,13 +26,8 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        // We're mainly testing Diamond on Polygon right now, so for the other chains we'll use the contracts with whitelist sale logic
-        v4ContractChains.includes(chain)
-          ? ContractTag.SaleV4_0_0
-          : ContractTag.SaleV3_2_0,
-        chain === ChainType.POLYGON
-          ? ContractTag.AuctionV4_0_0
-          : ContractTag.AuctionV3_1_0,
+        ContractTag.SaleV3_2_0,
+        ContractTag.AuctionV3_1_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
