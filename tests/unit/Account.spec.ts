@@ -97,7 +97,7 @@ describe("Account", () => {
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
-        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("0");
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("0.0");
       });
 
       it("Should return and correctly format balance using 18 decimals", async () => {
@@ -115,7 +115,7 @@ describe("Account", () => {
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
-        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("1");
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("1.0");
       });
 
       it("Should return and correctly format balance using 9 decimals", async () => {
@@ -133,7 +133,7 @@ describe("Account", () => {
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(9);
 
-        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("22");
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("22.0");
       });
     });
   });
