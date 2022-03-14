@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Account } from "../../interfaces/Account";
 import { RefinableEvmClient } from "../RefinableEvmClient";
 
@@ -45,8 +45,7 @@ export default class EvmAccount implements Account {
         this.refinable.provider
       );
       const balance = await token.balanceOf(this.ethAddress);
-      const exp = BigNumber.from(10).pow(decimals);
-      result = BigNumber.from(balance).div(exp).toString();
+      result = ethers.utils.formatUnits(balance, decimals);
     } catch (e) {
       console.error(`ERROR: Failed to get the balance: ${e.message}`);
     }
