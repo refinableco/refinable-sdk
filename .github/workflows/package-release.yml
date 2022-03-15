@@ -14,7 +14,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           # Defaults to the user or organization that owns the workflow file
           scope: '@refinableco'
-      - run: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Run Tests
+        run: |
+          yarn test
+        working-directory: ${{env.working-directory}}
       - run: yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

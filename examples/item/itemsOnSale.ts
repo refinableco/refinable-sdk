@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
-import { Chain, Refinable } from "../../";
-import { initializeWallet } from "../../src/providers";
+import { Chain, initializeWallet, RefinableEvmClient } from "../../src";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
@@ -11,7 +10,7 @@ async function main() {
   const chainId = Chain.BscTestnet;
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
   try {
-    const refinable = await Refinable.create(wallet, API_KEY, {
+    const refinable = await RefinableEvmClient.create(wallet, API_KEY, {
       waitConfirmations: 1,
     });
     console.log("fetching items...");

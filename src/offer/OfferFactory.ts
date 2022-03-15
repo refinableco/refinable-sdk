@@ -1,9 +1,11 @@
 import { OfferType } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import { Refinable } from "../Refinable";
+import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { AuctionOffer } from "./AuctionOffer";
 import { PartialOffer } from "./Offer";
 import { SaleOffer } from "./SaleOffer";
+
+export { OfferType };
 
 export const offerClassMap = {
   [OfferType.Auction]: AuctionOffer,
@@ -23,7 +25,7 @@ type ClassType<A extends OfferType, F> =
 
 export class OfferFactory {
   public static createOffer<K extends OfferType>(
-    refinable: Refinable,
+    refinable: RefinableBaseClient,
     offer: PartialOffer & { type: SingleKeys<K> },
     nft: AbstractNFT
   ): ClassType<K, never> {

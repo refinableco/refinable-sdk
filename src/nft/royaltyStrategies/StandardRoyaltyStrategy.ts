@@ -2,7 +2,7 @@ import { IRoyalty, RoyaltiesInput, RoyaltyStrategy } from "./Royalty";
 
 export class StandardRoyaltyStrategy implements IRoyalty {
   public royaltyStrategy: RoyaltyStrategy =
-    RoyaltyStrategy.ProfitDistributionStrategy;
+    RoyaltyStrategy.StandardRoyaltyStrategy;
   public shares?: RoyaltiesInput[];
   public royaltyBps: number = 0;
 

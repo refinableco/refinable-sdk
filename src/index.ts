@@ -1,11 +1,12 @@
 import {
   CreateItemInput,
+  OfferType,
   PriceCurrency,
   TokenType,
-  OfferType,
 } from "./@types/graphql";
+import { NftMap } from "./interfaces";
 import { Chain } from "./interfaces/Network";
-import { Environment } from "./types/RefinableOptions";
+import { AbstractEvmNFT, EvmTokenType } from "./nft/AbstractEvmNFT";
 import { AbstractNFT, PartialNFTItem } from "./nft/AbstractNFT";
 import { NFTBuilder } from "./nft/builder/NFTBuilder";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
@@ -16,21 +17,30 @@ import {
   RoyaltySettingsInput,
 } from "./nft/royaltyStrategies/Royalty";
 import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
+import { SPLNFT } from "./nft/SPLNFT";
 import { AuctionOffer } from "./offer/AuctionOffer";
 import { Offer, PartialOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
-import { NftMap, Refinable } from "./Refinable";
+import { ClientType, Refinable } from "./refinable/Refinable";
+import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
+import { RefinableSolanaClient } from "./refinable/RefinableSolanaClient";
+import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
-export * from "./providers";
 export { NFTBatchBuilder } from "./nft/builder/NFTBatchBuilder";
-
+export * from "./providers";
 export {
   SaleOffer,
   AuctionOffer,
   OfferType,
   PartialOffer,
   AbstractNFT,
+  AbstractEvmNFT,
+  SPLNFT,
+  ClientType,
+  EvmTokenType,
   Refinable,
+  RefinableEvmClient,
+  RefinableSolanaClient,
   NftMap,
   Chain,
   TokenType,

@@ -3,3 +3,5 @@ lib
 .env
 .env.mainnet
 .env.local
+.env.testnet
+tests/e2e/secrets/*
