@@ -52,7 +52,10 @@ export abstract class AbstractNFT {
   }
 
   public getItem() {
-    return this.item;
+    return {
+      type: this.type,
+      ...this.item,
+    };
   }
 
   public setItem(item: PartialNFTItem): void {

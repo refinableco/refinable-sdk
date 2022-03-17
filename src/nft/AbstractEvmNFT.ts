@@ -46,11 +46,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     super(type, refinable, item);
   }
 
-  get saleType() {
-    return isERC1155Item(this)
-      ? ContractTypes.Erc1155Sale
-      : ContractTypes.Erc721Sale;
-  }
   get auctionType() {
     return isERC1155Item(this)
       ? ContractTypes.Erc1155Auction
@@ -77,7 +72,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   get saleContract(): Contract {
     const sale = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      this.saleType
+      ContractTypes.Sale
     );
 
     return sale.toEthersContract();
@@ -140,7 +135,10 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   public getItem() {
-    return this.item;
+    return {
+      type: this.type,
+      ...this.item,
+    };
   }
 
   public setItem(item: PartialNFTItem): void {
@@ -197,7 +195,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       startTime?: Date;
       endTime?: Date;
     },
-    voucher: any
+    voucher: WhitelistVoucherParams
   ): Promise<EvmTransaction>;
 
   protected async approveForTokenIfNeeded(
@@ -518,14 +516,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     this.verifyItem();
 
     const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Sale]
-      : [ContractTypes.Erc721Sale];
 
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
       this.saleContract.address,
-      type
+      [ContractTypes.Sale]
     );
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
@@ -757,7 +752,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       pricePerCopy,
       this.saleContract.address,
-      [this.saleType],
+      [ContractTypes.Sale],
       amount
     );
 
@@ -789,6 +784,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
     const method = params.voucher ? "buyUsingVoucher" : "buy";
+    
     const buyTx = await this.saleContract[method](
       // address _token
       this.item.contractAddress,
@@ -841,8 +837,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       value,
       // uint256 _selling
       ...optionalParam(
-        supply != null,
-        supply // selling
+        supply != null || isV2,
+        supply ?? 1 // selling
       ),
       // uint256 nonce
       nonceResult.toNumber(),

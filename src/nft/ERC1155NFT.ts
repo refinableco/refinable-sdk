@@ -17,7 +17,6 @@ import { PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
 import { SaleVersion } from "./interfaces/SaleInfo";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
-
 export class ERC1155NFT extends AbstractEvmNFT {
   constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
     super(TokenType.Erc1155, refinable, item);
@@ -103,7 +102,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }): Promise<SaleOffer> {
     const {
       price,
-      startTime = new Date(),
+      startTime,
       endTime,
       launchpadDetails,
       supply = 1,
@@ -119,7 +118,8 @@ export class ERC1155NFT extends AbstractEvmNFT {
       price,
       ethAddress: this.refinable.accountAddress,
       supply,
-      ...(!!startTime && { startTime }),
+      startTime,
+      endTime,
       isV2: true,
     });
 

@@ -39,7 +39,7 @@ export const getContractsTags = (
           : ContractTag.SaleV3_2_0,
         chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
           ? ContractTag.AuctionV4_0_0
-          : ContractTag.AuctionV3_1_0,
+          : ContractTag.AuctionV3_1_1,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,

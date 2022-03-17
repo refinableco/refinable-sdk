@@ -9,6 +9,10 @@ import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT, NFTBuyParams } from "../nft/AbstractNFT";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
+import {
+  WhitelistType,
+  WhitelistVoucherParams,
+} from "../nft/interfaces/Voucher";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { Transaction } from "../transaction/Transaction";
 import { isERC1155Item, isEVMNFT } from "../utils/is";
@@ -46,7 +50,15 @@ export class SaleOffer extends Offer {
     let result: Transaction;
 
     if (this?.whitelistVoucher && isEVMNFT(this.nft)) {
-      result = await this.nft.buyUsingVoucher(buyParams, this.whitelistVoucher);
+      // Convert graphql enum (PUBLIC) to a numeric enum
+      const voucher: WhitelistVoucherParams = {
+        ...this.whitelistVoucher,
+        whitelistType: WhitelistType[
+          this.whitelistVoucher.whitelistType
+        ] as unknown as WhitelistType,
+      };
+
+      result = await this.nft.buyUsingVoucher(buyParams, voucher);
     } else {
       result = await this.nft.buy(buyParams);
     }
