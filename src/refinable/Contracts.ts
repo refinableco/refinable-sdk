@@ -193,7 +193,6 @@ export class Contracts {
     type:
       | ContractTypes.Erc721WhitelistedToken
       | ContractTypes.Erc1155WhitelistedToken,
-    chainId: Chain,
     name: string,
     ticker: string
   ) {
