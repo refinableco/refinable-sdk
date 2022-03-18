@@ -6,10 +6,6 @@ import {
   WhitelistVoucher,
 } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import {
-  WhitelistType,
-  WhitelistVoucherParams,
-} from "../nft/interfaces/Voucher";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 
 export interface PartialOfferInput
@@ -84,15 +80,5 @@ export class Offer implements PartialOffer {
     protected readonly nft: AbstractNFT
   ) {
     Object.assign(this, offer);
-
-    // convert graphql to domain type
-    if (offer.whitelistVoucher) {
-      this.whitelistVoucher = {
-        ...offer.whitelistVoucher,
-        whitelistType: WhitelistType[
-          offer.whitelistVoucher.whitelistType
-        ] as unknown as WhitelistType,
-      };
-    }
   }
 }
