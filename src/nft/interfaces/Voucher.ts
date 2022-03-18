@@ -1,7 +1,7 @@
 export enum WhitelistType {
-  PUBLIC,
-  VIP,
-  PRIVATE,
+  PUBLIC = 0,
+  VIP = 1,
+  PRIVATE = 2,
 }
 
 export interface WhitelistVoucherParams {

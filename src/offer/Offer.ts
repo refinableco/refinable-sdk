@@ -6,10 +6,6 @@ import {
   WhitelistVoucher,
 } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import {
-  WhitelistType,
-  WhitelistVoucherParams,
-} from "../nft/interfaces/Voucher";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 
 export interface PartialOfferInput
@@ -43,9 +39,8 @@ export interface PartialOffer
     | "startTime"
     | "endTime"
     | "whitelistStage"
-  > {
-  whitelistVoucher?: WhitelistVoucherParams | WhitelistVoucher;
-}
+    | "whitelistVoucher"
+  > {}
 
 export class Offer implements PartialOffer {
   id: string;
@@ -57,7 +52,7 @@ export class Offer implements PartialOffer {
   auction?: AuctionFragment;
   startTime?: Date | null | undefined;
   endTime?: Date | null | undefined;
-  whitelistVoucher?: WhitelistVoucherParams | WhitelistVoucher;
+  whitelistVoucher?: WhitelistVoucher;
   whitelistStage: OfferFragment["whitelistStage"];
   user: { id: string; ethAddress?: string };
 
@@ -67,15 +62,5 @@ export class Offer implements PartialOffer {
     protected readonly nft: AbstractNFT
   ) {
     Object.assign(this, offer);
-
-    // convert graphql to domain type
-    if (offer.whitelistVoucher) {
-      this.whitelistVoucher = {
-        ...offer.whitelistVoucher,
-        whitelistType: WhitelistType[
-          offer.whitelistVoucher.whitelistType
-        ] as unknown as WhitelistType,
-      };
-    }
   }
 }

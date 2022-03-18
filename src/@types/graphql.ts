@@ -180,7 +180,6 @@ export type CollectionMetadataValues = {
 
 export type CollectionMetadataValuesInput = {
   collectionIds: Array<Scalars["String"]>;
-  contractAddresses?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 export type CollectionPageInfo = {
@@ -287,6 +286,7 @@ export enum ContractTypes {
   Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
   Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
+  Sale = "SALE",
   TransferProxy = "TRANSFER_PROXY",
 }
 
@@ -740,7 +740,13 @@ export enum LaunchpadCountDownType {
 
 export type LaunchpadDetails = {
   __typename?: "LaunchpadDetails";
+  /** @deprecated Deprecated in favour of `stages` */
+  privateStartDate?: Maybe<Scalars["DateTime"]>;
+  /** @deprecated Deprecated in favour of `stages` */
+  publicStartDate?: Maybe<Scalars["DateTime"]>;
   stages: Array<LaunchpadStage>;
+  /** @deprecated Deprecated in favour of `stages` */
+  vipStartDate?: Maybe<Scalars["DateTime"]>;
 };
 
 export type LaunchpadDetailsInput = {
@@ -1210,6 +1216,7 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
+  banner?: Maybe<Scalars["String"]>;
   collectionIds: Array<Scalars["String"]>;
   contracts: Array<Contract>;
   creator: Scalars["String"];
@@ -1371,20 +1378,21 @@ export type UpdateStore = {
 };
 
 export type UpdateStoreInput = {
-  backgroundColor: Scalars["String"];
-  contracts: Array<ContractInput>;
+  backgroundColor?: InputMaybe<Scalars["String"]>;
+  banner?: InputMaybe<Scalars["String"]>;
+  contracts?: InputMaybe<Array<ContractInput>>;
   customGa?: InputMaybe<Scalars["String"]>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
-  description: Scalars["String"];
+  description?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
-  domain: Scalars["String"];
-  email: Scalars["String"];
-  favicon: Scalars["String"];
+  domain?: InputMaybe<Scalars["String"]>;
+  email?: InputMaybe<Scalars["String"]>;
+  favicon?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
-  logo: Scalars["String"];
-  logoHeight: Scalars["Float"];
-  name: Scalars["String"];
-  primaryColor: Scalars["String"];
+  logo?: InputMaybe<Scalars["String"]>;
+  logoHeight?: InputMaybe<Scalars["Float"]>;
+  name?: InputMaybe<Scalars["String"]>;
+  primaryColor?: InputMaybe<Scalars["String"]>;
   telegram?: InputMaybe<Scalars["String"]>;
   twitter?: InputMaybe<Scalars["String"]>;
   website?: InputMaybe<Scalars["String"]>;

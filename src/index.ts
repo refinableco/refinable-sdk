@@ -28,7 +28,6 @@ import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
 import { RefinableSolanaClient } from "./refinable/RefinableSolanaClient";
 import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
-export { NFTBatchBuilder } from "./nft/builder/NFTBatchBuilder";
 export * from "./providers";
 export {
   SaleOffer,
