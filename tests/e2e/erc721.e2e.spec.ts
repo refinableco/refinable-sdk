@@ -1,22 +1,54 @@
+import { addDays, subDays } from "date-fns";
 import fs from "fs";
 import path from "path";
 import {
+  AbstractNFT,
   Chain,
   Environment,
   ERC721NFT,
   initializeWallet,
   PriceCurrency,
   RefinableEvmClient,
+  SaleOffer,
   StandardRoyaltyStrategy,
 } from "../../src";
+import {
+  LaunchpadCountDownType,
+  WhitelistType,
+} from "../../src/@types/graphql";
 
-describe("Refinable", () => {
+const createNft = async (refinable: RefinableEvmClient) => {
+  const fileStream = fs.createReadStream(
+    path.resolve(__dirname, "../assets/image.jpg")
+  );
+  return await refinable
+    .nftBuilder()
+    .erc721({
+      nftFile: fileStream,
+      description: "some test description",
+      name: "The Test NFT",
+      royalty: new StandardRoyaltyStrategy([]),
+      chainId: Chain.Local,
+    })
+    .createAndMint();
+};
+
+describe("ERC721 - E2E", () => {
   let refinable: RefinableEvmClient;
+  let refinable2: RefinableEvmClient;
   const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
   const API_KEY = process.env.API_KEY as string;
+  const PRIVATE_KEY_2 = process.env.PRIVATE_KEY_2 as string;
+  const API_KEY_2 = process.env.API_KEY_2 as string;
   const wallet = initializeWallet(PRIVATE_KEY, Chain.Local);
+  const wallet2 = initializeWallet(PRIVATE_KEY_2, Chain.Local);
+
   beforeAll(async () => {
     refinable = await RefinableEvmClient.create(wallet, API_KEY, {
+      waitConfirmations: 1,
+      environment: Environment.Local,
+    });
+    refinable2 = await RefinableEvmClient.create(wallet2, API_KEY_2, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
@@ -71,35 +103,35 @@ describe("Refinable", () => {
     expect(mintedItem.supply).toEqual(1);
     expect(mintedItem.contractAddress).toBeDefined();
   });
-  it("should put for sale", async () => {
-    const fileStream = fs.createReadStream(
-      path.resolve(__dirname, "../assets/image.jpg")
-    );
-    const address = await wallet.getAddress();
-    const nft = await refinable
-      .nftBuilder()
-      .erc721({
-        nftFile: fileStream,
-        description: "some test description",
-        name: "The Test NFT",
-        royalty: new StandardRoyaltyStrategy([]),
-        chainId: Chain.Local,
-      })
-      .createAndMint();
-    const price = {
-      amount: 1,
-      currency: PriceCurrency.Bnb,
-    };
-    const itemOnSale = await nft.putForSale(price);
-    expect(itemOnSale.totalSupply).toEqual(1);
-    expect(itemOnSale.user.ethAddress.toLowerCase()).toEqual(
-      address.toLowerCase()
-    );
-    expect(itemOnSale.type).toEqual("SALE");
-    expect(itemOnSale.price).toEqual(price);
-  });
-  describe("ERC721Sale", () => {
-    describe("Test Buy", () => {
+  describe("Sale", () => {
+    it("Should be able put for sale", async () => {
+      const fileStream = fs.createReadStream(
+        path.resolve(__dirname, "../assets/image.jpg")
+      );
+      const address = await wallet.getAddress();
+      const nft = await refinable
+        .nftBuilder()
+        .erc721({
+          nftFile: fileStream,
+          description: "some test description",
+          name: "The Test NFT",
+          royalty: new StandardRoyaltyStrategy([]),
+          chainId: Chain.Local,
+        })
+        .createAndMint();
+      const price = {
+        amount: 1,
+        currency: PriceCurrency.Bnb,
+      };
+      const itemOnSale = await nft.putForSale({ price });
+      expect(itemOnSale.totalSupply).toEqual(1);
+      expect(itemOnSale.user.ethAddress.toLowerCase()).toEqual(
+        address.toLowerCase()
+      );
+      expect(itemOnSale.type).toEqual("SALE");
+      expect(itemOnSale.price).toEqual(price);
+    });
+    describe("Buy", () => {
       let nft: ERC721NFT;
       let address: string;
       beforeEach(async () => {
@@ -123,14 +155,191 @@ describe("Refinable", () => {
           amount: 1,
           currency: PriceCurrency.Bnb,
         };
-        const itemOnSale = await nft.putForSale(price);
-        const txnResponse = await itemOnSale.buy(price);
+        const itemOnSale = await nft.putForSale({ price });
+
+        const offer = await refinable2.getOffer(itemOnSale.id);
+        const refinable2Nft = refinable2.createNft(nft.getItem());
+        const nftOffer: SaleOffer = refinable2.createOffer(
+          offer,
+          refinable2Nft as AbstractNFT
+        );
+        const txnResponse = await nftOffer.buy(price);
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
       });
     });
-    describe("Test Cancel", () => {
+
+    describe("Whitelist", () => {
+      it("should be able to create a whitelisted sale", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+
+        const nft = await createNft(refinable);
+
+        const itemOnSale = await nft.putForSale({
+          price,
+          startTime: addDays(new Date(), 4),
+          launchpadDetails: {
+            stages: [
+              {
+                stage: WhitelistType.Vip,
+                startTime: subDays(new Date(), 1),
+                whitelist: ["0x7633Fe8542c2218B5A25777477F63D395aA5aFB4"],
+              },
+            ],
+          },
+        });
+
+        const offer = await refinable2.getOffer(itemOnSale.id);
+
+        expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+        expect(offer.whitelistVoucher).toBeNull();
+
+        await itemOnSale.cancelSale();
+      });
+      it("should not be able to buy when sale has whitelist and user not vip", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+
+        const nft = await createNft(refinable);
+
+        const itemOnSale = await nft.putForSale({
+          price,
+          startTime: addDays(new Date(), 4),
+          launchpadDetails: {
+            stages: [
+              {
+                stage: WhitelistType.Vip,
+                startTime: subDays(new Date(), 1),
+                whitelist: ["0x7633Fe8542c2218B5A25777477F63D395aA5aFB4"],
+              },
+            ],
+          },
+        });
+
+        const offer = await refinable2.getOffer(itemOnSale.id);
+        const refinable2Nft = refinable2.createNft(nft.getItem());
+        const nftOffer: SaleOffer = refinable2.createOffer(
+          offer,
+          refinable2Nft as AbstractNFT
+        );
+
+        expect(nftOffer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
+
+        expect(nftOffer.buy()).rejects.toThrowError(
+          "reverted with reason string 'You are not whitelisted or public sale has not started"
+        );
+      });
+
+      it("should be able to buy when sale has whitelist and user not vip but public startDate has come up", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+
+        const nft = await createNft(refinable);
+
+        const itemOnSale = await nft.putForSale({
+          price,
+          startTime: subDays(new Date(), 1),
+          launchpadDetails: {
+            stages: [
+              {
+                stage: WhitelistType.Vip,
+                startTime: subDays(new Date(), 4),
+                whitelist: ["0x7633Fe8542c2218B5A25777477F63D395aA5aFB4"],
+              },
+            ],
+          },
+        });
+
+        const offer = await refinable2.getOffer(itemOnSale.id);
+        const refinable2Nft = refinable2.createNft(nft.getItem());
+        const nftOffer: SaleOffer = refinable2.createOffer(
+          offer,
+          refinable2Nft as AbstractNFT
+        );
+
+        expect(nftOffer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
+
+        const txnResponse = await nftOffer.buy();
+        expect(txnResponse).toBeDefined();
+        const txnReceipt = await txnResponse.wait();
+        expect(txnReceipt.success).toEqual(true);
+      });
+
+      it("should be able to create a whitelisted sale with user2", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+
+        const nft = await createNft(refinable);
+
+        const itemOnSale = await nft.putForSale({
+          price,
+          startTime: addDays(new Date(), 4),
+          launchpadDetails: {
+            stages: [
+              {
+                stage: WhitelistType.Vip,
+                startTime: subDays(new Date(), 1),
+                whitelist: [refinable2.accountAddress.toLowerCase()],
+              },
+            ],
+          },
+        });
+
+        const offer = await refinable2.getOffer(itemOnSale.id);
+
+        expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+        expect(offer.whitelistVoucher).not.toBeNull();
+      });
+
+      it("should be able to buy a whitelisted item", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+
+        const nft = await createNft(refinable);
+
+        const itemOnSale = await nft.putForSale({
+          price,
+          startTime: addDays(new Date(), 4),
+          launchpadDetails: {
+            stages: [
+              {
+                stage: WhitelistType.Vip,
+                startTime: subDays(new Date(), 1),
+                whitelist: [refinable2.accountAddress.toLowerCase()],
+              },
+            ],
+          },
+        });
+
+        const offer = await refinable2.getOffer(itemOnSale.id);
+        const refinable2Nft = refinable2.createNft(nft.getItem());
+        const nftOffer: SaleOffer = refinable2.createOffer(
+          offer,
+          refinable2Nft as AbstractNFT
+        );
+
+        expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+        expect(offer.whitelistVoucher).not.toBeNull();
+
+        const txnResponse = await nftOffer.buy();
+        expect(txnResponse).toBeDefined();
+        const txnReceipt = await txnResponse.wait();
+        expect(txnReceipt.success).toEqual(true);
+      });
+    });
+    describe("Cancel", () => {
       let nft: ERC721NFT;
       let address: string;
       beforeEach(async () => {
@@ -154,7 +363,7 @@ describe("Refinable", () => {
           amount: 1,
           currency: PriceCurrency.Bnb,
         };
-        const itemOnSale = await nft.putForSale(price);
+        const itemOnSale = await nft.putForSale({ price });
         const txnResponse = await itemOnSale.cancelSale();
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
@@ -162,7 +371,7 @@ describe("Refinable", () => {
       });
     });
   });
-  describe("ERC721Auction", () => {
+  describe("Auction", () => {
     let nft: ERC721NFT;
     let address: string;
     beforeEach(async () => {
@@ -211,7 +420,7 @@ describe("Refinable", () => {
       const txnReceipt = await txnResponse.wait();
       expect(txnReceipt.success).toEqual(true);
     });
-    it("end auction should throw error while there are no bids", async (): Promise<void> => {
+    it("end auction should throw error ending while auction has not ended", async (): Promise<void> => {
       try {
         const { offer } = await nft.putForAuction({
           auctionStartDate: new Date(Date.now() + 300000),
@@ -224,9 +433,7 @@ describe("Refinable", () => {
         await offer.endAuction();
       } catch (error) {
         expect(
-          error.message.includes(
-            "VM Exception while processing transaction: revert ERC721Auction: There is no bid"
-          )
+          error.message.includes("Auction: Auction has not ended")
         ).toBeTruthy();
       }
     });

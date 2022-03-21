@@ -3,11 +3,12 @@ import {
   OfferFragment,
   OfferType,
   Price,
+  WhitelistVoucher,
 } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 
-export interface PartialOffer
+export interface PartialOfferInput
   extends Pick<
     OfferFragment,
     | "id"
@@ -18,6 +19,27 @@ export interface PartialOffer
     | "totalSupply"
     | "auction"
     | "blockchainId"
+    | "startTime"
+    | "endTime"
+    | "whitelistStage"
+    | "whitelistVoucher"
+  > {}
+
+export interface PartialOffer
+  extends Pick<
+    PartialOfferInput,
+    | "id"
+    | "type"
+    | "signature"
+    | "price"
+    | "user"
+    | "totalSupply"
+    | "auction"
+    | "blockchainId"
+    | "startTime"
+    | "endTime"
+    | "whitelistStage"
+    | "whitelistVoucher"
   > {}
 
 export class Offer implements PartialOffer {
@@ -28,11 +50,15 @@ export class Offer implements PartialOffer {
   price: Price;
   totalSupply: number;
   auction?: AuctionFragment;
+  startTime?: Date | null | undefined;
+  endTime?: Date | null | undefined;
+  whitelistVoucher?: WhitelistVoucher;
+  whitelistStage: OfferFragment["whitelistStage"];
   user: { id: string; ethAddress?: string };
 
   constructor(
     protected readonly refinable: RefinableBaseClient,
-    offer: PartialOffer,
+    offer: PartialOfferInput,
     protected readonly nft: AbstractNFT
   ) {
     Object.assign(this, offer);

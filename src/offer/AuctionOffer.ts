@@ -1,15 +1,19 @@
 import {
   PlaceAuctionBidMutation,
   PlaceAuctionBidMutationVariables,
-  Price
+  Price,
 } from "../@types/graphql";
 import { PLACE_AUCTION_BID } from "../graphql/auction";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
-import { Offer, PartialOffer } from "./Offer";
+import { Offer, PartialOfferInput } from "./Offer";
 
 export class AuctionOffer extends Offer {
-  constructor(refinable: RefinableBaseClient, offer: PartialOffer, nft: AbstractNFT) {
+  constructor(
+    refinable: RefinableBaseClient,
+    offer: PartialOfferInput,
+    nft: AbstractNFT
+  ) {
     super(refinable, offer, nft);
   }
 

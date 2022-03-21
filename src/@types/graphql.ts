@@ -180,7 +180,6 @@ export type CollectionMetadataValues = {
 
 export type CollectionMetadataValuesInput = {
   collectionIds: Array<Scalars["String"]>;
-  contractAddresses?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 export type CollectionPageInfo = {
@@ -265,6 +264,7 @@ export enum ContractTag {
   SaleV3_0_0 = "SALE_v3_0_0",
   SaleV3_0_1 = "SALE_v3_0_1",
   SaleV3_1_0 = "SALE_v3_1_0",
+  SaleV3_2_0 = "SALE_v3_2_0",
   SaleV4_0_0 = "SALE_v4_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
@@ -286,6 +286,7 @@ export enum ContractTypes {
   Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
   Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
+  Sale = "SALE",
   TransferProxy = "TRANSFER_PROXY",
 }
 
@@ -331,7 +332,7 @@ export type CreateOffersInput = {
 
 export type CreatePurchaseInput = {
   amount: Scalars["Int"];
-  metadata?: Maybe<PurchaseMetadata>;
+  metadata?: InputMaybe<PurchaseMetadata>;
   offerId: Scalars["String"];
   transactionHash: Scalars["String"];
 };
@@ -512,6 +513,7 @@ export type Item = {
   owners: Array<ItemOwner>;
   properties: Properties;
   reason?: Maybe<Scalars["String"]>;
+  royalties?: Maybe<Scalars["Float"]>;
   similarItems: Array<ItemWithOffer>;
   supply: Scalars["Float"];
   tags: Array<Tag>;
@@ -729,17 +731,39 @@ export type ItemsWithOffersResponse = {
   totalCount?: Maybe<Scalars["Float"]>;
 };
 
+export enum LaunchpadCountDownType {
+  Live = "LIVE",
+  Private = "PRIVATE",
+  Public = "PUBLIC",
+  Vip = "VIP",
+}
+
 export type LaunchpadDetails = {
   __typename?: "LaunchpadDetails";
-  privateStartDate: Scalars["DateTime"];
-  publicStartDate: Scalars["DateTime"];
-  vipStartDate: Scalars["DateTime"];
+  /** @deprecated Deprecated in favour of `stages` */
+  privateStartDate?: Maybe<Scalars["DateTime"]>;
+  /** @deprecated Deprecated in favour of `stages` */
+  publicStartDate?: Maybe<Scalars["DateTime"]>;
+  stages: Array<LaunchpadStage>;
+  /** @deprecated Deprecated in favour of `stages` */
+  vipStartDate?: Maybe<Scalars["DateTime"]>;
 };
 
 export type LaunchpadDetailsInput = {
-  privateStartDate: Scalars["DateTime"];
-  publicStartDate: Scalars["DateTime"];
-  vipStartDate: Scalars["DateTime"];
+  stages?: InputMaybe<Array<LaunchpadStageInput>>;
+};
+
+export type LaunchpadStage = {
+  __typename?: "LaunchpadStage";
+  stage: WhitelistType;
+  startTime?: Maybe<Scalars["DateTime"]>;
+  whitelist?: Maybe<Array<Scalars["String"]>>;
+};
+
+export type LaunchpadStageInput = {
+  stage: WhitelistType;
+  startTime?: InputMaybe<Scalars["DateTime"]>;
+  whitelist?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 export type LoginInput = {
@@ -925,15 +949,19 @@ export type Offer = {
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
   createdAt?: Maybe<Scalars["DateTime"]>;
+  endTime?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
   launchpadDetails?: Maybe<LaunchpadDetails>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
   supply: Scalars["Int"];
   totalSupply: Scalars["Int"];
   type: OfferType;
   unlistedAt?: Maybe<Scalars["DateTime"]>;
   user: User;
+  whitelistStage: LaunchpadCountDownType;
+  whitelistVoucher?: Maybe<WhitelistVoucher>;
 };
 
 export enum OfferType {
@@ -984,6 +1012,7 @@ export type Properties = {
   imagePreview?: Maybe<Scalars["String"]>;
   ipfsDocument?: Maybe<Scalars["String"]>;
   ipfsUrl?: Maybe<Scalars["String"]>;
+  mimeType?: Maybe<Scalars["String"]>;
   originalFileUrl?: Maybe<Scalars["String"]>;
   originalThumbnailUrl?: Maybe<Scalars["String"]>;
   thumbnailUrl?: Maybe<Scalars["String"]>;
@@ -995,9 +1024,9 @@ export type Purchase = {
 };
 
 export type PurchaseMetadata = {
-  acceptedTOS?: Maybe<Scalars["Boolean"]>;
+  acceptedTOS?: InputMaybe<Scalars["Boolean"]>;
   createdAt: Scalars["DateTime"];
-  email?: Maybe<Scalars["String"]>;
+  email?: InputMaybe<Scalars["String"]>;
 };
 
 export type Query = {
@@ -1036,6 +1065,7 @@ export type QueryAuctionArgs = {
 
 export type QueryCollectionArgs = {
   chainId?: InputMaybe<Scalars["Int"]>;
+  collectionId?: InputMaybe<Scalars["String"]>;
   contractAddress?: InputMaybe<Scalars["String"]>;
   slug?: InputMaybe<Scalars["String"]>;
 };
@@ -1186,8 +1216,11 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
+  banner?: Maybe<Scalars["String"]>;
+  collectionIds: Array<Scalars["String"]>;
   contracts: Array<Contract>;
   creator: Scalars["String"];
+  customGa?: Maybe<Scalars["String"]>;
   customLinks?: Maybe<Array<CustomLink>>;
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
@@ -1345,19 +1378,21 @@ export type UpdateStore = {
 };
 
 export type UpdateStoreInput = {
-  backgroundColor: Scalars["String"];
-  contracts: Array<ContractInput>;
+  backgroundColor?: InputMaybe<Scalars["String"]>;
+  banner?: InputMaybe<Scalars["String"]>;
+  contracts?: InputMaybe<Array<ContractInput>>;
+  customGa?: InputMaybe<Scalars["String"]>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
-  description: Scalars["String"];
+  description?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
-  domain: Scalars["String"];
-  email: Scalars["String"];
-  favicon: Scalars["String"];
+  domain?: InputMaybe<Scalars["String"]>;
+  email?: InputMaybe<Scalars["String"]>;
+  favicon?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
-  logo: Scalars["String"];
-  logoHeight: Scalars["Float"];
-  name: Scalars["String"];
-  primaryColor: Scalars["String"];
+  logo?: InputMaybe<Scalars["String"]>;
+  logoHeight?: InputMaybe<Scalars["Float"]>;
+  name?: InputMaybe<Scalars["String"]>;
+  primaryColor?: InputMaybe<Scalars["String"]>;
   telegram?: InputMaybe<Scalars["String"]>;
   twitter?: InputMaybe<Scalars["String"]>;
   website?: InputMaybe<Scalars["String"]>;
@@ -1439,6 +1474,20 @@ export enum UserType {
 export type VerificationTokenInput = {
   ethAddress: Scalars["String"];
   type?: InputMaybe<UserType>;
+};
+
+export enum WhitelistType {
+  Private = "PRIVATE",
+  Public = "PUBLIC",
+  Vip = "VIP",
+}
+
+export type WhitelistVoucher = {
+  __typename?: "WhitelistVoucher";
+  limit: Scalars["Float"];
+  signature: Scalars["String"];
+  startTime: Scalars["DateTime"];
+  whitelistType: WhitelistType;
 };
 
 export type UndefinedEdge = {
@@ -1797,8 +1846,11 @@ export type OfferFragment = {
   active: boolean;
   supply: number;
   totalSupply: number;
+  startTime?: any | null | undefined;
+  endTime?: any | null | undefined;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
+  whitelistStage: LaunchpadCountDownType;
   user: {
     __typename?: "User";
     id: string;
@@ -1849,6 +1901,16 @@ export type OfferFragment = {
             }
           | null
           | undefined;
+      }
+    | null
+    | undefined;
+  whitelistVoucher?:
+    | {
+        __typename?: "WhitelistVoucher";
+        whitelistType: WhitelistType;
+        limit: number;
+        signature: string;
+        startTime: any;
       }
     | null
     | undefined;
@@ -1971,6 +2033,97 @@ export type GetUserOfferItemsQuery = {
             | null
             | undefined;
         };
+      }
+    | null
+    | undefined;
+};
+
+export type GetOfferQueryVariables = Exact<{
+  id: Scalars["ID"];
+}>;
+
+export type GetOfferQuery = {
+  __typename?: "Query";
+  offer?:
+    | {
+        __typename?: "Offer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+            }
+          | null
+          | undefined;
       }
     | null
     | undefined;
@@ -2184,8 +2337,11 @@ export type CreateOfferForEditionsMutation = {
     active: boolean;
     supply: number;
     totalSupply: number;
+    startTime?: any | null | undefined;
+    endTime?: any | null | undefined;
     signature?: string | null | undefined;
     blockchainId?: string | null | undefined;
+    whitelistStage: LaunchpadCountDownType;
     user: {
       __typename?: "User";
       id: string;
@@ -2236,6 +2392,16 @@ export type CreateOfferForEditionsMutation = {
               }
             | null
             | undefined;
+        }
+      | null
+      | undefined;
+    whitelistVoucher?:
+      | {
+          __typename?: "WhitelistVoucher";
+          whitelistType: WhitelistType;
+          limit: number;
+          signature: string;
+          startTime: any;
         }
       | null
       | undefined;

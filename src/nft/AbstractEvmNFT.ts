@@ -20,9 +20,15 @@ import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
 import { isERC1155Item } from "../utils/is";
-import { getUnixEpochTimeStampFromDate } from "../utils/time";
+import {
+  getUnixEpochTimeStampFromDate,
+  getUnixEpochTimeStampFromDateOr0,
+} from "../utils/time";
 import { optionalParam } from "../utils/utils";
 import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
+import { ERCSaleID } from "./ERCSaleId";
+import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
+import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
 
@@ -40,6 +46,20 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     super(type, refinable, item);
   }
 
+  get auctionType() {
+    return isERC1155Item(this)
+      ? ContractTypes.Erc1155Auction
+      : ContractTypes.Erc721Auction;
+  }
+
+  async getSaleId() {
+    return this.saleContract.getID(
+      this.refinable.accountAddress,
+      this.item.contractAddress,
+      this.item.tokenId
+    );
+  }
+
   getSaleContractAddress(): string {
     // Error if User is on a wrong chain, if this is the case, we can just return null
     try {
@@ -52,7 +72,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   get saleContract(): Contract {
     const sale = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      `${this.type}_SALE`
+      ContractTypes.Sale
     );
 
     return sale.toEthersContract();
@@ -61,7 +81,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   get auctionContract(): Contract {
     const auction = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      `${this.type}_AUCTION`
+      this.auctionType
     );
 
     return auction.toEthersContract();
@@ -115,7 +135,10 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   public getItem() {
-    return this.item;
+    return {
+      type: this.type,
+      ...this.item,
+    };
   }
 
   public setItem(item: PartialNFTItem): void {
@@ -140,7 +163,10 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     supply?: number,
     ownerEthAddress?: string
   ): Promise<EvmTransaction>;
-  abstract putForSale(price: Price, supply?: number): Promise<SaleOffer>;
+  abstract putForSale(params: {
+    price: Price;
+    supply?: number;
+  }): Promise<SaleOffer>;
   abstract transfer(
     ownerEthAddress: string,
     recipientEthAddress: string,
@@ -154,7 +180,23 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     royaltyContractAddress?: string;
     supply?: number;
     amount?: number;
+    startTime?: Date;
+    endTime?: Date;
   }): Promise<EvmTransaction>;
+  abstract buyUsingVoucher(
+    params: {
+      blockchainId: string;
+      signature?: string;
+      price: Price;
+      ownerEthAddress: string;
+      royaltyContractAddress?: string;
+      supply?: number;
+      amount?: number;
+      startTime?: Date;
+      endTime?: Date;
+    },
+    voucher: WhitelistVoucherParams
+  ): Promise<EvmTransaction>;
 
   protected async approveForTokenIfNeeded(
     price: Price,
@@ -474,14 +516,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     this.verifyItem();
 
     const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Sale]
-      : [ContractTypes.Erc721Sale];
 
     const saleContract = await this.refinable.contracts.getRefinableContract(
       this.item.chainId,
       this.saleContract.address,
-      type
+      [ContractTypes.Sale]
     );
     const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
 
@@ -683,11 +722,100 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
   }
 
-  public async getSaleParamsHash(
-    price: Price,
-    ethAddress?: string,
-    supply?: number
-  ) {
+  protected async _buy(params: {
+    signature?: string;
+    blockchainId?: string;
+    price: Price;
+    ownerEthAddress: string;
+    royaltyContractAddress?: string;
+    supply?: number;
+    amount?: number;
+    startTime?: Date;
+    endTime?: Date;
+    voucher?: WhitelistVoucherParams & { startTime: Date };
+  }): Promise<EvmTransaction> {
+    const {
+      signature,
+      price: pricePerCopy,
+      ownerEthAddress,
+      royaltyContractAddress,
+      supply = 1,
+      amount = 1,
+      blockchainId,
+      startTime,
+      endTime,
+    } = params;
+
+    this.verifyItem();
+    await this.isValidRoyaltyContract(royaltyContractAddress);
+
+    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+      pricePerCopy,
+      this.saleContract.address,
+      [ContractTypes.Sale],
+      amount
+    );
+
+    await this.approveForTokenIfNeeded(
+      priceWithServiceFee,
+      this.saleContract.address
+    );
+
+    const paymentToken = this.getPaymentToken(pricePerCopy.currency);
+    const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
+    const value = this.parseCurrency(
+      pricePerCopy.currency,
+      priceWithServiceFee.amount
+    );
+
+    const saleID = ERCSaleID.fromBlockchainId(blockchainId);
+
+    const saleInfo: SaleInfo = {
+      royaltyToken: royaltyContractAddress ?? constants.AddressZero,
+      payToken: paymentToken,
+      saleVersion: saleID?.version ?? SaleVersion.V1,
+      seller: ownerEthAddress,
+      signature,
+      startTime: getUnixEpochTimeStampFromDateOr0(startTime),
+      endTime: getUnixEpochTimeStampFromDateOr0(endTime),
+      selling: supply,
+      buying: amount,
+    };
+
+    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
+    const method = params.voucher ? "buyUsingVoucher" : "buy";
+    
+    const buyTx = await this.saleContract[method](
+      // address _token
+      this.item.contractAddress,
+      // uint256 _tokenId
+      this.item.tokenId,
+      // SaleInfo memory _saleInfo
+      saleInfo,
+      // WhitelistVoucherParams memory voucher - optional
+      ...optionalParam(params.voucher != null, {
+        ...params.voucher,
+        startTime: getUnixEpochTimeStampFromDateOr0(params.voucher?.startTime),
+      }),
+      // If currency is Native, send msg.value
+      ...optionalParam(isNativeCurrency, {
+        value,
+      })
+    );
+
+    return new EvmTransaction(buyTx);
+  }
+
+  public async getSaleParamsHash(params: {
+    price: Price;
+    ethAddress?: string;
+    supply?: number;
+    startTime?: Date;
+    endTime?: Date;
+    isV2?: boolean;
+  }) {
+    const { price, ethAddress, supply, startTime, endTime, isV2 } = params;
+
     const paymentToken = this.getPaymentToken(price.currency);
     const isNativeCurrency = this.isNativeCurrency(price.currency);
     const value = this.parseCurrency(price.currency, price.amount);
@@ -698,24 +826,27 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ethAddress
     );
 
-    const params = [
+    const hashParams = [
       // address _token
       this.item.contractAddress,
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken - Remove the payment token when we pay in BNB. To keep supporting signatures before multi-currency support which are inherently BNB
-      ...optionalParam(!isNativeCurrency, paymentToken),
+      ...optionalParam(!isNativeCurrency || isV2, paymentToken),
       // uint256 price
       value,
       // uint256 _selling
       ...optionalParam(
-        supply != null,
-        supply // selling
+        supply != null || isV2,
+        supply ?? 1 // selling
       ),
       // uint256 nonce
       nonceResult.toNumber(),
+
+      ...optionalParam(isV2, getUnixEpochTimeStampFromDateOr0(startTime)),
+      ...optionalParam(isV2, getUnixEpochTimeStampFromDateOr0(endTime)),
     ];
 
-    return soliditySha3(...(params as string[]));
+    return soliditySha3(...(hashParams as string[]));
   }
 }
