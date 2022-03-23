@@ -9,7 +9,12 @@ import {
   RefinableContractsQueryVariables,
   Token,
 } from "../@types/graphql";
-import { getContractsTags } from "../config/sdk";
+import {
+  contractMetadata,
+  getContractsTags,
+  ipfsUrl,
+  signer,
+} from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
   GET_MINTABLE_COLLECTIONS_QUERY,
@@ -19,6 +24,7 @@ import {
 import { Chain } from "../interfaces/Network";
 import { ContractFactory } from "ethers";
 import EvmTransaction from "../transaction/EvmTransaction";
+import { optionalParam } from "../utils/utils";
 
 export class Contracts {
   private cachedContracts: {
@@ -196,34 +202,37 @@ export class Contracts {
     name: string,
     ticker: string
   ) {
-    const { abi }: { abi: any } =
-      type === ContractTypes.Erc1155WhitelistedToken
-        ? await import("../artifacts/abi/ERC1155WhitelistedV3.json")
-        : await import("../artifacts/abi/ERC721WhitelistedV3.json");
-    const { bytecode: contractByteCode }: { bytecode: string } =
-      type === ContractTypes.Erc1155WhitelistedToken
-        ? await import("../artifacts/bytecode/ERC1155WhitelistedV3.json")
-        : await import("../artifacts/bytecode/ERC721WhitelistedV3.json");
+    const is1155 = type === ContractTypes.Erc1155WhitelistedToken;
+    // these are duplicated here and in ethereum/artifacts
+    const { abi }: { abi: any } = is1155
+      ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
+      : await import("../artifacts/abi/RefinableERC721WhitelistedV3.json");
+    const { bytecode: contractByteCode }: { bytecode: string } = is1155
+      ? await import("../artifacts/bytecode/RefinableERC1155WhitelistedV3.json")
+      : await import("../artifacts/bytecode/RefinableERC721WhitelistedV3.json");
 
     const factory = new ContractFactory(
       abi,
       contractByteCode,
       this.refinable.provider
     );
+
+    const metadataUri = contractMetadata[this.refinable.options.environment];
+    const ipfsUri = ipfsUrl[this.refinable.options.environment];
+    const signerAddress = signer[this.refinable.options.environment];
     const contract = await factory.deploy(
       name,
       ticker,
       this.refinable.accountAddress,
-      "0xD2E49cfd5c03a72a838a2fC6bB5f6b46927e731A",
-      "https://api.refinable.com/contractMetadata/{address}", // contractURI
-      "https://ipfs.refinable.com/ipfs/" // uri
+      signerAddress,
+      metadataUri,
+      ipfsUri, // uri
+      ...optionalParam(is1155, ipfsUri)
     );
 
     await contract.deployed();
-    console.log("======contract deployed: ", contract.address);
 
-    const res = await contract.addMinter(this.refinable.accountAddress);
-    console.log("======add minter: ", res);
+    await contract.addMinter(this.refinable.accountAddress);
 
     return new EvmTransaction(contract.deployTransaction);
   }

@@ -2,12 +2,36 @@
   "abi": [
     {
       "inputs": [
-        { "internalType": "string", "name": "_name", "type": "string" },
-        { "internalType": "string", "name": "_symbol", "type": "string" },
-        { "internalType": "address", "name": "_root", "type": "address" },
-        { "internalType": "address", "name": "_signer", "type": "address" },
-        { "internalType": "string", "name": "_contractURI", "type": "string" },
-        { "internalType": "string", "name": "_uri", "type": "string" }
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_symbol",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "_root",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_signer",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_contractURI",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_uri",
+          "type": "string"
+        }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
@@ -246,27 +270,49 @@
     {
       "inputs": [],
       "name": "DEFAULT_ADMIN_ROLE",
-      "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "MINTER_ROLE",
-      "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "SIGNER_ROLE",
-      "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "_account", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
       ],
       "name": "addAdmin",
       "outputs": [],
@@ -275,7 +321,11 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "_account", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
       ],
       "name": "addMinter",
       "outputs": [],
@@ -297,7 +347,11 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "_account", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
       ],
       "name": "addSigner",
       "outputs": [],
@@ -306,8 +360,16 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "to", "type": "address" },
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "approve",
       "outputs": [],
@@ -316,23 +378,43 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "owner", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
       ],
       "name": "balanceOf",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "baseURI",
-      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "burn",
       "outputs": [],
@@ -341,17 +423,33 @@
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "checkSecondarySale",
-      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "contractURI",
-      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
@@ -359,7 +457,11 @@
       "inputs": [],
       "name": "defaultRoyaltyReceiver",
       "outputs": [
-        { "internalType": "address payable", "name": "", "type": "address" }
+        {
+          "internalType": "address payable",
+          "name": "",
+          "type": "address"
+        }
       ],
       "stateMutability": "view",
       "type": "function"
@@ -367,31 +469,61 @@
     {
       "inputs": [],
       "name": "defaultRoyaltyReceiverBps",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "getApproved",
-      "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "getCreator",
-      "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "getPrimaryRoyaltyShares",
       "outputs": [
@@ -402,7 +534,11 @@
               "name": "recipient",
               "type": "address"
             },
-            { "internalType": "uint256", "name": "value", "type": "uint256" }
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
           ],
           "internalType": "struct RoyaltyLibrary.RoyaltyShareDetails[]",
           "name": "",
@@ -414,41 +550,83 @@
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
       ],
       "name": "getRoleAdmin",
-      "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-        { "internalType": "uint256", "name": "index", "type": "uint256" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
       ],
       "name": "getRoleMember",
-      "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
       ],
       "name": "getRoleMemberCount",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "getRoyalty",
       "outputs": [
         {
           "components": [
-            { "internalType": "uint256", "name": "value", "type": "uint256" },
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            },
             {
               "internalType": "enum RoyaltyLibrary.Strategy",
               "name": "strategy",
@@ -465,7 +643,11 @@
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "getRoyaltyShares",
       "outputs": [
@@ -476,7 +658,11 @@
               "name": "recipient",
               "type": "address"
             },
-            { "internalType": "uint256", "name": "value", "type": "uint256" }
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
           ],
           "internalType": "struct RoyaltyLibrary.RoyaltyShareDetails[]",
           "name": "",
@@ -489,14 +675,28 @@
     {
       "inputs": [],
       "name": "getTokenContract",
-      "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-        { "internalType": "address", "name": "account", "type": "address" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
       ],
       "name": "grantRole",
       "outputs": [],
@@ -505,35 +705,83 @@
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-        { "internalType": "address", "name": "account", "type": "address" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
       ],
       "name": "hasRole",
-      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "owner", "type": "address" },
-        { "internalType": "address", "name": "operator", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        }
       ],
       "name": "isApprovedForAll",
-      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-      "name": "isSecondarySale",
-      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" },
-        { "internalType": "bytes", "name": "_signature", "type": "bytes" },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "isSecondarySale",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_signature",
+          "type": "bytes"
+        },
         {
           "components": [
             {
@@ -541,14 +789,26 @@
               "name": "recipient",
               "type": "address"
             },
-            { "internalType": "uint256", "name": "value", "type": "uint256" }
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
           ],
           "internalType": "struct RoyaltyLibrary.RoyaltyShareDetails[]",
           "name": "_royaltyShares",
           "type": "tuple[]"
         },
-        { "internalType": "string", "name": "_uri", "type": "string" },
-        { "internalType": "uint256", "name": "_royaltyBps", "type": "uint256" },
+        {
+          "internalType": "string",
+          "name": "_uri",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_royaltyBps",
+          "type": "uint256"
+        },
         {
           "internalType": "enum RoyaltyLibrary.Strategy",
           "name": "_royaltyStrategy",
@@ -561,7 +821,11 @@
               "name": "recipient",
               "type": "address"
             },
-            { "internalType": "uint256", "name": "value", "type": "uint256" }
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
           ],
           "internalType": "struct RoyaltyLibrary.RoyaltyShareDetails[]",
           "name": "_primaryRoyaltyShares",
@@ -576,22 +840,42 @@
     {
       "inputs": [],
       "name": "name",
-      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "ownerOf",
-      "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "_account", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
       ],
       "name": "removeAdmin",
       "outputs": [],
@@ -600,7 +884,11 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "_account", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
       ],
       "name": "removeMinter",
       "outputs": [],
@@ -609,7 +897,11 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "_account", "type": "address" }
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
       ],
       "name": "removeSigner",
       "outputs": [],
@@ -618,8 +910,16 @@
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-        { "internalType": "address", "name": "account", "type": "address" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
       ],
       "name": "renounceRole",
       "outputs": [],
@@ -628,8 +928,16 @@
     },
     {
       "inputs": [
-        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-        { "internalType": "address", "name": "account", "type": "address" }
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
       ],
       "name": "revokeRole",
       "outputs": [],
@@ -637,10 +945,20 @@
       "type": "function"
     },
     {
-      "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "name": "royalty",
       "outputs": [
-        { "internalType": "uint256", "name": "value", "type": "uint256" },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
         {
           "internalType": "enum RoyaltyLibrary.Strategy",
           "name": "strategy",
@@ -652,8 +970,16 @@
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "", "type": "uint256" },
-        { "internalType": "uint256", "name": "", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
       ],
       "name": "royaltyShares",
       "outputs": [
@@ -662,16 +988,32 @@
           "name": "recipient",
           "type": "address"
         },
-        { "internalType": "uint256", "name": "value", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "from", "type": "address" },
-        { "internalType": "address", "name": "to", "type": "address" },
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "safeTransferFrom",
       "outputs": [],
@@ -680,10 +1022,26 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "from", "type": "address" },
-        { "internalType": "address", "name": "to", "type": "address" },
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-        { "internalType": "bytes", "name": "_data", "type": "bytes" }
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
       ],
       "name": "safeTransferFrom",
       "outputs": [],
@@ -692,8 +1050,16 @@
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "operator", "type": "address" },
-        { "internalType": "bool", "name": "approved", "type": "bool" }
+        {
+          "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "approved",
+          "type": "bool"
+        }
       ],
       "name": "setApprovalForAll",
       "outputs": [],
@@ -702,7 +1068,11 @@
     },
     {
       "inputs": [
-        { "internalType": "string", "name": "_baseURI", "type": "string" }
+        {
+          "internalType": "string",
+          "name": "_baseURI",
+          "type": "string"
+        }
       ],
       "name": "setBaseURI",
       "outputs": [],
@@ -711,7 +1081,11 @@
     },
     {
       "inputs": [
-        { "internalType": "string", "name": "_contractURI", "type": "string" }
+        {
+          "internalType": "string",
+          "name": "_contractURI",
+          "type": "string"
+        }
       ],
       "name": "setContractURI",
       "outputs": [],
@@ -733,7 +1107,11 @@
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_bps", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_bps",
+          "type": "uint256"
+        }
       ],
       "name": "setDefaultRoyaltyReceiverBps",
       "outputs": [],
@@ -742,7 +1120,11 @@
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "_tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "setSecondarySale",
       "outputs": [],
@@ -751,60 +1133,128 @@
     },
     {
       "inputs": [
-        { "internalType": "bytes4", "name": "interfaceId", "type": "bytes4" }
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
       ],
       "name": "supportsInterface",
-      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "symbol",
-      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "index", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
       ],
       "name": "tokenByIndex",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "owner", "type": "address" },
-        { "internalType": "uint256", "name": "index", "type": "uint256" }
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
       ],
       "name": "tokenOfOwnerByIndex",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "tokenURI",
-      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "totalSupply",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        { "internalType": "address", "name": "from", "type": "address" },
-        { "internalType": "address", "name": "to", "type": "address" },
-        { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
       ],
       "name": "transferFrom",
       "outputs": [],
