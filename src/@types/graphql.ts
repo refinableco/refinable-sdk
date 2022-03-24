@@ -156,6 +156,14 @@ export type CollectionEdge = {
   node: Collection;
 };
 
+export type CollectionInput = {
+  avatar: Scalars["String"];
+  description: Scalars["String"];
+  slug: Scalars["String"];
+  title: Scalars["String"];
+  tokenType: Scalars["String"];
+};
+
 export type CollectionMetadataFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
@@ -238,7 +246,9 @@ export type ContractCount = {
 
 export type ContractInput = {
   chainId: Scalars["Float"];
+  collection?: InputMaybe<CollectionInput>;
   contractAddress: Scalars["String"];
+  contractType?: InputMaybe<ContractTypes>;
 };
 
 export type ContractOutput = {
@@ -339,6 +349,7 @@ export type CreatePurchaseInput = {
 
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
+  banner: Scalars["String"];
   contracts: Array<ContractInput>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
@@ -348,7 +359,7 @@ export type CreateStoreInput = {
   favicon: Scalars["String"];
   instagram?: InputMaybe<Scalars["String"]>;
   logo: Scalars["String"];
-  logoHeight: Scalars["Float"];
+  logoHeight?: InputMaybe<Scalars["Float"]>;
   name: Scalars["String"];
   primaryColor: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
@@ -441,6 +452,7 @@ export type HottestTagsFilterInput = {
 };
 
 export type ImportCollectionInput = {
+  bannerUrl?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Float"];
   contractABI?: InputMaybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
@@ -1042,6 +1054,7 @@ export type Query = {
   hotItems: HotItemsResponse;
   hottestTags: Array<Tag>;
   importPreview: ImportItemPreview;
+  isDomainTaken: Scalars["Boolean"];
   item?: Maybe<Item>;
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
@@ -1102,6 +1115,10 @@ export type QueryHottestTagsArgs = {
 
 export type QueryImportPreviewArgs = {
   input: ImportItemPreviewInput;
+};
+
+export type QueryIsDomainTakenArgs = {
+  domain: Scalars["String"];
 };
 
 export type QueryItemArgs = {

@@ -3,6 +3,7 @@ import {
   OfferType,
   PriceCurrency,
   TokenType,
+  ContractTypes,
 } from "./@types/graphql";
 import { NftMap } from "./interfaces";
 import { Chain } from "./interfaces/Network";
@@ -30,6 +31,7 @@ import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
 export * from "./providers";
 export {
+  ContractTypes,
   SaleOffer,
   AuctionOffer,
   OfferType,
