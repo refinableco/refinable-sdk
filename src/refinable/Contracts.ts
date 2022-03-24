@@ -7,7 +7,10 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
+  CreateContractMutation,
+  CreateContractMutationVariables,
   Token,
+  CollectionInput,
 } from "../@types/graphql";
 import {
   contractMetadata,
@@ -17,6 +20,7 @@ import {
 } from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
+  CREATE_CONTRACT,
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
   GET_REFINABLE_CONTRACTS,
@@ -25,6 +29,7 @@ import { Chain } from "../interfaces/Network";
 import { ContractFactory } from "ethers";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { optionalParam } from "../utils/utils";
+import { SdkCollectionInput } from "./interfaces/Contracts";
 
 export class Contracts {
   private cachedContracts: {
@@ -200,7 +205,8 @@ export class Contracts {
       | ContractTypes.Erc721WhitelistedToken
       | ContractTypes.Erc1155WhitelistedToken,
     name: string,
-    ticker: string
+    ticker: string,
+    collection: SdkCollectionInput
   ) {
     const is1155 = type === ContractTypes.Erc1155WhitelistedToken;
     // these are duplicated here and in ethereum/artifacts
@@ -234,6 +240,34 @@ export class Contracts {
 
     await contract.addMinter(this.refinable.accountAddress);
 
-    return new EvmTransaction(contract.deployTransaction);
+    const tx = new EvmTransaction(contract.deployTransaction);
+
+    await tx.wait();
+
+    if (!(typeof collection.avatar === "string")) {
+      collection.avatar = await this.refinable.uploadFile(collection.avatar);
+    }
+
+    const { createContract: dbContractResponse } =
+      await this.refinable.apiClient.request<
+        CreateContractMutation,
+        CreateContractMutationVariables
+      >(CREATE_CONTRACT, {
+        data: {
+          contract: {
+            contractAddress: tx.txReceipt.contractAddress,
+            chainId: await this.refinable.provider.getChainId(),
+            contractType: type,
+          },
+          collection: collection as CollectionInput,
+        },
+      });
+
+    const cachedContract = this.cacheContract(dbContractResponse);
+
+    return {
+      tx,
+      contract: cachedContract,
+    };
   }
 }

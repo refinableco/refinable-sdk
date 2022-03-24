@@ -246,9 +246,7 @@ export type ContractCount = {
 
 export type ContractInput = {
   chainId: Scalars["Float"];
-  collection?: InputMaybe<CollectionInput>;
   contractAddress: Scalars["String"];
-  contractType?: InputMaybe<ContractTypes>;
 };
 
 export type ContractOutput = {
@@ -299,6 +297,11 @@ export enum ContractTypes {
   Sale = "SALE",
   TransferProxy = "TRANSFER_PROXY",
 }
+
+export type CreateContractInput = {
+  collection: CollectionInput;
+  contract: RefinableContractInput;
+};
 
 export type CreateEventInput = {
   events: Array<EventInput>;
@@ -795,6 +798,7 @@ export type MetadataValuePossibility = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  createContract: ContractOutput;
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
   createOfferForItems: Offer;
@@ -816,6 +820,10 @@ export type Mutation = {
   updateStore?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
+};
+
+export type MutationCreateContractArgs = {
+  data: CreateContractInput;
 };
 
 export type MutationCreateEventArgs = {
@@ -1174,6 +1182,12 @@ export type QueryTopUsersArgs = {
 
 export type QueryUserArgs = {
   ethAddress: Scalars["String"];
+};
+
+export type RefinableContractInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  contractType: ContractTypes;
 };
 
 export type RefreshMetadataInput = {
@@ -1586,6 +1600,22 @@ export type GetMintableCollectionsQuery = {
       | null
       | undefined;
   }>;
+};
+
+export type CreateContractMutationVariables = Exact<{
+  data: CreateContractInput;
+}>;
+
+export type CreateContractMutation = {
+  __typename?: "Mutation";
+  createContract: {
+    __typename?: "ContractOutput";
+    contractAddress: string;
+    contractABI: string;
+    type: string;
+    tags: Array<ContractTag>;
+    chainId: number;
+  };
 };
 
 export type ItemSaleInfoFragment = {
