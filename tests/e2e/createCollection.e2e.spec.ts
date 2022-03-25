@@ -39,16 +39,14 @@ describe("Refinable Create Contract", () => {
 
     const collection = {
       title: "Sweet collection",
+      symbol: "CONTRACT_SYMBOL",
       description: "Sweet collection description",
       tokenType: TokenType.Erc1155,
       slug: "sweet-collection",
       avatar: fileStream,
     };
 
-    const { tx, contract } = await refinable.contracts.createContract(
-      ContractTypes.Erc1155WhitelistedToken,
-      "ContracTitle",
-      "CONTRACT_SYMBOL",
+    const { tx, contract } = await refinable.contracts.createCollection(
       collection
     );
 
@@ -63,16 +61,14 @@ describe("Refinable Create Contract", () => {
 
     const collection = {
       title: "Sweet collection",
+      symbol: "CONTRACT_SYMBOL",
       description: "Sweet collection description",
       tokenType: TokenType.Erc721,
       slug: "sweet-collection",
       avatar: fileStream,
     };
 
-    const { tx, contract } = await refinable.contracts.createContract(
-      ContractTypes.Erc721WhitelistedToken,
-      "ContracTitle",
-      "CONTRACT_SYMBOL",
+    const { tx, contract } = await refinable.contracts.createCollection(
       collection
     );
 
