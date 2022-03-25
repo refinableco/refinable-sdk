@@ -100,15 +100,21 @@ export class ERC1155NFT extends AbstractEvmNFT {
     supply?: number;
     launchpadDetails?: LaunchpadDetailsInput;
   }): Promise<SaleOffer> {
-    const {
-      price,
-      startTime,
-      endTime,
-      launchpadDetails,
-      supply = 1,
-    } = params;
+    const { price, startTime, endTime, launchpadDetails, supply = 1 } = params;
 
     this.verifyItem();
+
+    // validate launchpad
+    if (startTime && launchpadDetails?.stages) {
+      for (let i = 0; i < launchpadDetails.stages.length; i++) {
+        const stage = launchpadDetails.stages[i];
+        if (stage.startTime >= startTime) {
+          throw new Error(
+            `The start time of the ${stage.stage} stage (index: ${i}) is after the start time of the public sale, this whitelist won't have any effect. Please remove this stage or adjust its startTime`
+          );
+        }
+      }
+    }
 
     const addressForApproval = this.transferProxyContract.address;
 
