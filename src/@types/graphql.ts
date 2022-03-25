@@ -156,6 +156,15 @@ export type CollectionEdge = {
   node: Collection;
 };
 
+export type CollectionInput = {
+  avatar: Scalars["String"];
+  description: Scalars["String"];
+  slug: Scalars["String"];
+  symbol: Scalars["String"];
+  title: Scalars["String"];
+  tokenType: Scalars["String"];
+};
+
 export type CollectionMetadataFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
@@ -290,6 +299,11 @@ export enum ContractTypes {
   TransferProxy = "TRANSFER_PROXY",
 }
 
+export type CreateContractInput = {
+  collection: CollectionInput;
+  contract: RefinableContractInput;
+};
+
 export type CreateEventInput = {
   events: Array<EventInput>;
 };
@@ -339,6 +353,7 @@ export type CreatePurchaseInput = {
 
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
+  banner: Scalars["String"];
   contracts: Array<ContractInput>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
@@ -348,7 +363,7 @@ export type CreateStoreInput = {
   favicon: Scalars["String"];
   instagram?: InputMaybe<Scalars["String"]>;
   logo: Scalars["String"];
-  logoHeight: Scalars["Float"];
+  logoHeight?: InputMaybe<Scalars["Float"]>;
   name: Scalars["String"];
   primaryColor: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
@@ -441,6 +456,7 @@ export type HottestTagsFilterInput = {
 };
 
 export type ImportCollectionInput = {
+  bannerUrl?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Float"];
   contractABI?: InputMaybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
@@ -783,6 +799,7 @@ export type MetadataValuePossibility = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  createContract: ContractOutput;
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
   createOfferForItems: Offer;
@@ -804,6 +821,10 @@ export type Mutation = {
   updateStore?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
+};
+
+export type MutationCreateContractArgs = {
+  data: CreateContractInput;
 };
 
 export type MutationCreateEventArgs = {
@@ -1042,6 +1063,7 @@ export type Query = {
   hotItems: HotItemsResponse;
   hottestTags: Array<Tag>;
   importPreview: ImportItemPreview;
+  isDomainTaken: Scalars["Boolean"];
   item?: Maybe<Item>;
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
@@ -1104,6 +1126,10 @@ export type QueryImportPreviewArgs = {
   input: ImportItemPreviewInput;
 };
 
+export type QueryIsDomainTakenArgs = {
+  domain: Scalars["String"];
+};
+
 export type QueryItemArgs = {
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
@@ -1157,6 +1183,12 @@ export type QueryTopUsersArgs = {
 
 export type QueryUserArgs = {
   ethAddress: Scalars["String"];
+};
+
+export type RefinableContractInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  contractType: ContractTypes;
 };
 
 export type RefreshMetadataInput = {
@@ -1569,6 +1601,22 @@ export type GetMintableCollectionsQuery = {
       | null
       | undefined;
   }>;
+};
+
+export type CreateContractMutationVariables = Exact<{
+  data: CreateContractInput;
+}>;
+
+export type CreateContractMutation = {
+  __typename?: "Mutation";
+  createContract: {
+    __typename?: "ContractOutput";
+    contractAddress: string;
+    contractABI: string;
+    type: string;
+    tags: Array<ContractTag>;
+    chainId: number;
+  };
 };
 
 export type ItemSaleInfoFragment = {

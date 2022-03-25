@@ -7,16 +7,29 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
+  CreateContractMutation,
+  CreateContractMutationVariables,
   Token,
+  CollectionInput,
 } from "../@types/graphql";
-import { getContractsTags } from "../config/sdk";
+import {
+  contractMetadata,
+  getContractsTags,
+  ipfsUrl,
+  signer,
+} from "../config/sdk";
 import { Contract, IContract } from "../Contract";
 import {
+  CREATE_CONTRACT,
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
   GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
+import { ContractFactory } from "ethers";
+import EvmTransaction from "../transaction/EvmTransaction";
+import { optionalParam } from "../utils/utils";
+import { SdkCollectionInput } from "./interfaces/Contracts";
 
 export class Contracts {
   private cachedContracts: {
@@ -185,5 +198,71 @@ export class Contracts {
     };
 
     return contract;
+  }
+
+  async createCollection(collection: SdkCollectionInput) {
+    const is1155 = collection.tokenType === TokenType.Erc1155;
+    // these are duplicated here and in ethereum/artifacts
+    const { abi }: { abi: any } = is1155
+      ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
+      : await import("../artifacts/abi/RefinableERC721WhitelistedV3.json");
+    const { bytecode: contractByteCode }: { bytecode: string } = is1155
+      ? await import("../artifacts/bytecode/RefinableERC1155WhitelistedV3.json")
+      : await import("../artifacts/bytecode/RefinableERC721WhitelistedV3.json");
+
+    const factory = new ContractFactory(
+      abi,
+      contractByteCode,
+      this.refinable.provider
+    );
+
+    const metadataUri = contractMetadata[this.refinable.options.environment];
+    const ipfsUri = ipfsUrl[this.refinable.options.environment];
+    const signerAddress = signer[this.refinable.options.environment];
+    const contract = await factory.deploy(
+      collection.title,
+      collection.symbol,
+      this.refinable.accountAddress,
+      signerAddress,
+      metadataUri,
+      ipfsUri, // uri
+      ...optionalParam(is1155, ipfsUri)
+    );
+
+    await contract.deployed();
+
+    await contract.addMinter(this.refinable.accountAddress);
+
+    const tx = new EvmTransaction(contract.deployTransaction);
+
+    await tx.wait();
+
+    if (!(typeof collection.avatar === "string")) {
+      collection.avatar = await this.refinable.uploadFile(collection.avatar);
+    }
+
+    const { createContract: dbContractResponse } =
+      await this.refinable.apiClient.request<
+        CreateContractMutation,
+        CreateContractMutationVariables
+      >(CREATE_CONTRACT, {
+        data: {
+          contract: {
+            contractAddress: tx.txReceipt.contractAddress,
+            chainId: await this.refinable.provider.getChainId(),
+            contractType: is1155
+              ? ContractTypes.Erc1155WhitelistedToken
+              : ContractTypes.Erc721WhitelistedToken,
+          },
+          collection: collection as CollectionInput,
+        },
+      });
+
+    const cachedContract = this.cacheContract(dbContractResponse);
+
+    return {
+      tx,
+      contract: cachedContract,
+    };
   }
 }
