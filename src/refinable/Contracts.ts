@@ -200,15 +200,8 @@ export class Contracts {
     return contract;
   }
 
-  async createContract(
-    type:
-      | ContractTypes.Erc721WhitelistedToken
-      | ContractTypes.Erc1155WhitelistedToken,
-    name: string,
-    ticker: string,
-    collection: SdkCollectionInput
-  ) {
-    const is1155 = type === ContractTypes.Erc1155WhitelistedToken;
+  async createCollection(collection: SdkCollectionInput) {
+    const is1155 = collection.tokenType === TokenType.Erc1155;
     // these are duplicated here and in ethereum/artifacts
     const { abi }: { abi: any } = is1155
       ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
@@ -227,8 +220,8 @@ export class Contracts {
     const ipfsUri = ipfsUrl[this.refinable.options.environment];
     const signerAddress = signer[this.refinable.options.environment];
     const contract = await factory.deploy(
-      name,
-      ticker,
+      collection.title,
+      collection.symbol,
       this.refinable.accountAddress,
       signerAddress,
       metadataUri,
@@ -257,7 +250,9 @@ export class Contracts {
           contract: {
             contractAddress: tx.txReceipt.contractAddress,
             chainId: await this.refinable.provider.getChainId(),
-            contractType: type,
+            contractType: is1155
+              ? ContractTypes.Erc1155WhitelistedToken
+              : ContractTypes.Erc721WhitelistedToken,
           },
           collection: collection as CollectionInput,
         },

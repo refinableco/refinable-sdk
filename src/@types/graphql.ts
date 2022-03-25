@@ -160,6 +160,7 @@ export type CollectionInput = {
   avatar: Scalars["String"];
   description: Scalars["String"];
   slug: Scalars["String"];
+  symbol: Scalars["String"];
   title: Scalars["String"];
   tokenType: Scalars["String"];
 };
