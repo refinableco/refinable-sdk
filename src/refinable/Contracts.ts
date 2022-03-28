@@ -202,7 +202,6 @@ export class Contracts {
 
   async createCollection(collection: SdkCollectionInput) {
     const is1155 = collection.tokenType === TokenType.Erc1155;
-    // these are duplicated here and in ethereum/artifacts
     const { abi }: { abi: any } = is1155
       ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
       : await import("../artifacts/abi/RefinableERC721WhitelistedV3.json");

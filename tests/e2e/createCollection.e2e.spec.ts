@@ -8,8 +8,6 @@ import {
   TokenType,
 } from "../../src";
 
-import { ContractTypes } from "../../src/@types/graphql";
-
 describe("Refinable Create Contract", () => {
   let refinable: RefinableEvmClient;
   const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
