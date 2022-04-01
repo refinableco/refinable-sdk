@@ -40,7 +40,7 @@ describe("Refinable Create Contract", () => {
       symbol: "CONTRACT_SYMBOL",
       description: "Sweet collection description",
       tokenType: TokenType.Erc1155,
-      slug: "sweet-collection",
+      slug: `sweet-collection${new Date().toISOString()}`,
       avatar: fileStream,
     };
 
@@ -62,7 +62,7 @@ describe("Refinable Create Contract", () => {
       symbol: "CONTRACT_SYMBOL",
       description: "Sweet collection description",
       tokenType: TokenType.Erc721,
-      slug: "sweet-collection",
+      slug: `sweet-collection${new Date().toISOString()}`,
       avatar: fileStream,
     };
 
@@ -72,5 +72,28 @@ describe("Refinable Create Contract", () => {
 
     expect(tx).toBeDefined();
     expect(contract).toBeDefined();
+  });
+
+  it("should throw for duplicated coll slug", async () => {
+    const fileStream = fs.createReadStream(
+      path.resolve(__dirname, "../assets/image.jpg")
+    );
+
+    const slug = `sweet-collection${new Date().toISOString()}`;
+    const collection = {
+      title: "Sweet collection",
+      symbol: "CONTRACT_SYMBOL",
+      description: "Sweet collection description",
+      tokenType: TokenType.Erc721,
+      slug,
+      avatar: fileStream,
+    };
+
+    await refinable.contracts.createCollection(collection);
+
+    await new Promise((res) => setTimeout(res, 2000));
+    expect(await refinable.contracts.createCollection(collection)).toThrow(
+      /slug is duplicated/
+    );
   });
 });

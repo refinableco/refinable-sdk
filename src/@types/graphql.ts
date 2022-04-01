@@ -132,6 +132,7 @@ export type Collection = {
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
   iconUrl: Scalars["String"];
+  id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   items: ItemsWithOffersResponse;
   name: Scalars["String"];
@@ -510,6 +511,11 @@ export type ImportSolanaCollectionInput = {
   updateAuthority?: InputMaybe<Scalars["String"]>;
 };
 
+export type IndexCollectionInput = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+};
+
 export type Item = {
   __typename?: "Item";
   attributes?: Maybe<Array<ItemAttribute>>;
@@ -812,6 +818,7 @@ export type Mutation = {
   importCollection: ImportCollectionOutput;
   importItem: CreateItemOutput;
   importSolanaCollection: Scalars["Boolean"];
+  indexCollection: Scalars["Boolean"];
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
@@ -873,6 +880,10 @@ export type MutationImportItemArgs = {
 
 export type MutationImportSolanaCollectionArgs = {
   input: ImportSolanaCollectionInput;
+};
+
+export type MutationIndexCollectionArgs = {
+  input: IndexCollectionInput;
 };
 
 export type MutationLoginArgs = {
@@ -1601,6 +1612,15 @@ export type GetMintableCollectionsQuery = {
       | null
       | undefined;
   }>;
+};
+
+export type GetCollectionBySlugQueryVariables = Exact<{
+  slug: Scalars["String"];
+}>;
+
+export type GetCollectionBySlugQuery = {
+  __typename?: "Query";
+  collection?: { __typename?: "Collection"; slug: string } | null | undefined;
 };
 
 export type CreateContractMutationVariables = Exact<{
