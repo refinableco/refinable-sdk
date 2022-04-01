@@ -56,9 +56,8 @@ export interface PartialOffer
     | "startTime"
     | "endTime"
     | "whitelistStage"
-  > {
-  whitelistVoucher?: WhitelistVoucherParams | WhitelistVoucher;
-}
+    | "whitelistVoucher"
+  > {}
 
 export class Offer implements PartialOffer {
   id: string;

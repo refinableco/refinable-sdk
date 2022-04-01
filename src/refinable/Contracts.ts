@@ -11,6 +11,8 @@ import {
   CreateContractMutationVariables,
   Token,
   CollectionInput,
+  GetCollectionBySlugQuery,
+  GetCollectionBySlugQueryVariables,
 } from "../@types/graphql";
 import {
   contractMetadata,
@@ -21,6 +23,7 @@ import {
 import { Contract, IContract } from "../Contract";
 import {
   CREATE_CONTRACT,
+  GET_COLLECTION,
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
   GET_REFINABLE_CONTRACTS,
@@ -201,6 +204,17 @@ export class Contracts {
   }
 
   async createCollection(collection: SdkCollectionInput) {
+    const collRes = await this.refinable.apiClient.request<
+      GetCollectionBySlugQuery,
+      GetCollectionBySlugQueryVariables
+    >(GET_COLLECTION, {
+      slug: collection.slug,
+    });
+
+    if (!!collRes?.collection?.slug) {
+      throw new Error("Collection slug is duplicated");
+    }
+
     const is1155 = collection.tokenType === TokenType.Erc1155;
     const { abi }: { abi: any } = is1155
       ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
