@@ -17,8 +17,9 @@ import {
   LaunchpadCountDownType,
   WhitelistType,
 } from "../../src/@types/graphql";
+import { sleep } from "../../src/solana/utils";
 
-const createNft = async (refinable: RefinableEvmClient) => {
+const createNft = async (refinable: RefinableEvmClient, supply = 5) => {
   const fileStream = fs.createReadStream(
     path.resolve(__dirname, "../assets/image.jpg")
   );
@@ -30,7 +31,7 @@ const createNft = async (refinable: RefinableEvmClient) => {
       name: "The Test NFT",
       royalty: new StandardRoyaltyStrategy([]),
       chainId: Chain.Local,
-      supply: 5,
+      supply,
     })
     .createAndMint();
 };
@@ -175,6 +176,34 @@ describe("ERC1155 - E2E", () => {
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
       });
+    });
+
+    it("should be able to buy multiple at once", async () => {
+      const price = {
+        amount: 1,
+        currency: PriceCurrency.Bnb,
+      };
+
+      const nft = await createNft(refinable, 100);
+
+      await sleep(1000);
+
+      const itemOnSale = await nft.putForSale({
+        supply: 22,
+        price,
+      });
+
+      const offer = await refinable2.getOffer(itemOnSale.id);
+      const refinable2Nft = refinable2.createNft(nft.getItem());
+      const nftOffer: SaleOffer = refinable2.createOffer(
+        offer,
+        refinable2Nft as AbstractNFT
+      );
+
+      const txnResponse = await nftOffer.buy({ amount: 2 });
+      expect(txnResponse).toBeDefined();
+      const txnReceipt = await txnResponse.wait();
+      expect(txnReceipt.success).toEqual(true);
     });
 
     describe("Whitelist", () => {
