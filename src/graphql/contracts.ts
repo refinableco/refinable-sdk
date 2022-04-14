@@ -37,3 +37,23 @@ export const GET_MINTABLE_COLLECTIONS_QUERY = gql`
     }
   }
 `;
+
+export const GET_COLLECTION = gql`
+  query getCollectionBySlug($slug: String!) {
+    collection(slug: $slug) {
+      slug
+    }
+  }
+`;
+
+export const CREATE_CONTRACT = gql`
+  mutation createContract($data: CreateContractInput!) {
+    createContract(data: $data) {
+      contractAddress
+      contractABI
+      type
+      tags
+      chainId
+    }
+  }
+`;

@@ -42,6 +42,23 @@ export interface PartialOffer
     | "whitelistVoucher"
   > {}
 
+export interface PartialOffer
+  extends Pick<
+    PartialOfferInput,
+    | "id"
+    | "type"
+    | "signature"
+    | "price"
+    | "user"
+    | "totalSupply"
+    | "auction"
+    | "blockchainId"
+    | "startTime"
+    | "endTime"
+    | "whitelistStage"
+    | "whitelistVoucher"
+  > {}
+
 export class Offer implements PartialOffer {
   id: string;
   type: OfferType;
