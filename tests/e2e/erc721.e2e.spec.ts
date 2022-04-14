@@ -2,11 +2,11 @@ import { addDays, subDays } from "date-fns";
 import fs from "fs";
 import path from "path";
 import {
-  AbstractNFT,
   Chain,
   Environment,
   ERC721NFT,
   initializeWallet,
+  NotEnoughSupplyError,
   PriceCurrency,
   RefinableEvmClient,
   SaleOffer,
@@ -125,7 +125,7 @@ describe("ERC721 - E2E", () => {
       };
       const itemOnSale = await nft.putForSale({ price });
       expect(itemOnSale.totalSupply).toEqual(1);
-      expect(itemOnSale.user.ethAddress.toLowerCase()).toEqual(
+      expect(itemOnSale.sellerAddress.toLowerCase()).toEqual(
         address.toLowerCase()
       );
       expect(itemOnSale.type).toEqual("SALE");
@@ -157,16 +157,28 @@ describe("ERC721 - E2E", () => {
         };
         const itemOnSale = await nft.putForSale({ price });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
-        const txnResponse = await nftOffer.buy(price);
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const txnResponse = await offer.buy(price);
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
+      });
+
+      it("should throw error when trying to buy same item without refetching offer", async () => {
+        const price = {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        };
+        const itemOnSale = await nft.putForSale({ price });
+
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const txnResponse = await offer.buy(price);
+        const txnReceipt = await txnResponse.wait();
+        expect(txnReceipt.success).toEqual(true);
+
+        await expect(offer.buy(price)).rejects.toThrowError(
+          NotEnoughSupplyError
+        );
       });
     });
 
@@ -196,7 +208,6 @@ describe("ERC721 - E2E", () => {
         const offer = await refinable2.getOffer(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
-        expect(offer.whitelistVoucher).toBeNull();
 
         await itemOnSale.cancelSale();
       });
@@ -222,16 +233,11 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
-        expect(nftOffer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
+        expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
-        expect(nftOffer.buy()).rejects.toThrowError(
+        expect(offer.buy()).rejects.toThrowError(
           "reverted with reason string 'You are not whitelisted or public sale has not started"
         );
       });
@@ -258,16 +264,11 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
-        expect(nftOffer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
+        expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
 
-        const txnResponse = await nftOffer.buy();
+        const txnResponse = await offer.buy();
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
@@ -298,7 +299,6 @@ describe("ERC721 - E2E", () => {
         const offer = await refinable2.getOffer(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
-        expect(offer.whitelistVoucher).not.toBeNull();
       });
 
       it("should be able to buy a whitelisted item", async () => {
@@ -323,17 +323,11 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
-        expect(offer.whitelistVoucher).not.toBeNull();
 
-        const txnResponse = await nftOffer.buy();
+        const txnResponse = await offer.buy();
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
@@ -401,7 +395,7 @@ describe("ERC721 - E2E", () => {
       });
       expect(offer).toBeDefined();
       expect(offer.type).toBe("AUCTION");
-      expect(offer.user.ethAddress.toLowerCase()).toBe(
+      expect(offer.sellerAddress.toLowerCase()).toBe(
         wallet.address.toLowerCase()
       );
       expect(offer.totalSupply).toBe(1);

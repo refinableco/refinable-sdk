@@ -39,8 +39,10 @@ async function main() {
       });
 
       await nft.putForSale({
-        amount: parameters[4],
-        currency: parameters[3] as PriceCurrency,
+        price: {
+          amount: parameters[4],
+          currency: parameters[3] as PriceCurrency,
+        },
       });
 
       console.log(

@@ -1,14 +1,8 @@
-import {
-  AuctionFragment,
-  OfferFragment,
-  OfferType,
-  Price,
-  WhitelistVoucher,
-} from "../@types/graphql";
+import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 
-export interface PartialOfferInput
+export interface PartialOffer
   extends Pick<
     OfferFragment,
     | "id"
@@ -23,61 +17,54 @@ export interface PartialOfferInput
     | "endTime"
     | "whitelistStage"
     | "whitelistVoucher"
+    | "marketConfig"
+    | "supply"
   > {}
 
-export interface PartialOffer
-  extends Pick<
-    PartialOfferInput,
-    | "id"
-    | "type"
-    | "signature"
-    | "price"
-    | "user"
-    | "totalSupply"
-    | "auction"
-    | "blockchainId"
-    | "startTime"
-    | "endTime"
-    | "whitelistStage"
-    | "whitelistVoucher"
-  > {}
-
-export interface PartialOffer
-  extends Pick<
-    PartialOfferInput,
-    | "id"
-    | "type"
-    | "signature"
-    | "price"
-    | "user"
-    | "totalSupply"
-    | "auction"
-    | "blockchainId"
-    | "startTime"
-    | "endTime"
-    | "whitelistStage"
-    | "whitelistVoucher"
-  > {}
-
-export class Offer implements PartialOffer {
-  id: string;
-  type: OfferType;
-  signature?: string;
-  blockchainId?: string;
-  price: Price;
-  totalSupply: number;
-  auction?: AuctionFragment;
-  startTime?: Date | null | undefined;
-  endTime?: Date | null | undefined;
-  whitelistVoucher?: WhitelistVoucher;
-  whitelistStage: OfferFragment["whitelistStage"];
-  user: { id: string; ethAddress?: string };
-
+export class Offer {
   constructor(
     protected readonly refinable: RefinableBaseClient,
-    offer: PartialOfferInput,
+    protected _offer: PartialOffer,
     protected readonly nft: AbstractNFT
-  ) {
-    Object.assign(this, offer);
+  ) {}
+
+  get id() {
+    return this._offer.id;
+  }
+
+  get type() {
+    return this._offer.type;
+  }
+
+  get price() {
+    return this._offer.price;
+  }
+
+  get supply() {
+    return this._offer.supply;
+  }
+
+  get buyServiceFeeBps() {
+    return this._offer.marketConfig.buyServiceFeeBps;
+  }
+
+  get auction() {
+    return this._offer.auction;
+  }
+
+  get sellerAddress() {
+    return this._offer.user.ethAddress;
+  }
+
+  get totalSupply() {
+    return this._offer.totalSupply;
+  }
+
+  get whitelistStage() {
+    return this._offer.whitelistStage;
+  }
+
+  protected subtractOfferSupply(amount: number) {
+    return (this._offer.supply -= amount);
   }
 }

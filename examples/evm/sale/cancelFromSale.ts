@@ -37,8 +37,10 @@ async function main() {
         tokenId: parameters[1],
       });
       const res = await nft.putForSale({
-        amount: parameters[4],
-        currency: parameters[3] as PriceCurrency,
+        price: {
+          amount: parameters[4],
+          currency: parameters[3] as PriceCurrency,
+        },
       });
       await res.cancelSale();
       console.log(`${parameters[0]}:${parameters[1]} - Canceled from sale`);

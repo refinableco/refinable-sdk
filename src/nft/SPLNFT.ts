@@ -522,12 +522,10 @@ export class SPLNFT extends AbstractNFT {
     price,
     auctionStartDate,
     auctionEndDate,
-    royaltyContractAddress,
   }: {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-    royaltyContractAddress?: string;
   }): Promise<{ txResponse: SolanaTransaction; offer: AuctionOffer }> {
     throw new Error("Method not implemented.");
   }

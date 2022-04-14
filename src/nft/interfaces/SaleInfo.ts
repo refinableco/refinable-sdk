@@ -6,8 +6,11 @@ export enum SaleVersion {
 }
 
 export interface SaleInfo {
+  token: string;
+  tokenId: string;
   // latest one, right now we're at V2
   saleVersion: SaleVersion;
+  price: string;
   buying: number;
   selling: number;
 
@@ -18,8 +21,10 @@ export interface SaleInfo {
   endTime: number;
   payToken: string;
   seller: string;
-  royaltyToken: string;
   signature: string;
+  //
+  marketConfigData: string;
+  marketConfigDataSignature: string;
 }
 
 export interface LaunchpadStage {

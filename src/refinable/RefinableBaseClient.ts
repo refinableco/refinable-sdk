@@ -9,6 +9,7 @@ import {
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
   OfferFragment,
+  TokenType,
   UserItemFilterType,
 } from "../@types/graphql";
 import { apiUrl } from "../config/sdk";
@@ -19,8 +20,8 @@ import {
 } from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { Account } from "../interfaces/Account";
-import { AbstractNFT } from "../nft/AbstractNFT";
-import { PartialOfferInput } from "../offer/Offer";
+import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
+import { Offer, PartialOffer } from "../offer/Offer";
 import { OfferFactory } from "../offer/OfferFactory";
 import {
   Environment,
@@ -90,9 +91,10 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   }
 
   abstract init(): void | Promise<void>;
+  abstract createNft(item: PartialNFTItem & { type: TokenType }): AbstractNFT;
 
   createOffer<K extends OfferType>(
-    offer: PartialOfferInput & { type: K },
+    offer: PartialOffer & { type: K },
     nft: AbstractNFT
   ) {
     return OfferFactory.createOffer<K>(this, offer, nft);
@@ -125,15 +127,23 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     return this.getItemsWithOffer(paging, after, OfferType.Sale);
   }
 
-  async getOffer(id: string): Promise<OfferFragment> {
+  async getOffer<O extends Offer = Offer>(
+    id: string,
+    storeId?: string
+  ): Promise<O> {
     const queryResponse = await this.apiClient.request<
       GetOfferQuery,
       GetOfferQueryVariables
     >(GET_OFFER, {
       id,
+      storeId,
     });
 
-    return queryResponse?.offer;
+    if (!queryResponse?.offer) return null;
+
+    const nft = this.createNft(queryResponse?.offer?.item);
+
+    return OfferFactory.createOffer(this, queryResponse?.offer, nft) as any;
   }
 
   async getItemsOnAuction(
