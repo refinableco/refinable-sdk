@@ -28,7 +28,7 @@ import { SaleOffer } from "./offer/SaleOffer";
 import { ClientType, Refinable } from "./refinable/Refinable";
 import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
 import { RefinableSolanaClient } from "./refinable/RefinableSolanaClient";
-import { Store } from "./store/Store-d";
+import { Store } from "./store/Store";
 import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
 export * from "./providers";
