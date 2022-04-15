@@ -3,10 +3,9 @@ import { defaults } from "jest-config";
 
 const config: Config.InitialOptions = {
   ...defaults,
-  preset: "ts-jest",
   testEnvironment: "node",
   transform: {
-    "node_modules/variables/.+\\.(j|t)sx?$": "ts-jest",
+    '^.+\\.(t|j)sx?$': '@swc-node/jest',
   },
   testTimeout: 999999,
   verbose: true,

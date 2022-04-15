@@ -2,6 +2,7 @@ import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   LaunchpadDetailsInput,
+  MarketConfig,
   OfferType,
   Price,
   TokenType,
@@ -52,12 +53,11 @@ export class ERC721NFT extends AbstractEvmNFT {
     blockchainId: string;
     price: Price;
     ownerEthAddress: string;
-    royaltyContractAddress?: string;
     startTime?: Date;
     endTime?: Date;
+    marketConfig?: MarketConfig;
   }): Promise<EvmTransaction> {
     return this._buy({
-      royaltyContractAddress: params.royaltyContractAddress,
       price: params.price,
       ownerEthAddress: params.ownerEthAddress,
       signature: params.signature,
@@ -66,6 +66,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       blockchainId: params.blockchainId,
       supply: 1,
       amount: 1,
+      marketConfig: params.marketConfig,
     });
   }
 
@@ -75,14 +76,13 @@ export class ERC721NFT extends AbstractEvmNFT {
       blockchainId: string;
       price: Price;
       ownerEthAddress: string;
-      royaltyContractAddress?: string;
       startTime?: Date;
       endTime?: Date;
+      marketConfig?: MarketConfig;
     },
     voucher: any
   ): Promise<EvmTransaction> {
     return this._buy({
-      royaltyContractAddress: params.royaltyContractAddress,
       price: params.price,
       ownerEthAddress: params.ownerEthAddress,
       signature: params.signature,
@@ -92,6 +92,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       supply: 1,
       amount: 1,
       voucher,
+      marketConfig: params.marketConfig,
     });
   }
 
@@ -155,8 +156,8 @@ export class ERC721NFT extends AbstractEvmNFT {
       },
     });
 
-    return this.refinable.createOffer<OfferType.Sale>(
-      { ...result.createOfferForItems, type: OfferType.Sale },
+    return this.refinable.createOffer<SaleOffer>(
+      result.createOfferForItems,
       this
     );
   }

@@ -32,8 +32,6 @@ export const getContractsTags = (
   environment: Environment,
   chainId: Chain
 ): ContractTag[] => {
-  const chain = selectChainType(chainId);
-
   switch (environment) {
     case Environment.Mainnet:
       return [
@@ -45,20 +43,16 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        ContractTag.SaleV3_2_0,
-        ContractTag.AuctionV3_1_0,
+        ContractTag.SaleV4_0_0,
+        ContractTag.AuctionV4_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
       ];
     case Environment.Local:
       return [
-        chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
-          ? ContractTag.SaleV4_0_0
-          : ContractTag.SaleV3_2_0,
-        chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
-          ? ContractTag.AuctionV4_0_0
-          : ContractTag.AuctionV3_1_1,
+        ContractTag.SaleV4_0_0,
+        ContractTag.AuctionV4_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,

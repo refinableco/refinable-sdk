@@ -26,13 +26,13 @@ async function main() {
     .createAndMint();
 
   // SDK: Put for sale
-  await nft.putForSale(
-    {
+  await nft.putForSale({
+    price: {
       amount: 0.1,
       currency: PriceCurrency.Bnb,
     },
-    4
-  );
+    supply: 4,
+  });
 }
 
 main();

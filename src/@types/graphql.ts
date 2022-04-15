@@ -81,6 +81,7 @@ export type AuthUser = {
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   items: ItemsResponse;
+  itemsLiked: ItemsResponse;
   itemsOnOffer: ItemsWithOffersResponse;
   name?: Maybe<Scalars["String"]>;
   profileBanner?: Maybe<Scalars["String"]>;
@@ -96,6 +97,10 @@ export type AuthUserItemsArgs = {
   filter: UserItemFilterInput;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type AuthUserItemsLikedArgs = {
+  paging: PagingInput;
 };
 
 export type AuthUserItemsOnOfferArgs = {
@@ -169,6 +174,7 @@ export type CollectionInput = {
 export type CollectionMetadataFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
+  collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
@@ -276,6 +282,7 @@ export enum ContractTag {
   SaleV3_1_0 = "SALE_v3_1_0",
   SaleV3_2_0 = "SALE_v3_2_0",
   SaleV4_0_0 = "SALE_v4_0_0",
+  ServiceFeeProxyV1_0_0 = "SERVICE_FEE_PROXY_v1_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
   TokenV3_0_0 = "TOKEN_v3_0_0",
@@ -297,6 +304,7 @@ export enum ContractTypes {
   Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
   Sale = "SALE",
+  ServiceFeeProxy = "SERVICE_FEE_PROXY",
   TransferProxy = "TRANSFER_PROXY",
 }
 
@@ -393,6 +401,17 @@ export enum EventType {
   View = "VIEW",
 }
 
+export type Fees = {
+  __typename?: "Fees";
+  buyerFee?: Maybe<Scalars["Float"]>;
+  payoutAddress?: Maybe<Scalars["String"]>;
+};
+
+export type FeesInput = {
+  buyerFee?: InputMaybe<Scalars["Float"]>;
+  payoutAddress?: InputMaybe<Scalars["String"]>;
+};
+
 export enum FileType {
   Image = "IMAGE",
   Video = "VIDEO",
@@ -418,6 +437,21 @@ export type FinishMintInput = {
 export type FinishMintOutput = {
   __typename?: "FinishMintOutput";
   item: Item;
+};
+
+export type GetMetadataInput = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+};
+
+export type GetMetadataOutput = {
+  __typename?: "GetMetadataOutput";
+  attributes: Array<ItemAttributeOutput>;
+  description?: Maybe<Scalars["String"]>;
+  external_url?: Maybe<Scalars["String"]>;
+  image?: Maybe<Scalars["String"]>;
+  name: Scalars["String"];
+  video?: Maybe<Scalars["String"]>;
 };
 
 export type GetRefinableContractInput = {
@@ -529,6 +563,8 @@ export type Item = {
   editionsForSale: Array<Offer>;
   history: ItemHistoryResponse;
   id: Scalars["String"];
+  isLiked: Scalars["Boolean"];
+  likes?: Maybe<Scalars["Float"]>;
   marketingDescription?: Maybe<Scalars["String"]>;
   name: Scalars["String"];
   nextEditionForSale?: Maybe<Offer>;
@@ -570,6 +606,14 @@ export type ItemUserSupplyArgs = {
 export type ItemAttribute = {
   __typename?: "ItemAttribute";
   displayType?: Maybe<Scalars["String"]>;
+  traitType?: Maybe<Scalars["String"]>;
+  value: Scalars["String"];
+};
+
+export type ItemAttributeOutput = {
+  __typename?: "ItemAttributeOutput";
+  displayType?: Maybe<Scalars["String"]>;
+  maxValue?: Maybe<Scalars["String"]>;
   traitType?: Maybe<Scalars["String"]>;
   value: Scalars["String"];
 };
@@ -731,6 +775,7 @@ export type ItemWithOfferPageInfo = {
 export type ItemsFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
+  collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
@@ -797,6 +842,13 @@ export type LoginInput = {
   walletType?: InputMaybe<Scalars["String"]>;
 };
 
+export type MarketConfig = {
+  __typename?: "MarketConfig";
+  buyServiceFeeBps?: Maybe<ServiceFee>;
+  data: Scalars["String"];
+  signature: Scalars["String"];
+};
+
 export type MetadataValuePossibility = {
   __typename?: "MetadataValuePossibility";
   count: Scalars["Float"];
@@ -824,6 +876,7 @@ export type Mutation = {
   placeAuctionBid: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
+  toggleLike?: Maybe<Item>;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
   updateUser: User;
@@ -902,12 +955,17 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
+export type MutationToggleLikeArgs = {
+  itemId: Scalars["String"];
+};
+
 export type MutationUpdateNotificationSeenStatusArgs = {
   id: Scalars["String"];
 };
 
 export type MutationUpdateStoreArgs = {
   data: UpdateStoreInput;
+  id: Scalars["ID"];
 };
 
 export type MutationUpdateUserArgs = {
@@ -983,7 +1041,10 @@ export type Offer = {
   createdAt?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
+  item?: Maybe<Item>;
   launchpadDetails?: Maybe<LaunchpadDetails>;
+  marketConfig: MarketConfig;
+  platform?: Maybe<Platform>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
   startTime?: Maybe<Scalars["DateTime"]>;
@@ -994,6 +1055,10 @@ export type Offer = {
   user: User;
   whitelistStage: LaunchpadCountDownType;
   whitelistVoucher?: Maybe<WhitelistVoucher>;
+};
+
+export type OfferMarketConfigArgs = {
+  storeId?: InputMaybe<Scalars["ID"]>;
 };
 
 export enum OfferType {
@@ -1011,6 +1076,11 @@ export type PagingInput = {
   /** Paginate last */
   last?: InputMaybe<Scalars["Float"]>;
 };
+
+export enum Platform {
+  Looksrare = "LOOKSRARE",
+  Refinable = "REFINABLE",
+}
 
 export type Price = {
   __typename?: "Price";
@@ -1069,6 +1139,7 @@ export type Query = {
   collectionMetadataValues: Array<CollectionMetadataValues>;
   collections: CollectionsResponse;
   contractCount: ContractCount;
+  getMetadata?: Maybe<GetMetadataOutput>;
   getUploadUrl: GetUploadUrlOutput;
   hotCollections: CollectionsResponse;
   hotItems: HotItemsResponse;
@@ -1086,6 +1157,7 @@ export type Query = {
   reports: ItemReportResponse;
   search: SearchResponse;
   store?: Maybe<Store>;
+  storeWithFallback?: Maybe<Store>;
   /** @deprecated tag creation limit is not supported anymore */
   tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
@@ -1116,6 +1188,10 @@ export type QueryCollectionsArgs = {
 export type QueryContractCountArgs = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
+};
+
+export type QueryGetMetadataArgs = {
+  input: GetMetadataInput;
 };
 
 export type QueryGetUploadUrlArgs = {
@@ -1188,6 +1264,11 @@ export type QueryStoreArgs = {
   isExternal?: InputMaybe<Scalars["Boolean"]>;
 };
 
+export type QueryStoreWithFallbackArgs = {
+  domain: Scalars["String"];
+  isExternal?: InputMaybe<Scalars["Boolean"]>;
+};
+
 export type QueryTopUsersArgs = {
   limit?: InputMaybe<Scalars["Int"]>;
 };
@@ -1228,6 +1309,7 @@ export enum RoyaltyStrategy {
 export type SearchFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
+  collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
@@ -1246,6 +1328,17 @@ export type SearchResponse = {
 
 export type SearchResult = Collection | ItemWithOffer | Tag | User;
 
+export type ServiceFee = {
+  __typename?: "ServiceFee";
+  type: ServiceFeeType;
+  value: Scalars["Float"];
+};
+
+export enum ServiceFeeType {
+  Protocol = "PROTOCOL",
+  Store = "STORE",
+}
+
 export type SortInput = {
   field: Scalars["String"];
   order: SortOrder;
@@ -1262,18 +1355,21 @@ export type Store = {
   banner?: Maybe<Scalars["String"]>;
   collectionIds: Array<Scalars["String"]>;
   contracts: Array<Contract>;
-  creator: Scalars["String"];
+  creator?: Maybe<Scalars["String"]>;
   customGa?: Maybe<Scalars["String"]>;
   customLinks?: Maybe<Array<CustomLink>>;
+  default: Scalars["Boolean"];
   description: Scalars["String"];
   discord?: Maybe<Scalars["String"]>;
   domain: Scalars["String"];
-  email: Scalars["String"];
+  email?: Maybe<Scalars["String"]>;
   externalCustomLink?: Maybe<Scalars["String"]>;
-  favicon: Scalars["String"];
+  favicon?: Maybe<Scalars["String"]>;
+  fees?: Maybe<Fees>;
   fontFamily?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
+  isCreator: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
   logo: Scalars["String"];
   logoHeight?: Maybe<Scalars["Float"]>;
@@ -1423,14 +1519,13 @@ export type UpdateStore = {
 export type UpdateStoreInput = {
   backgroundColor?: InputMaybe<Scalars["String"]>;
   banner?: InputMaybe<Scalars["String"]>;
-  contracts?: InputMaybe<Array<ContractInput>>;
   customGa?: InputMaybe<Scalars["String"]>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
   description?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
-  domain?: InputMaybe<Scalars["String"]>;
   email?: InputMaybe<Scalars["String"]>;
   favicon?: InputMaybe<Scalars["String"]>;
+  fees?: InputMaybe<FeesInput>;
   instagram?: InputMaybe<Scalars["String"]>;
   logo?: InputMaybe<Scalars["String"]>;
   logoHeight?: InputMaybe<Scalars["Float"]>;
@@ -1467,6 +1562,7 @@ export type User = {
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   items: ItemsResponse;
+  itemsLiked: ItemsResponse;
   itemsOnOffer: ItemsWithOffersResponse;
   name?: Maybe<Scalars["String"]>;
   profileBanner?: Maybe<Scalars["String"]>;
@@ -1482,6 +1578,10 @@ export type UserItemsArgs = {
   filter: UserItemFilterInput;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type UserItemsLikedArgs = {
+  paging: PagingInput;
 };
 
 export type UserItemsOnOfferArgs = {
@@ -1972,6 +2072,15 @@ export type OfferFragment = {
       }
     | null
     | undefined;
+  marketConfig: {
+    __typename?: "MarketConfig";
+    data: string;
+    signature: string;
+    buyServiceFeeBps?:
+      | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+      | null
+      | undefined;
+  };
   whitelistVoucher?:
     | {
         __typename?: "WhitelistVoucher";
@@ -2108,6 +2217,7 @@ export type GetUserOfferItemsQuery = {
 
 export type GetOfferQueryVariables = Exact<{
   id: Scalars["ID"];
+  storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
 export type GetOfferQuery = {
@@ -2125,6 +2235,19 @@ export type GetOfferQuery = {
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
+        item?:
+          | {
+              __typename?: "Item";
+              id: string;
+              type: TokenType;
+              tokenId: string;
+              contractAddress: string;
+              supply: number;
+              totalSupply: number;
+              chainId: number;
+            }
+          | null
+          | undefined;
         user: {
           __typename?: "User";
           id: string;
@@ -2182,6 +2305,15 @@ export type GetOfferQuery = {
             }
           | null
           | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
+          signature: string;
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+            | null
+            | undefined;
+        };
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
@@ -2394,6 +2526,7 @@ export type FinishMintMutation = {
 
 export type CreateOfferForEditionsMutationVariables = Exact<{
   input: CreateOffersInput;
+  storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
 export type CreateOfferForEditionsMutation = {
@@ -2463,6 +2596,15 @@ export type CreateOfferForEditionsMutation = {
         }
       | null
       | undefined;
+    marketConfig: {
+      __typename?: "MarketConfig";
+      data: string;
+      signature: string;
+      buyServiceFeeBps?:
+        | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+        | null
+        | undefined;
+    };
     whitelistVoucher?:
       | {
           __typename?: "WhitelistVoucher";

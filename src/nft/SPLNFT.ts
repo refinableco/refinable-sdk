@@ -487,8 +487,8 @@ export class SPLNFT extends AbstractNFT {
       await this.connection.confirmTransaction(txSig, "finalized");
     }
 
-    return this.refinable.createOffer<OfferType.Sale>(
-      { ...result.createOfferForItems, type: OfferType.Sale },
+    return this.refinable.createOffer<SaleOffer>(
+      result.createOfferForItems,
       this
     );
   }
@@ -522,12 +522,10 @@ export class SPLNFT extends AbstractNFT {
     price,
     auctionStartDate,
     auctionEndDate,
-    royaltyContractAddress,
   }: {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-    royaltyContractAddress?: string;
   }): Promise<{ txResponse: SolanaTransaction; offer: AuctionOffer }> {
     throw new Error("Method not implemented.");
   }

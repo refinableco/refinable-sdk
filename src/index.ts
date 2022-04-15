@@ -5,6 +5,7 @@ import {
   TokenType,
   ContractTypes,
 } from "./@types/graphql";
+import { NotEnoughSupplyError } from "./errors/NotEnoughSupplyError";
 import { NftMap } from "./interfaces";
 import { Chain } from "./interfaces/Network";
 import { AbstractEvmNFT, EvmTokenType } from "./nft/AbstractEvmNFT";
@@ -27,10 +28,13 @@ import { SaleOffer } from "./offer/SaleOffer";
 import { ClientType, Refinable } from "./refinable/Refinable";
 import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
 import { RefinableSolanaClient } from "./refinable/RefinableSolanaClient";
+import { Store } from "./store/Store";
 import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
 export * from "./providers";
+
 export {
+  Store,
   ContractTypes,
   SaleOffer,
   AuctionOffer,
@@ -60,4 +64,5 @@ export {
   is,
   Offer,
   Environment,
+  NotEnoughSupplyError,
 };

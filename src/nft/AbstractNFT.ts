@@ -1,5 +1,6 @@
 import { utils } from "ethers";
 import {
+  MarketConfig,
   Price,
   PriceCurrency,
   RefreshMetadataMutation,
@@ -26,12 +27,12 @@ export interface NFTBuyParams {
   signature: string;
   price: Price;
   ownerEthAddress: string;
-  royaltyContractAddress?: string;
   supply: number;
   amount?: number;
   blockchainId: string;
   startTime?: Date;
   endTime?: Date;
+  marketConfig?: MarketConfig;
 }
 
 export abstract class AbstractNFT {
@@ -91,12 +92,10 @@ export abstract class AbstractNFT {
     price,
     auctionStartDate,
     auctionEndDate,
-    royaltyContractAddress,
   }: {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-    royaltyContractAddress?: string;
   }): Promise<{
     txResponse: Transaction;
     offer: AuctionOffer;

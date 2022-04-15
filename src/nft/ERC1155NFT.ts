@@ -4,6 +4,7 @@ import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
   LaunchpadDetailsInput,
+  MarketConfig,
   OfferType,
   Price,
   TokenType,
@@ -45,15 +46,14 @@ export class ERC1155NFT extends AbstractEvmNFT {
     signature: string;
     price: Price;
     ownerEthAddress: string;
-    royaltyContractAddress?: string;
     supply: number;
     amount?: number;
     blockchainId: string;
     startTime?: Date;
     endTime?: Date;
+    marketConfig?: MarketConfig;
   }): Promise<EvmTransaction> {
     return this._buy({
-      royaltyContractAddress: params.royaltyContractAddress,
       price: params.price,
       ownerEthAddress: params.ownerEthAddress,
       signature: params.signature,
@@ -62,6 +62,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
       blockchainId: params.blockchainId,
       supply: params.supply,
       amount: params.amount,
+      marketConfig: params.marketConfig,
     });
   }
 
@@ -70,17 +71,16 @@ export class ERC1155NFT extends AbstractEvmNFT {
       signature: string;
       price: Price;
       ownerEthAddress: string;
-      royaltyContractAddress?: string;
       supply: number;
       amount?: number;
       blockchainId: string;
       startTime?: Date;
       endTime?: Date;
+      marketConfig?: MarketConfig;
     },
     voucher: WhitelistVoucherParams & { startTime: Date }
   ): Promise<EvmTransaction> {
     return this._buy({
-      royaltyContractAddress: params.royaltyContractAddress,
       price: params.price,
       ownerEthAddress: params.ownerEthAddress,
       signature: params.signature,
@@ -90,6 +90,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
       supply: params.supply,
       amount: params.amount,
       voucher,
+      marketConfig: params.marketConfig,
     });
   }
 
@@ -157,8 +158,8 @@ export class ERC1155NFT extends AbstractEvmNFT {
       },
     });
 
-    return this.refinable.createOffer<OfferType.Sale>(
-      { ...result.createOfferForItems, type: OfferType.Sale },
+    return this.refinable.createOffer<SaleOffer>(
+      result.createOfferForItems,
       this
     );
   }

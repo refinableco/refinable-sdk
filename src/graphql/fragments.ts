@@ -142,13 +142,21 @@ export const OfferFragment = gql`
     auction {
       ...Auction
     }
+    whitelistStage
+    marketConfig(storeId: $storeId) {
+      data
+      signature
+      buyServiceFeeBps {
+        type
+        value
+      }
+    }
     whitelistVoucher {
       whitelistType
       limit
       signature
       startTime
     }
-    whitelistStage
   }
   ${AuctionFragment}
 `;

@@ -135,7 +135,7 @@ describe("ERC1155 - E2E", () => {
         supply: 4,
       });
       expect(itemOnSale.totalSupply).toEqual(4);
-      expect(itemOnSale.user.ethAddress.toLowerCase()).toEqual(
+      expect(itemOnSale.sellerAddress.toLowerCase()).toEqual(
         address.toLowerCase()
       );
       expect(itemOnSale.type).toEqual("SALE");
@@ -193,14 +193,9 @@ describe("ERC1155 - E2E", () => {
         price,
       });
 
-      const offer = await refinable2.getOffer(itemOnSale.id);
-      const refinable2Nft = refinable2.createNft(nft.getItem());
-      const nftOffer: SaleOffer = refinable2.createOffer(
-        offer,
-        refinable2Nft as AbstractNFT
-      );
+      const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
-      const txnResponse = await nftOffer.buy({ amount: 2 });
+      const txnResponse = await offer.buy({ amount: 2 });
       expect(txnResponse).toBeDefined();
       const txnReceipt = await txnResponse.wait();
       expect(txnReceipt.success).toEqual(true);
@@ -233,7 +228,6 @@ describe("ERC1155 - E2E", () => {
         const offer = await refinable2.getOffer(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
-        expect(offer.whitelistVoucher).toBeNull();
 
         await itemOnSale.cancelSale();
       });
@@ -260,16 +254,11 @@ describe("ERC1155 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
-        expect(nftOffer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
+        expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
-        expect(nftOffer.buy()).rejects.toThrowError(
+        expect(offer.buy()).rejects.toThrowError(
           "reverted with reason string 'You are not whitelisted or public sale has not started"
         );
       });
@@ -297,16 +286,11 @@ describe("ERC1155 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
-        expect(nftOffer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
+        expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
 
-        const txnResponse = await nftOffer.buy();
+        const txnResponse = await offer.buy();
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
@@ -338,7 +322,6 @@ describe("ERC1155 - E2E", () => {
         const offer = await refinable2.getOffer(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
-        expect(offer.whitelistVoucher).not.toBeNull();
       });
 
       it("should be able to buy a whitelisted item", async () => {
@@ -364,17 +347,11 @@ describe("ERC1155 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
-        const refinable2Nft = refinable2.createNft(nft.getItem());
-        const nftOffer: SaleOffer = refinable2.createOffer(
-          offer,
-          refinable2Nft as AbstractNFT
-        );
+        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
-        expect(offer.whitelistVoucher).not.toBeNull();
 
-        const txnResponse = await nftOffer.buy();
+        const txnResponse = await offer.buy();
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
@@ -445,7 +422,7 @@ describe("ERC1155 - E2E", () => {
       });
       expect(offer).toBeDefined();
       expect(offer.type).toBe("AUCTION");
-      expect(offer.user.ethAddress.toLowerCase()).toBe(
+      expect(offer.sellerAddress.toLowerCase()).toBe(
         wallet.address.toLowerCase()
       );
       expect(offer.totalSupply).toBe(1);

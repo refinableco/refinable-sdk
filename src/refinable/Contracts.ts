@@ -47,9 +47,14 @@ export class Contracts {
     [chainId: string]: { [type: string]: Contract };
   };
 
+  private initializing = false;
+
   constructor(private readonly refinable: RefinableEvmClient) {}
 
   async initialize() {
+    if (this.initializing) return;
+
+    this.initializing = true;
     await this.getBaseContracts(0);
   }
 
@@ -189,7 +194,8 @@ export class Contracts {
   }
 
   private getCachedContract(chainId: Chain, contractAddress: string) {
-    return this.cachedContracts?.[chainId]?.[contractAddress];
+    if (!contractAddress || !chainId) return null;
+    return this.cachedContracts?.[chainId]?.[contractAddress.toLowerCase()];
   }
 
   private cacheContract(contractOutput: IContract) {
