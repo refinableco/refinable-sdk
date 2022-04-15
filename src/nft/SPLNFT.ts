@@ -487,8 +487,8 @@ export class SPLNFT extends AbstractNFT {
       await this.connection.confirmTransaction(txSig, "finalized");
     }
 
-    return this.refinable.createOffer<OfferType.Sale>(
-      { ...result.createOfferForItems, type: OfferType.Sale },
+    return this.refinable.createOffer<SaleOffer>(
+      result.createOfferForItems,
       this
     );
   }

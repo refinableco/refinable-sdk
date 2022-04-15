@@ -8,7 +8,6 @@ import {
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
-  OfferFragment,
   TokenType,
   UserItemFilterType,
 } from "../@types/graphql";
@@ -93,11 +92,11 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   abstract init(): void | Promise<void>;
   abstract createNft(item: PartialNFTItem & { type: TokenType }): AbstractNFT;
 
-  createOffer<K extends OfferType>(
-    offer: PartialOffer & { type: K },
+  createOffer<O extends Offer = Offer>(
+    offer: PartialOffer & { type: O["type"] },
     nft: AbstractNFT
-  ) {
-    return OfferFactory.createOffer<K>(this, offer, nft);
+  ): O {
+    return OfferFactory.createOffer<O>(this, offer, nft);
   }
 
   private async getItemsWithOffer(
@@ -143,7 +142,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
 
     const nft = this.createNft(queryResponse?.offer?.item);
 
-    return OfferFactory.createOffer(this, queryResponse?.offer, nft) as any;
+    return OfferFactory.createOffer<O>(this, queryResponse?.offer, nft);
   }
 
   async getItemsOnAuction(

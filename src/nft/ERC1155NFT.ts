@@ -158,8 +158,8 @@ export class ERC1155NFT extends AbstractEvmNFT {
       },
     });
 
-    return this.refinable.createOffer<OfferType.Sale>(
-      { ...result.createOfferForItems, type: OfferType.Sale },
+    return this.refinable.createOffer<SaleOffer>(
+      result.createOfferForItems,
       this
     );
   }

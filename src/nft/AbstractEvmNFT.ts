@@ -259,15 +259,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         this.auctionContract.address,
         type
       );
-    const isDiamondContract = currentAuctionContract.hasTagSemver(
-      "AUCTION",
-      ">=4.0.0"
-    );
 
-    // We are using tranferProxy for diamondContracts so need to approve the address
-    const addressToApprove = isDiamondContract
-      ? this.transferProxyContract.address
-      : this.auctionContract.address;
+    const addressToApprove = this.auctionContract.address;
     await this.approveIfNeeded(addressToApprove);
 
     const ethersContracts = currentAuctionContract.toEthersContract();
@@ -311,8 +304,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       this.refinable.options.waitConfirmations
     );
 
-    const offer = this.refinable.createOffer<OfferType.Auction>(
-      { ...result.createOfferForItems, type: OfferType.Auction },
+    const offer = this.refinable.createOffer<AuctionOffer>(
+      result.createOfferForItems,
       this
     );
 
@@ -510,37 +503,12 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     signature?: string;
     selling?: number;
   }): Promise<EvmTransaction> {
-    const { price, signature, selling = 1 } = params;
     this.verifyItem();
 
-    const isERC1155 = isERC1155Item(this);
-
-    const saleContract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      this.saleContract.address,
-      [ContractTypes.Sale]
+    const cancelTx: TransactionResponse = await this.saleContract.cancel(
+      this.item.contractAddress,
+      this.item.tokenId
     );
-    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
-
-    let cancelTx: TransactionResponse;
-
-    if (isDiamondContract) {
-      const paymentToken = this.getPaymentToken(price.currency);
-      const parsedPrice = this.parseCurrency(price.currency, price.amount);
-      cancelTx = await this.saleContract.cancel(
-        this.item.contractAddress,
-        this.item.tokenId,
-        paymentToken,
-        parsedPrice.toString(),
-        ...optionalParam(isERC1155, selling),
-        signature
-      );
-    } else {
-      cancelTx = await this.saleContract.cancel(
-        this.item.contractAddress,
-        this.item.tokenId
-      );
-    }
 
     return new EvmTransaction(cancelTx);
   }
@@ -599,12 +567,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ],
       this.refinable.provider
     );
-    const isDiamondContract =
-      contract.hasTagSemver("AUCTION", ">=4.0.0") ||
-      contract.hasTagSemver("SALE", ">=4.0.0");
-    const serviceFeeProxyAddress = isDiamondContract
-      ? contract?.contractAddress
-      : await serviceFeeUserContract.serviceFeeProxy();
+
+    const serviceFeeProxyAddress =
+      await serviceFeeUserContract.serviceFeeProxy();
 
     if (!serviceFeeProxyAddress)
       throw new Error(
