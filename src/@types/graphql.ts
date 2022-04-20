@@ -360,6 +360,20 @@ export type CreatePurchaseInput = {
   transactionHash: Scalars["String"];
 };
 
+export type CreatePurchaseSessionFilterInput = {
+  chainId?: InputMaybe<Scalars["Int"]>;
+  contractAddress?: InputMaybe<Scalars["String"]>;
+  offerId?: InputMaybe<Scalars["String"]>;
+  tokenId?: InputMaybe<Scalars["String"]>;
+  userEthAddress?: InputMaybe<Scalars["String"]>;
+};
+
+export type CreatePurchaseSessionInput = {
+  cancelUrl?: InputMaybe<Scalars["String"]>;
+  filter: CreatePurchaseSessionFilterInput;
+  successUrl?: InputMaybe<Scalars["String"]>;
+};
+
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
   banner: Scalars["String"];
@@ -452,6 +466,10 @@ export type GetMetadataOutput = {
   image?: Maybe<Scalars["String"]>;
   name: Scalars["String"];
   video?: Maybe<Scalars["String"]>;
+};
+
+export type GetPurchaseSessionInput = {
+  id: Scalars["String"];
 };
 
 export type GetRefinableContractInput = {
@@ -862,6 +880,7 @@ export type Mutation = {
   createItem: CreateItemOutput;
   createOfferForItems: Offer;
   createPurchase: Purchase;
+  createPurchaseSession: PurchaseSession;
   createStore: Store;
   dismissReport: ItemReport;
   finishMint: FinishMintOutput;
@@ -901,6 +920,10 @@ export type MutationCreateOfferForItemsArgs = {
 
 export type MutationCreatePurchaseArgs = {
   input: CreatePurchaseInput;
+};
+
+export type MutationCreatePurchaseSessionArgs = {
+  input: CreatePurchaseSessionInput;
 };
 
 export type MutationCreateStoreArgs = {
@@ -1131,6 +1154,16 @@ export type PurchaseMetadata = {
   email?: InputMaybe<Scalars["String"]>;
 };
 
+export type PurchaseSession = {
+  __typename?: "PurchaseSession";
+  apiUser: User;
+  cancelUrl?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
+  offer: Offer;
+  successUrl?: Maybe<Scalars["String"]>;
+  url: Scalars["String"];
+};
+
 export type Query = {
   __typename?: "Query";
   auction?: Maybe<Auction>;
@@ -1152,6 +1185,7 @@ export type Query = {
   mintableCollections: Array<Collection>;
   notifications: NotificationResponse;
   offer?: Maybe<Offer>;
+  purchaseSession: PurchaseSession;
   refinableContract?: Maybe<ContractOutput>;
   refinableContracts: Array<ContractOutput>;
   reports: ItemReportResponse;
@@ -1235,6 +1269,10 @@ export type QueryNotificationsArgs = {
 
 export type QueryOfferArgs = {
   id?: InputMaybe<Scalars["ID"]>;
+};
+
+export type QueryPurchaseSessionArgs = {
+  input: GetPurchaseSessionInput;
 };
 
 export type QueryRefinableContractArgs = {
@@ -1600,6 +1638,9 @@ export enum UserItemFilterType {
 }
 
 export type UserItemOnOfferFilterInput = {
+  chainId?: InputMaybe<Scalars["Int"]>;
+  contractAddresses?: InputMaybe<Array<Scalars["String"]>>;
+  tokenId?: InputMaybe<Scalars["String"]>;
   type?: InputMaybe<OfferType>;
 };
 
@@ -1654,6 +1695,15 @@ export type PlaceAuctionBidMutationVariables = Exact<{
 export type PlaceAuctionBidMutation = {
   __typename?: "Mutation";
   placeAuctionBid: boolean;
+};
+
+export type CreatePurchaseSessionMutationVariables = Exact<{
+  input: CreatePurchaseSessionInput;
+}>;
+
+export type CreatePurchaseSessionMutation = {
+  __typename?: "Mutation";
+  createPurchaseSession: { __typename?: "PurchaseSession"; url: string };
 };
 
 export type RefinableContractQueryVariables = Exact<{

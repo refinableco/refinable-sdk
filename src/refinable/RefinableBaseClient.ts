@@ -28,6 +28,7 @@ import {
   RefinableOptions,
 } from "../types/RefinableOptions";
 import { limit } from "../utils/limitItems";
+import { CheckoutClient } from "./checkout/CheckoutClient";
 
 const defaultOptions: RefinableOptions = {
   environment: Environment.Mainnet,
@@ -100,9 +101,9 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   }
 
   private async getItemsWithOffer(
+    filter?: GetUserOfferItemsQueryVariables["filter"],
     paging = 30,
-    after?: string,
-    type?: OfferType
+    after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     const itemsPerPage = limit(paging);
     const queryResponse = await this.apiClient.request<
@@ -110,7 +111,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
       GetUserOfferItemsQueryVariables
     >(GET_USER_OFFER_ITEMS, {
       ethAddress: this.accountAddress,
-      filter: { type },
+      filter,
       paging: {
         first: itemsPerPage,
         after: after,
@@ -120,10 +121,15 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   }
 
   async getItemsOnSale(
+    filter?: GetUserOfferItemsQueryVariables["filter"],
     paging = 30,
     after?: string
-  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    return this.getItemsWithOffer(paging, after, OfferType.Sale);
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"]> {
+    return this.getItemsWithOffer(
+      { ...filter, type: OfferType.Sale },
+      paging,
+      after
+    ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
   async getOffer<O extends Offer = Offer>(
@@ -146,10 +152,15 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   }
 
   async getItemsOnAuction(
+    filter?: GetUserOfferItemsQueryVariables["filter"],
     paging = 30,
     after?: string
-  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    return this.getItemsWithOffer(paging, after, OfferType.Auction);
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"]> {
+    return this.getItemsWithOffer(
+      { ...filter, type: OfferType.Auction },
+      paging,
+      after
+    ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
   private async getItems(
@@ -200,5 +211,9 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     }
 
     return uploadedFileName;
+  }
+
+  get checkout() {
+    return new CheckoutClient(this);
   }
 }

@@ -1,5 +1,10 @@
 import dotenv from "dotenv";
-import { Chain, initializeWallet, RefinableEvmClient } from "../../src";
+import {
+  Chain,
+  Environment,
+  initializeWallet,
+  RefinableEvmClient,
+} from "../../src";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
@@ -11,15 +16,16 @@ async function main() {
   try {
     const refinable = await RefinableEvmClient.create(wallet, API_KEY, {
       waitConfirmations: 1,
+      environment: Environment.Testnet,
     });
-    console.log("fetching items...");
-    const res = await refinable.getItemsOnAuction({}, 5);
-    console.log("item fetched ✅");
 
-    console.log("fetching next 5 items...");
-    let pivot = res["pageInfo"]["endCursor"];
-    await refinable.getItemsOnAuction({}, 5, pivot);
-    console.log("items are fetched ✅");
+    const res = await refinable.getItemsOnSale({}, 1);
+
+    const response = await refinable.checkout.create({
+      offerId: res.edges?.[0]?.node.nextEditionForSale.id,
+    });
+
+    console.log(response.url);
   } catch (error) {
     console.error(error);
   }
