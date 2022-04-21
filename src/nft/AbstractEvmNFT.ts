@@ -33,6 +33,12 @@ import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
 
+const auctionTypes = [
+  ContractTypes.Auction,
+  ContractTypes.Erc1155Auction,
+  ContractTypes.Erc721Auction,
+];
+
 export abstract class AbstractEvmNFT extends AbstractNFT {
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
@@ -45,12 +51,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     protected item: PartialNFTItem
   ) {
     super(type, refinable, item);
-  }
-
-  get auctionType() {
-    return isERC1155Item(this)
-      ? ContractTypes.Erc1155Auction
-      : ContractTypes.Erc721Auction;
   }
 
   async getSaleId() {
@@ -82,7 +82,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   get auctionContract(): Contract {
     const auction = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      this.auctionType
+      ContractTypes.Auction
     );
 
     return auction.toEthersContract();
@@ -248,16 +248,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }> {
     await this.approveIfNeeded(this.auctionContract.address);
 
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         this.auctionContract.address,
-        type
+        auctionTypes
       );
 
     const addressToApprove = this.auctionContract.address;
@@ -318,20 +313,14 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   async placeBid(
     auctionContractAddress: string,
     price: Price,
-    auctionId?: string,
-    ownerEthAddress?: string
+    auctionId: string,
   ): Promise<EvmTransaction> {
     this.verifyItem();
-
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
 
     const serviceFeeBps = await this.getBuyServiceFee(
       auctionContractAddress,
       this.refinable.accountAddress,
-      type
+      auctionTypes
     );
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
@@ -361,41 +350,40 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
     const ethersContracts = currentAuctionContract.toEthersContract();
 
     let placeBidTx: TransactionResponse;
 
-    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
-      placeBidTx = await ethersContracts.placeBid(
-        this.item.tokenId, //tokenId, // uint256 tokenId
-        ownerEthAddress,
-        ...valueParam
-      );
-    } else {
-      if (!auctionId) {
-        auctionId = await this.getAuctionId(auctionContractAddress);
-      }
+    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0))
+      throw new Error("No longer supported");
 
-      assert(!!auctionId, "AuctionId must be defined");
-      placeBidTx = await ethersContracts.placeBid(auctionId, ...valueParam);
+    if (!auctionId) {
+      auctionId = await this.getAuctionId(auctionContractAddress);
     }
+
+    assert(!!auctionId, "AuctionId must be defined");
+
+    placeBidTx = await ethersContracts.placeBid(
+      auctionId,
+      // uint256 bidAmount
+      optionalParam(
+        currentAuctionContract.hasTag(ContractTag.AuctionV5_0_0),
+        value
+      ),
+      ...valueParam
+    );
 
     return new EvmTransaction(placeBidTx);
   }
 
   async getAuctionId(auctionContractAddress: string): Promise<string> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     return currentAuctionContract
@@ -419,16 +407,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<EvmTransaction> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -464,16 +447,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<EvmTransaction> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -609,16 +587,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   async getMinBidIncrement(auctionContractAddress: string): Promise<number> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -626,13 +599,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     if (currentAuctionContract.hasTagSemver("AUCTION", "<3.1.0")) {
       return 0;
     }
-    const isDiamondContract = currentAuctionContract.hasTagSemver(
-      "AUCTION",
-      ">=4.0.0"
-    );
-    const minBidIncrementBps: BigNumber = isDiamondContract
-      ? await ethersContract.getMinBidIncrementBps()
-      : await ethersContract.minBidIncrementBps();
+    const minBidIncrementBps: BigNumber =
+      await ethersContract.minBidIncrementBps();
 
     return parseBPS(minBidIncrementBps) / 100;
   }

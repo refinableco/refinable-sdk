@@ -22,7 +22,6 @@ export class AuctionOffer extends Offer {
       this._offer.auction.auctionContractAddress,
       price,
       this._offer.auction.auctionId,
-      this._offer.user.ethAddress
     );
 
     await this.refinable.apiClient.request<

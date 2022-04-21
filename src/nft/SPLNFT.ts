@@ -497,7 +497,6 @@ export class SPLNFT extends AbstractNFT {
     auctionContractAddress: string,
     price: Price,
     auctionId?: string,
-    ownerEthAddress?: string
   ): Promise<SolanaTransaction> {
     throw new Error("Method not implemented.");
   }
