@@ -105,7 +105,6 @@ export abstract class AbstractNFT {
     auctionContractAddress: string,
     price: Price,
     auctionId?: string,
-    ownerEthAddress?: string
   ): Promise<Transaction>;
 
   abstract cancelAuction(

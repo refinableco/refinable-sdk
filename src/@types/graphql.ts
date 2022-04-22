@@ -274,6 +274,7 @@ export enum ContractTag {
   AuctionV3_1_0 = "AUCTION_v3_1_0",
   AuctionV3_1_1 = "AUCTION_v3_1_1",
   AuctionV4_0_0 = "AUCTION_v4_0_0",
+  AuctionV5_0_0 = "AUCTION_v5_0_0",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
   SaleV1_0_0 = "SALE_v1_0_0",
   SaleV2_0_0 = "SALE_v2_0_0",
@@ -290,6 +291,7 @@ export enum ContractTag {
 }
 
 export enum ContractTypes {
+  Auction = "AUCTION",
   Erc20Token = "ERC20_TOKEN",
   Erc721Airdrop = "ERC721_AIRDROP",
   Erc721Auction = "ERC721_AUCTION",
