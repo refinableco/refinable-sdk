@@ -26,7 +26,12 @@ import {
   getUnixEpochTimeStampFromDateOr0,
 } from "../utils/time";
 import { optionalParam } from "../utils/utils";
-import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
+import {
+  AbstractNFT,
+  NFTEndAuctionParams,
+  NFTPlaceBidParams,
+  PartialNFTItem,
+} from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
@@ -310,17 +315,14 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     };
   }
 
-  async placeBid(
-    auctionContractAddress: string,
-    price: Price,
-    auctionId: string,
-  ): Promise<EvmTransaction> {
+  async placeBid(params: NFTPlaceBidParams): Promise<EvmTransaction> {
+    const { auctionContractAddress, price, marketConfig, auctionId } = params;
+
     this.verifyItem();
 
     const serviceFeeBps = await this.getBuyServiceFee(
       auctionContractAddress,
-      this.refinable.accountAddress,
-      auctionTypes
+      this.refinable.accountAddress
     );
 
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
@@ -359,18 +361,21 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0))
       throw new Error("No longer supported");
 
+    let auctionIdOrFetch = auctionId;
+
     if (!auctionId) {
-      auctionId = await this.getAuctionId(auctionContractAddress);
+      auctionIdOrFetch = await this.getAuctionId(auctionContractAddress);
     }
 
     assert(!!auctionId, "AuctionId must be defined");
 
     placeBidTx = await ethersContracts.placeBid(
-      auctionId,
-      // uint256 bidAmount
-      optionalParam(
+      auctionIdOrFetch,
+      ...optionalParam(
         currentAuctionContract.hasTag(ContractTag.AuctionV5_0_0),
-        value
+        value, // uint256 bidAmount
+        marketConfig.data ?? "0x",
+        marketConfig.signature ?? "0x"
       ),
       ...valueParam
     );
@@ -438,15 +443,13 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   /**
    * Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.
-   * @param auctionContractAddress The contractAddress for the auction contract you are interacting with
-   * @param auctionId The auction identifier bound to the owner and token address and id
-   * @param ownerEthAddress
+   * @param params NFTEndAuctionParams
+   * @returns
    */
-  async endAuction(
-    auctionContractAddress: string,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<EvmTransaction> {
+  async endAuction(params: NFTEndAuctionParams): Promise<EvmTransaction> {
+    const { auctionContractAddress, ownerEthAddress, marketConfig, auctionId } =
+      params;
+
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
@@ -464,23 +467,28 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         ownerEthAddress
       );
     } else {
+      let auctionIdOrFetch = auctionId;
+
       if (!auctionId) {
-        auctionId = await this.getAuctionId(auctionContractAddress);
+        auctionIdOrFetch = await this.getAuctionId(auctionContractAddress);
       }
 
-      assert(!!auctionId, "AuctionId must be defined");
+      assert(!!auctionIdOrFetch, "AuctionId must be defined");
 
-      endAuctionTx = await ethersContract.endAuction(auctionId);
+      endAuctionTx = await ethersContract.endAuction(
+        auctionIdOrFetch,
+        ...optionalParam(
+          currentAuctionContract.hasTag(ContractTag.AuctionV5_0_0),
+          marketConfig.data ?? "0x",
+          marketConfig.signature ?? "0x"
+        )
+      );
     }
 
     return new EvmTransaction(endAuctionTx);
   }
 
-  async cancelSale(params: {
-    price?: Price;
-    signature?: string;
-    selling?: number;
-  }): Promise<EvmTransaction> {
+  async cancelSale(): Promise<EvmTransaction> {
     this.verifyItem();
 
     const cancelTx: TransactionResponse = await this.saleContract.cancel(
@@ -517,14 +525,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   public async getBuyServiceFee(
     serviceFeeUserAddress: string,
-    address: string,
-    type: ContractTypes[]
+    address: string
   ): Promise<number> {
-    const contract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      serviceFeeUserAddress,
-      type
-    );
     // Get ServiceFeeProxyAddress from user contract (sale or auction)
     const serviceFeeUserContract = new Contract(
       serviceFeeUserAddress,

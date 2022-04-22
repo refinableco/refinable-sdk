@@ -35,6 +35,19 @@ export interface NFTBuyParams {
   marketConfig?: MarketConfig;
 }
 
+export interface NFTPlaceBidParams {
+  auctionContractAddress: string;
+  price: Price;
+  auctionId?: string;
+  marketConfig?: MarketConfig;
+}
+export interface NFTEndAuctionParams {
+  auctionContractAddress: string,
+  auctionId?: string,
+  ownerEthAddress?: string
+  marketConfig?: MarketConfig;
+}
+
 export abstract class AbstractNFT {
   protected _item: PartialNFTItem;
   protected _chain: IChainConfig;
@@ -101,11 +114,7 @@ export abstract class AbstractNFT {
     offer: AuctionOffer;
   }>;
 
-  abstract placeBid(
-    auctionContractAddress: string,
-    price: Price,
-    auctionId?: string,
-  ): Promise<Transaction>;
+  abstract placeBid(params: NFTPlaceBidParams): Promise<Transaction>;
 
   abstract cancelAuction(
     auctionContractAddress: string,
@@ -113,11 +122,7 @@ export abstract class AbstractNFT {
     ownerEthAddress?: string
   ): Promise<Transaction>;
 
-  abstract endAuction(
-    auctionContractAddress: string,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<Transaction>;
+  abstract endAuction(params: NFTEndAuctionParams): Promise<Transaction>;
 
   abstract airdrop(recipients: string[]): Promise<Transaction>;
 

@@ -443,21 +443,18 @@ describe("ERC1155 - E2E", () => {
       expect(txnReceipt.success).toEqual(true);
     });
     it("end auction should throw error when auction not ended", async (): Promise<void> => {
-      try {
-        const { offer } = await nft.putForAuction({
-          auctionStartDate: addMinutes(new Date(), 5),
-          auctionEndDate: addMinutes(new Date(), 15),
-          price: {
-            amount: 1,
-            currency: PriceCurrency.Bnb,
-          },
-        });
-        await offer.endAuction();
-      } catch (error) {
-        expect(
-          error.message.includes("Auction: Auction has not ended")
-        ).toBeTruthy();
-      }
+      const { offer } = await nft.putForAuction({
+        auctionStartDate: addMinutes(new Date(), 5),
+        auctionEndDate: addMinutes(new Date(), 15),
+        price: {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        },
+      });
+
+      await expect(offer.endAuction()).rejects.toThrow(
+        "Auction: Auction has not ended"
+      );
     });
   });
 });
