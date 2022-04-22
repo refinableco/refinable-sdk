@@ -313,7 +313,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   async placeBid(
     auctionContractAddress: string,
     price: Price,
-    auctionId: string,
+    auctionId: string
   ): Promise<EvmTransaction> {
     this.verifyItem();
 
@@ -660,6 +660,14 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       marketConfig.buyServiceFeeBps.value,
       amount
     );
+    const voucherPriceWithServiceFee = await this.getPriceWithBuyServiceFee(
+      {
+        amount: params.voucher.price ?? 0,
+        currency: pricePerCopy.currency,
+      },
+      marketConfig.buyServiceFeeBps.value,
+      amount
+    );
 
     await this.approveForTokenIfNeeded(
       priceWithServiceFee,
@@ -668,7 +676,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     const paymentToken = this.getPaymentToken(pricePerCopy.currency);
     const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
-    const value = this.parseCurrency(
+    let value = this.parseCurrency(
       pricePerCopy.currency,
       priceWithServiceFee.amount
     );
@@ -676,6 +684,17 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       pricePerCopy.currency,
       pricePerCopy.amount
     );
+    const voucherPrice = this.parseCurrency(
+      pricePerCopy.currency,
+      params.voucher.price ?? 0
+    );
+
+    if (params?.voucher?.price > 0) {
+      value = this.parseCurrency(
+        voucherPriceWithServiceFee.currency,
+        voucherPriceWithServiceFee.amount
+      );
+    }
 
     const saleID = ERCSaleID.fromBlockchainId(blockchainId);
 
@@ -697,13 +716,13 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
     const method = params.voucher ? "buyUsingVoucher" : "buy";
-
     const buyTx = await this.saleContract[method](
       // SaleInfo memory _saleInfo
       saleInfo,
       // WhitelistVoucherParams memory voucher - optional
       ...optionalParam(params.voucher != null, {
         ...params.voucher,
+        price: voucherPrice,
         startTime: getUnixEpochTimeStampFromDateOr0(params.voucher?.startTime),
       }),
       // If currency is Native, send msg.value

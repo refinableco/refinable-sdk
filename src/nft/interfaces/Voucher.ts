@@ -9,4 +9,5 @@ export interface WhitelistVoucherParams {
   limit: number;
   signature: string;
   startTime: number;
+  price?: number;
 }

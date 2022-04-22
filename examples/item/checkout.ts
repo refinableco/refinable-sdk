@@ -19,10 +19,10 @@ async function main() {
       environment: Environment.Testnet,
     });
 
-    const res = await refinable.getItemsOnSale({}, 1);
+    const res = await refinable.getItemsOnSale({}, 2);
 
     const response = await refinable.checkout.create({
-      offerId: res.edges?.[0]?.node.nextEditionForSale.id,
+      offerId: res?.edges?.[0].node.nextEditionForSale.id,
     });
 
     console.log(response.url);
