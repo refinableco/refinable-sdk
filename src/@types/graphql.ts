@@ -283,6 +283,7 @@ export enum ContractTag {
   SaleV3_1_0 = "SALE_v3_1_0",
   SaleV3_2_0 = "SALE_v3_2_0",
   SaleV4_0_0 = "SALE_v4_0_0",
+  SaleV4_1_0 = "SALE_v4_1_0",
   ServiceFeeProxyV1_0_0 = "SERVICE_FEE_PROXY_v1_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
@@ -827,6 +828,8 @@ export enum LaunchpadCountDownType {
 
 export type LaunchpadDetails = {
   __typename?: "LaunchpadDetails";
+  currentStage?: Maybe<LaunchpadStage>;
+  nextStage?: Maybe<LaunchpadStage>;
   /** @deprecated Deprecated in favour of `stages` */
   privateStartDate?: Maybe<Scalars["DateTime"]>;
   /** @deprecated Deprecated in favour of `stages` */
@@ -842,12 +845,14 @@ export type LaunchpadDetailsInput = {
 
 export type LaunchpadStage = {
   __typename?: "LaunchpadStage";
+  price?: Maybe<Scalars["Float"]>;
   stage: WhitelistType;
   startTime?: Maybe<Scalars["DateTime"]>;
   whitelist?: Maybe<Array<Scalars["String"]>>;
 };
 
 export type LaunchpadStageInput = {
+  price?: InputMaybe<Scalars["Float"]>;
   stage: WhitelistType;
   startTime?: InputMaybe<Scalars["DateTime"]>;
   whitelist?: InputMaybe<Array<Scalars["String"]>>;
@@ -1671,6 +1676,7 @@ export enum WhitelistType {
 export type WhitelistVoucher = {
   __typename?: "WhitelistVoucher";
   limit: Scalars["Float"];
+  price: Scalars["Float"];
   signature: Scalars["String"];
   startTime: Scalars["DateTime"];
   whitelistType: WhitelistType;
@@ -2140,6 +2146,7 @@ export type OfferFragment = {
         limit: number;
         signature: string;
         startTime: any;
+        price: number;
       }
     | null
     | undefined;
@@ -2373,6 +2380,7 @@ export type GetOfferQuery = {
               limit: number;
               signature: string;
               startTime: any;
+              price: number;
             }
           | null
           | undefined;
@@ -2664,6 +2672,7 @@ export type CreateOfferForEditionsMutation = {
           limit: number;
           signature: string;
           startTime: any;
+          price: number;
         }
       | null
       | undefined;
