@@ -42,15 +42,15 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        ContractTag.SaleV4_1_0,
-        ContractTag.AuctionV4_0_0,
+        ContractTag.SaleV4_0_0,
+        ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
       ];
     case Environment.Local:
       return [
-        ContractTag.SaleV4_1_0,
+        ContractTag.SaleV4_0_0,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
