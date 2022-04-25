@@ -1,6 +1,7 @@
 import { ContractTag } from "../@types/graphql";
-import { Chain } from "../interfaces/Network";
+import { Chain, ChainType } from "../interfaces/Network";
 import { Environment } from "../types/RefinableOptions";
+import { selectChainType } from "../utils/utils";
 
 export const apiUrl = {
   [Environment.Mainnet]: "https://api.refinable.com/graphql",
