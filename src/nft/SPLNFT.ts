@@ -41,7 +41,7 @@ import { toPublicKey } from "../solana/utils";
 import SolanaTransaction from "../transaction/SolanaTransaction";
 import { getConnectionByChainId } from "../utils/connection";
 import { getOrCreateAssociatedAccountInfo } from "../utils/sol";
-import { PartialNFTItem } from "./AbstractNFT";
+import { NFTEndAuctionParams, NFTPlaceBidParams, PartialNFTItem } from "./AbstractNFT";
 
 const treasuryMint = NATIVE_MINT;
 
@@ -493,11 +493,7 @@ export class SPLNFT extends AbstractNFT {
     );
   }
   // ==
-  placeBid(
-    auctionContractAddress: string,
-    price: Price,
-    auctionId?: string,
-  ): Promise<SolanaTransaction> {
+  async placeBid(params: NFTPlaceBidParams): Promise<SolanaTransaction> {
     throw new Error("Method not implemented.");
   }
   cancelAuction(
@@ -507,11 +503,7 @@ export class SPLNFT extends AbstractNFT {
   ): Promise<SolanaTransaction> {
     throw new Error("Method not implemented.");
   }
-  endAuction(
-    auctionContractAddress: string,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<SolanaTransaction> {
+  endAuction(params: NFTEndAuctionParams): Promise<SolanaTransaction> {
     throw new Error("Method not implemented.");
   }
   airdrop(recipients: string[]): Promise<SolanaTransaction> {
