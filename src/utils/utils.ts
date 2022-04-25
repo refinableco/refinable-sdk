@@ -1,8 +1,8 @@
 import { Chain } from "..";
 import { ChainType } from "../interfaces/Network";
 
-export const optionalParam = <T = unknown>(shouldInclude: boolean, param: T) =>
-  shouldInclude ? [param] : [];
+export const optionalParam = <T = unknown>(shouldInclude: boolean, ...args: T[]) =>
+  shouldInclude ? [...args] : [];
 
 export function selectChainType(chainId: Chain): ChainType {
   if ([Chain.BscMainnet, Chain.BscTestnet, Chain.Local].includes(chainId)) {

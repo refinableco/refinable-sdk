@@ -18,11 +18,12 @@ export class AuctionOffer extends Offer {
   }
 
   public async placeBid(price: Price) {
-    const result = await this.nft.placeBid(
-      this._offer.auction.auctionContractAddress,
+    const result = await this.nft.placeBid({
+      auctionContractAddress: this._offer.auction.auctionContractAddress,
       price,
-      this._offer.auction.auctionId,
-    );
+      auctionId: this._offer.auction.auctionId,
+      marketConfig: this._offer.marketConfig,
+    });
 
     await this.refinable.apiClient.request<
       PlaceAuctionBidMutation,
@@ -47,10 +48,11 @@ export class AuctionOffer extends Offer {
   }
 
   public endAuction() {
-    return this.nft.endAuction(
-      this._offer.auction.auctionContractAddress,
-      this._offer.auction.auctionId,
-      this._offer.user.ethAddress
-    );
+    return this.nft.endAuction({
+      auctionContractAddress: this._offer.auction.auctionContractAddress,
+      ownerEthAddress: this._offer.user.ethAddress,
+      auctionId: this._offer.auction.auctionId,
+      marketConfig: this._offer.marketConfig,
+    });
   }
 }

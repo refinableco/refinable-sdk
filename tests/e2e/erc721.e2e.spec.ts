@@ -415,21 +415,18 @@ describe("ERC721 - E2E", () => {
       expect(txnReceipt.success).toEqual(true);
     });
     it("end auction should throw error ending while auction has not ended", async (): Promise<void> => {
-      try {
-        const { offer } = await nft.putForAuction({
-          auctionStartDate: new Date(Date.now() + 300000),
-          auctionEndDate: new Date(Date.now() + 600000),
-          price: {
-            amount: 1,
-            currency: PriceCurrency.Bnb,
-          },
-        });
-        await offer.endAuction();
-      } catch (error) {
-        expect(
-          error.message.includes("Auction: Auction has not ended")
-        ).toBeTruthy();
-      }
+      const { offer } = await nft.putForAuction({
+        auctionStartDate: new Date(Date.now() + 300000),
+        auctionEndDate: new Date(Date.now() + 600000),
+        price: {
+          amount: 1,
+          currency: PriceCurrency.Bnb,
+        },
+      });
+
+      await expect(offer.endAuction()).rejects.toThrow(
+        "Auction: Auction has not ended"
+      );
     });
   });
 });
