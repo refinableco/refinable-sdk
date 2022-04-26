@@ -156,6 +156,7 @@ export const OfferFragment = gql`
       limit
       signature
       startTime
+      price
     }
   }
   ${AuctionFragment}
