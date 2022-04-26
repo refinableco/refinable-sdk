@@ -1,7 +1,6 @@
 import { ContractTag } from "../@types/graphql";
-import { Chain, ChainType } from "../interfaces/Network";
+import { Chain } from "../interfaces/Network";
 import { Environment } from "../types/RefinableOptions";
-import { selectChainType } from "../utils/utils";
 
 export const apiUrl = {
   [Environment.Mainnet]: "https://api.refinable.com/graphql",
@@ -35,7 +34,7 @@ export const getContractsTags = (
   switch (environment) {
     case Environment.Mainnet:
       return [
-        ContractTag.SaleV3_2_0,
+        ContractTag.SaleV4_1_0,
         ContractTag.AuctionV3_1_1,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
@@ -43,7 +42,7 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        ContractTag.SaleV4_0_0,
+        ContractTag.SaleV4_1_0,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
@@ -51,7 +50,7 @@ export const getContractsTags = (
       ];
     case Environment.Local:
       return [
-        ContractTag.SaleV4_0_0,
+        ContractTag.SaleV4_1_0,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,

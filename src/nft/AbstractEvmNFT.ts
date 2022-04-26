@@ -369,10 +369,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     assert(!!auctionIdOrFetch, "AuctionId must be defined");
 
-    const bidAmount = this.parseCurrency(
-      price.currency,
-      price.amount
-    )
+    const bidAmount = this.parseCurrency(price.currency, price.amount);
 
     placeBidTx = await ethersContracts.placeBid(
       auctionIdOrFetch,
@@ -668,6 +665,16 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       amount
     );
 
+    const voucherPriceAmount = params.voucher?.price ?? 0;
+    const voucherPriceWithServiceFee = await this.getPriceWithBuyServiceFee(
+      {
+        amount: voucherPriceAmount,
+        currency: pricePerCopy.currency,
+      },
+      marketConfig.buyServiceFeeBps.value,
+      amount
+    );
+
     await this.approveForTokenIfNeeded(
       priceWithServiceFee,
       this.saleContract.address
@@ -675,7 +682,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     const paymentToken = this.getPaymentToken(pricePerCopy.currency);
     const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
-    const value = this.parseCurrency(
+    let value = this.parseCurrency(
       pricePerCopy.currency,
       priceWithServiceFee.amount
     );
@@ -683,6 +690,17 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       pricePerCopy.currency,
       pricePerCopy.amount
     );
+    const voucherPrice = this.parseCurrency(
+      pricePerCopy.currency,
+      voucherPriceAmount
+    );
+
+    if (params?.voucher?.price > 0) {
+      value = this.parseCurrency(
+        voucherPriceWithServiceFee.currency,
+        voucherPriceWithServiceFee.amount
+      );
+    }
 
     const saleID = ERCSaleID.fromBlockchainId(blockchainId);
 
@@ -704,13 +722,13 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
     const method = params.voucher ? "buyUsingVoucher" : "buy";
-
     const buyTx = await this.saleContract[method](
       // SaleInfo memory _saleInfo
       saleInfo,
       // WhitelistVoucherParams memory voucher - optional
       ...optionalParam(params.voucher != null, {
         ...params.voucher,
+        price: voucherPrice,
         startTime: getUnixEpochTimeStampFromDateOr0(params.voucher?.startTime),
       }),
       // If currency is Native, send msg.value
