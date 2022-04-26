@@ -315,7 +315,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     };
   }
 
-
   async placeBid(params: NFTPlaceBidParams): Promise<EvmTransaction> {
     const { auctionContractAddress, price, marketConfig, auctionId } = params;
 
@@ -370,10 +369,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     assert(!!auctionIdOrFetch, "AuctionId must be defined");
 
-    const bidAmount = this.parseCurrency(
-      price.currency,
-      price.amount
-    )
+    const bidAmount = this.parseCurrency(price.currency, price.amount);
 
     placeBidTx = await ethersContracts.placeBid(
       auctionIdOrFetch,
@@ -668,9 +664,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       marketConfig.buyServiceFeeBps.value,
       amount
     );
+
+    const voucherPriceAmount = params.voucher?.price ?? 0;
     const voucherPriceWithServiceFee = await this.getPriceWithBuyServiceFee(
       {
-        amount: params.voucher.price ?? 0,
+        amount: voucherPriceAmount,
         currency: pricePerCopy.currency,
       },
       marketConfig.buyServiceFeeBps.value,
@@ -694,7 +692,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     );
     const voucherPrice = this.parseCurrency(
       pricePerCopy.currency,
-      params.voucher.price ?? 0
+      voucherPriceAmount
     );
 
     if (params?.voucher?.price > 0) {

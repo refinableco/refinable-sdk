@@ -34,7 +34,7 @@ export const getContractsTags = (
   switch (environment) {
     case Environment.Mainnet:
       return [
-        ContractTag.SaleV3_2_0,
+        ContractTag.SaleV4_1_0,
         ContractTag.AuctionV3_1_1,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
@@ -42,7 +42,7 @@ export const getContractsTags = (
       ];
     case Environment.Testnet:
       return [
-        ContractTag.SaleV4_0_0,
+        ContractTag.SaleV4_1_0,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
@@ -50,7 +50,7 @@ export const getContractsTags = (
       ];
     case Environment.Local:
       return [
-        ContractTag.SaleV4_0_0,
+        ContractTag.SaleV4_1_0,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
