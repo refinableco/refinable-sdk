@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber, Contract, ethers } from "ethers";
 import { Stream } from "form-data";
 import { RefinableEvmClient } from "..";
 import {
@@ -9,6 +9,7 @@ import {
   PriceCurrency,
   CreateMintOfferMutation,
   CreateMintOfferMutationVariables,
+  TokenType,
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
@@ -44,7 +45,7 @@ export class MintOffer extends BasicOffer {
     previewImage?: Stream;
     name?: string;
     description?: string;
-  }): Promise<CreateMintOfferMutation["createMintOffer"]> {
+  }): Promise<this> {
     const {
       price,
       startTime,
@@ -74,6 +75,11 @@ export class MintOffer extends BasicOffer {
       previewImage = await this.refinable.uploadFile(params.previewImage);
     }
 
+    const nonceResult: BigNumber = await this.nonceContract.getNonce(
+      contractAddress,
+      0,
+      this.refinable.accountAddress
+    );
     const saleId = this.createSaleId(
       this.refinable.accountAddress,
       contractAddress
@@ -117,7 +123,8 @@ export class MintOffer extends BasicOffer {
       },
     });
 
-    return response?.createMintOffer;
+    this._offer = response?.createMintOffer;
+    return this;
   }
 
   private createSaleId(sellerAddress: string, contractAddress: string) {
@@ -182,8 +189,8 @@ export class MintOffer extends BasicOffer {
         supply: message?.supply.toString() ?? "0",
         payee: signer.address,
         seller,
-        startTime: message?.startTime ?? Math.floor(Date.now() / 1000),
-        endTime: message?.endTime ?? Math.floor((Date.now() + 31622400) / 1000), // 1 year late
+        startTime: message?.startTime ?? 0,
+        endTime: message?.endTime ?? 0, // 1 year late
         recipient: "0x0000000000000000000000000000000000000000", // using the zero address means anyone can claim
         data: message?.data ?? [],
       },
@@ -206,10 +213,13 @@ export class MintOffer extends BasicOffer {
     throw new Error("Not Implemented");
   }
 
-  /**
-   * We need this as a fix to support older signatures where we sent the total supply rather than the offer supply
-   */
-  private async getSupplyOnSale() {
-    return this._offer.totalSupply;
+  get nonceContract(): Contract {
+    // right now there are no plans for 1155 lazy mint
+    const saleNonceHolder = this.refinable.contracts.getBaseContract(
+      this.chainId,
+      `${TokenType.Erc721}_SALE_NONCE_HOLDER`
+    );
+
+    return saleNonceHolder.toEthersContract();
   }
 }
