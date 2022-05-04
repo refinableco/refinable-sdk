@@ -21,11 +21,10 @@ export interface PartialOffer
     | "supply"
   > {}
 
-export class Offer {
+export class BasicOffer {
   constructor(
-    protected readonly refinable: RefinableBaseClient,
-    protected _offer: PartialOffer,
-    protected readonly nft: AbstractNFT
+    protected readonly refinable: RefinableBaseClient<any>,
+    protected _offer: PartialOffer
   ) {}
 
   get id() {
@@ -66,5 +65,15 @@ export class Offer {
 
   protected subtractOfferSupply(amount: number) {
     return (this._offer.supply -= amount);
+  }
+}
+
+export class Offer extends BasicOffer {
+  constructor(
+    protected readonly refinable: RefinableBaseClient,
+    protected _offer: PartialOffer,
+    protected readonly nft?: AbstractNFT
+  ) {
+    super(refinable, _offer);
   }
 }

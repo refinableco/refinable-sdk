@@ -274,6 +274,7 @@ export enum ContractTag {
   AuctionV3_1_1 = "AUCTION_v3_1_1",
   AuctionV4_0_0 = "AUCTION_v4_0_0",
   AuctionV5_0_0 = "AUCTION_v5_0_0",
+  LazyMintTokenV1_0_0 = "LAZY_MINT_TOKEN_v1_0_0",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
   SaleV1_0_0 = "SALE_v1_0_0",
   SaleV2_0_0 = "SALE_v2_0_0",
@@ -296,6 +297,7 @@ export enum ContractTypes {
   Erc20Token = "ERC20_TOKEN",
   Erc721Airdrop = "ERC721_AIRDROP",
   Erc721Auction = "ERC721_AUCTION",
+  Erc721LazyMintToken = "ERC721_LAZY_MINT_TOKEN",
   Erc721Sale = "ERC721_SALE",
   Erc721SaleNonceHolder = "ERC721_SALE_NONCE_HOLDER",
   Erc721Token = "ERC721_TOKEN",
@@ -342,7 +344,22 @@ export type CreateItemOutput = {
   signature?: Maybe<Scalars["String"]>;
 };
 
-export type CreateOffersInput = {
+export type CreateMintOfferInput = {
+  blockchainId?: InputMaybe<Scalars["String"]>;
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+  endTime?: InputMaybe<Scalars["DateTime"]>;
+  launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
+  offerContractAddress?: InputMaybe<Scalars["String"]>;
+  price?: InputMaybe<PriceInput>;
+  signature?: InputMaybe<Scalars["String"]>;
+  startTime?: InputMaybe<Scalars["DateTime"]>;
+  supply: Scalars["Float"];
+  transactionHash?: InputMaybe<Scalars["String"]>;
+  type: Scalars["String"];
+};
+
+export type CreateOfferInput = {
   blockchainId?: InputMaybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
   endTime?: InputMaybe<Scalars["DateTime"]>;
@@ -887,6 +904,7 @@ export type Mutation = {
   createContract: ContractOutput;
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
+  createMintOffer: Offer;
   createOfferForItems: Offer;
   createPurchase: Purchase;
   createPurchaseSession: PurchaseSession;
@@ -923,8 +941,12 @@ export type MutationCreateItemArgs = {
   input: CreateItemInput;
 };
 
+export type MutationCreateMintOfferArgs = {
+  input: CreateMintOfferInput;
+};
+
 export type MutationCreateOfferForItemsArgs = {
-  input: CreateOffersInput;
+  input: CreateOfferInput;
 };
 
 export type MutationCreatePurchaseArgs = {
@@ -1096,6 +1118,7 @@ export type OfferMarketConfigArgs = {
 
 export enum OfferType {
   Auction = "AUCTION",
+  Mint = "MINT",
   Sale = "SALE",
 }
 
@@ -2599,7 +2622,7 @@ export type FinishMintMutation = {
 };
 
 export type CreateOfferForEditionsMutationVariables = Exact<{
-  input: CreateOffersInput;
+  input: CreateOfferInput;
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -2687,6 +2710,108 @@ export type CreateOfferForEditionsMutation = {
           signature: string;
           startTime: any;
           price: number;
+        }
+      | null
+      | undefined;
+  };
+};
+
+export type CreateMintOfferMutationVariables = Exact<{
+  input: CreateMintOfferInput;
+  storeId?: InputMaybe<Scalars["ID"]>;
+}>;
+
+export type CreateMintOfferMutation = {
+  __typename?: "Mutation";
+  createMintOffer: {
+    __typename?: "Offer";
+    id: string;
+    type: OfferType;
+    active: boolean;
+    supply: number;
+    totalSupply: number;
+    startTime?: any | null | undefined;
+    endTime?: any | null | undefined;
+    signature?: string | null | undefined;
+    blockchainId?: string | null | undefined;
+    whitelistStage: LaunchpadCountDownType;
+    contract?:
+      | {
+          __typename?: "ContractOutput";
+          contractAddress: string;
+          chainId: number;
+        }
+      | null
+      | undefined;
+    user: {
+      __typename?: "User";
+      id: string;
+      ethAddress?: string | null | undefined;
+    };
+    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+    auction?:
+      | {
+          __typename?: "Auction";
+          id: string;
+          auctionId?: string | null | undefined;
+          auctionContractAddress?: string | null | undefined;
+          startTime?: any | null | undefined;
+          endTime?: any | null | undefined;
+          startPrice?: number | null | undefined;
+          bids: Array<{
+            __typename?: "Bid";
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?:
+              | {
+                  __typename?: "User";
+                  ethAddress?: string | null | undefined;
+                  description?: string | null | undefined;
+                  name?: string | null | undefined;
+                  profileImage?: string | null | undefined;
+                }
+              | null
+              | undefined;
+          }>;
+          highestBid?:
+            | {
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }
+            | null
+            | undefined;
+        }
+      | null
+      | undefined;
+    marketConfig: {
+      __typename?: "MarketConfig";
+      data: string;
+      signature: string;
+      buyServiceFeeBps?:
+        | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+        | null
+        | undefined;
+    };
+    whitelistVoucher?:
+      | {
+          __typename?: "WhitelistVoucher";
+          whitelistType: WhitelistType;
+          limit: number;
+          signature: string;
+          startTime: any;
         }
       | null
       | undefined;

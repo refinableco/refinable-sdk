@@ -1,6 +1,7 @@
 import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
+import { RefinableEvmClient } from "..";
 import {
   GetOfferQuery,
   GetOfferQueryVariables,
@@ -29,6 +30,7 @@ import {
 } from "../types/RefinableOptions";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
+import { OfferClient } from "./offer/OfferClient";
 
 const defaultOptions: RefinableOptions = {
   environment: Environment.Mainnet,
@@ -213,7 +215,14 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     return uploadedFileName;
   }
 
-  get checkout() {
+  get checkout(): CheckoutClient {
     return new CheckoutClient(this);
+  }
+
+  get offer(): OfferClient {
+    if (!(this instanceof RefinableEvmClient)) {
+      throw new Error("offer namespace is only supported for EVM");
+    }
+    return new OfferClient(this);
   }
 }
