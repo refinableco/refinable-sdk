@@ -40,7 +40,7 @@ export type Auction = {
   bids: Array<Bid>;
   endTime?: Maybe<Scalars["DateTime"]>;
   highestBid?: Maybe<Bid>;
-  id: Scalars["ID"];
+  id: Scalars["String"];
   owner: User;
   startPrice?: Maybe<Scalars["Float"]>;
   startTime?: Maybe<Scalars["DateTime"]>;
@@ -128,6 +128,10 @@ export type Brand = {
   name: Scalars["String"];
 };
 
+export type CheckCollectionsInput = {
+  collectionIds: Array<Scalars["String"]>;
+};
+
 export type Collection = {
   __typename?: "Collection";
   bannerUrl?: Maybe<Scalars["String"]>;
@@ -208,15 +212,10 @@ export type CollectionPageInfo = {
 
 export type CollectionStatistics = {
   __typename?: "CollectionStatistics";
-  /** @deprecated deprecate this to avoid breaking APIs */
-  avgSellPrice?: Maybe<Scalars["Float"]>;
-  /** @deprecated deprecate this to avoid breaking APIs */
-  avgVolumeTraded?: Maybe<Scalars["Float"]>;
-  /** @deprecated deprecate this to avoid breaking APIs */
-  ceilPrice?: Maybe<Scalars["Float"]>;
   countPurchases: Scalars["Float"];
   floorPrice: Scalars["Float"];
   itemCount: Scalars["Float"];
+  itemViewsCount: Scalars["Float"];
   mainToken: Scalars["String"];
   ownerCount: Scalars["Float"];
   totalEditionsForSale: Scalars["Float"];
@@ -285,6 +284,7 @@ export enum ContractTag {
   SaleV4_0_0 = "SALE_v4_0_0",
   SaleV4_1_0 = "SALE_v4_1_0",
   ServiceFeeProxyV1_0_0 = "SERVICE_FEE_PROXY_v1_0_0",
+  ServiceFeeV1_0_0 = "SERVICE_FEE_v1_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
   TokenV2_0_0 = "TOKEN_v2_0_0",
   TokenV3_0_0 = "TOKEN_v3_0_0",
@@ -308,6 +308,7 @@ export enum ContractTypes {
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
   Sale = "SALE",
   ServiceFeeProxy = "SERVICE_FEE_PROXY",
+  ServiceFeeV2 = "SERVICE_FEE_V2",
   TransferProxy = "TRANSFER_PROXY",
 }
 
@@ -602,6 +603,7 @@ export type Item = {
   transcodings?: Maybe<Array<Transcoding>>;
   type: TokenType;
   userSupply: Scalars["Int"];
+  viewCount: Scalars["Int"];
 };
 
 export type ItemAvailableUserSupplyArgs = {
@@ -1068,6 +1070,7 @@ export type Offer = {
   active: Scalars["Boolean"];
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
+  contract?: Maybe<ContractOutput>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
@@ -1178,6 +1181,7 @@ export type Query = {
   collection?: Maybe<Collection>;
   collectionMetadataValues: Array<CollectionMetadataValues>;
   collections: CollectionsResponse;
+  collectionsExist: Array<Scalars["Boolean"]>;
   contractCount: ContractCount;
   getMetadata?: Maybe<GetMetadataOutput>;
   getUploadUrl: GetUploadUrlOutput;
@@ -1224,6 +1228,10 @@ export type QueryCollectionsArgs = {
   filter?: InputMaybe<CollectionsFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type QueryCollectionsExistArgs = {
+  input: CheckCollectionsInput;
 };
 
 export type QueryContractCountArgs = {
@@ -1310,8 +1318,7 @@ export type QueryStoreArgs = {
 };
 
 export type QueryStoreWithFallbackArgs = {
-  domain: Scalars["String"];
-  isExternal?: InputMaybe<Scalars["Boolean"]>;
+  input: StoreWithFallbackInput;
 };
 
 export type QueryTopUsersArgs = {
@@ -1397,6 +1404,7 @@ export enum SortOrder {
 export type Store = {
   __typename?: "Store";
   backgroundColor: Scalars["String"];
+  backgroundImage?: Maybe<Scalars["String"]>;
   banner?: Maybe<Scalars["String"]>;
   collectionIds: Array<Scalars["String"]>;
   contracts: Array<Contract>;
@@ -1432,6 +1440,12 @@ export type StoreItemsArgs = {
   filter?: InputMaybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type StoreWithFallbackInput = {
+  domain?: InputMaybe<Scalars["String"]>;
+  isExternal?: InputMaybe<Scalars["Boolean"]>;
+  purchaseSessionId?: InputMaybe<Scalars["String"]>;
 };
 
 export type Subscription = {
