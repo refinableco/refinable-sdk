@@ -348,9 +348,12 @@ export type CreateMintOfferInput = {
   blockchainId?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
+  description?: InputMaybe<Scalars["String"]>;
   endTime?: InputMaybe<Scalars["DateTime"]>;
   launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
+  name?: InputMaybe<Scalars["String"]>;
   offerContractAddress?: InputMaybe<Scalars["String"]>;
+  previewImage: Scalars["String"];
   price?: InputMaybe<PriceInput>;
   signature?: InputMaybe<Scalars["String"]>;
   startTime?: InputMaybe<Scalars["DateTime"]>;

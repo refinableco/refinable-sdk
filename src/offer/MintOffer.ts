@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { Stream } from "form-data";
 import { RefinableEvmClient } from "..";
 import {
   LaunchpadDetailsInput,
@@ -40,6 +41,9 @@ export class MintOffer extends BasicOffer {
     endTime?: Date;
     launchpadDetails?: LaunchpadDetailsInput;
     supply: number;
+    previewImage?: Stream;
+    name?: string;
+    description?: string;
   }): Promise<CreateMintOfferMutation["createMintOffer"]> {
     const {
       price,
@@ -48,6 +52,8 @@ export class MintOffer extends BasicOffer {
       launchpadDetails,
       contractAddress,
       supply,
+      name,
+      description,
     } = params;
 
     // validate launchpad
@@ -60,6 +66,12 @@ export class MintOffer extends BasicOffer {
           );
         }
       }
+    }
+
+    // upload image if there is one
+    let previewImage;
+    if (params.previewImage) {
+      previewImage = await this.refinable.uploadFile(params.previewImage);
     }
 
     const saleId = this.createSaleId(
@@ -99,6 +111,9 @@ export class MintOffer extends BasicOffer {
         supply,
         launchpadDetails,
         blockchainId,
+        previewImage,
+        name,
+        description,
       },
     });
 
