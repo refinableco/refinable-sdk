@@ -11,9 +11,10 @@ import {
   Price,
   TokenType,
 } from "../@types/graphql";
-import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
+import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
 import { IChainConfig } from "../interfaces/Config";
+import { LibPart } from "../interfaces/LibPart";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
@@ -320,14 +321,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     this.verifyItem();
 
-    const serviceFeeBps = await this.getBuyServiceFee(
-      auctionContractAddress,
-      this.refinable.accountAddress
-    );
-
     const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
       price,
-      serviceFeeBps
+      marketConfig.buyServiceFeeBps.value
     );
 
     await this.approveForTokenIfNeeded(
@@ -526,48 +522,31 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   public async getBuyServiceFee(
-    serviceFeeUserAddress: string,
-    address: string
+    contractAddress: string,
+    marketConfigData: string = "0x",
+    marketConfigDataSignature: string = "0x"
   ): Promise<number> {
-    // Get ServiceFeeProxyAddress from user contract (sale or auction)
-    const serviceFeeUserContract = new Contract(
-      serviceFeeUserAddress,
-      [
-        {
-          inputs: [],
-          name: "serviceFeeProxy",
-          outputs: [
-            {
-              name: "",
-              type: "address",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-          constant: true,
-        },
-      ],
-      this.refinable.provider
+    const sale = this.refinable.contracts.getBaseContract(
+      this.item.chainId,
+      ContractTypes.ServiceFeeV2
     );
 
-    const serviceFeeProxyAddress =
-      await serviceFeeUserContract.serviceFeeProxy();
-
-    if (!serviceFeeProxyAddress)
-      throw new Error(
-        `Unable to fetch serviceFeeProxy from address ${serviceFeeUserAddress}`
+    const fees: LibPart[] = await sale
+      .toEthersContract()
+      .getServiceFees(
+        FeeType.BUY,
+        this.refinable.account,
+        contractAddress,
+        marketConfigData,
+        marketConfigDataSignature
       );
 
-    const serviceFeeProxyContract = new Contract(
-      serviceFeeProxyAddress,
-      serviceFeeProxyABI,
-      this.refinable.provider
+    const totalBuyFeeBps = fees.reduce(
+      (total, { value }) => (total += value.toNumber()),
+      0
     );
 
-    const serviceFee: BigNumber =
-      await serviceFeeProxyContract.getBuyServiceFeeBps(address);
-
-    return parseBPS(serviceFee);
+    return parseBPS(BigNumber.from(totalBuyFeeBps));
   }
 
   public async getPriceWithBuyServiceFee(
