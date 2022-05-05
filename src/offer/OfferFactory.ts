@@ -7,7 +7,9 @@ import { SaleOffer } from "./SaleOffer";
 
 export { OfferType };
 
-export const offerClassMap = {
+// any is needed because we won't be using this for MintOffers, the parameters are different
+// we will be deprecating the OfferFactory soon
+export const offerClassMap: any = {
   [OfferType.Auction]: AuctionOffer,
   [OfferType.Sale]: SaleOffer,
 };

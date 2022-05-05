@@ -13,7 +13,6 @@ import {
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
-import { IChainConfig } from "../interfaces/Config";
 import { LibPart } from "../interfaces/LibPart";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
@@ -47,8 +46,6 @@ const auctionTypes = [
 
 export abstract class AbstractEvmNFT extends AbstractNFT {
   protected _item: PartialNFTItem;
-  protected _chain: IChainConfig;
-
   private nftTokenContract: Contract | null;
 
   constructor(
