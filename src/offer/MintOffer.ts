@@ -86,7 +86,7 @@ export class MintOffer extends BasicOffer {
     );
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
     const signature = await this.createMintSignature({
-      nonce: 0,
+      nonce: nonceResult.toNumber(),
       signer: this.refinable.provider,
       contractAddress,
       chainId: this.chainId,

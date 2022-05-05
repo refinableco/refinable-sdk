@@ -902,6 +902,39 @@ export type MetadataValuePossibility = {
   value?: Maybe<Scalars["String"]>;
 };
 
+export type MintOffer = Offer & {
+  __typename?: "MintOffer";
+  active: Scalars["Boolean"];
+  auction?: Maybe<Auction>;
+  blockchainId?: Maybe<Scalars["String"]>;
+  chainId: Scalars["Float"];
+  contract?: Maybe<ContractOutput>;
+  createdAt?: Maybe<Scalars["DateTime"]>;
+  description?: Maybe<Scalars["String"]>;
+  endTime?: Maybe<Scalars["DateTime"]>;
+  id: Scalars["String"];
+  item?: Maybe<Item>;
+  launchpadDetails?: Maybe<LaunchpadDetails>;
+  marketConfig: MarketConfig;
+  name?: Maybe<Scalars["String"]>;
+  platform?: Maybe<Platform>;
+  previewFile?: Maybe<PreviewFileProperties>;
+  price: Price;
+  signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
+  supply: Scalars["Int"];
+  totalSupply: Scalars["Int"];
+  type: OfferType;
+  unlistedAt?: Maybe<Scalars["DateTime"]>;
+  user: User;
+  whitelistStage: LaunchpadCountDownType;
+  whitelistVoucher?: Maybe<WhitelistVoucher>;
+};
+
+export type MintOfferMarketConfigArgs = {
+  storeId?: InputMaybe<Scalars["ID"]>;
+};
+
 export type Mutation = {
   __typename?: "Mutation";
   createContract: ContractOutput;
@@ -1091,7 +1124,6 @@ export enum NotificationsFilterType {
 }
 
 export type Offer = {
-  __typename?: "Offer";
   active: Scalars["Boolean"];
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
@@ -1140,6 +1172,18 @@ export enum Platform {
   Looksrare = "LOOKSRARE",
   Refinable = "REFINABLE",
 }
+
+export type PreviewFileProperties = {
+  __typename?: "PreviewFileProperties";
+  fileKey?: Maybe<Scalars["String"]>;
+  fileType: FileType;
+  fileUrl?: Maybe<Scalars["String"]>;
+  imagePreview?: Maybe<Scalars["String"]>;
+  mimeType?: Maybe<Scalars["String"]>;
+  originalFileUrl?: Maybe<Scalars["String"]>;
+  originalThumbnailUrl?: Maybe<Scalars["String"]>;
+  thumbnailUrl?: Maybe<Scalars["String"]>;
+};
 
 export type Price = {
   __typename?: "Price";
@@ -1383,6 +1427,35 @@ export enum RoyaltyStrategy {
   ProfitDistributionStrategy = "PROFIT_DISTRIBUTION_STRATEGY",
   StandardRoyaltyStrategy = "STANDARD_ROYALTY_STRATEGY",
 }
+
+export type SaleOffer = Offer & {
+  __typename?: "SaleOffer";
+  active: Scalars["Boolean"];
+  auction?: Maybe<Auction>;
+  blockchainId?: Maybe<Scalars["String"]>;
+  contract?: Maybe<ContractOutput>;
+  createdAt?: Maybe<Scalars["DateTime"]>;
+  endTime?: Maybe<Scalars["DateTime"]>;
+  id: Scalars["String"];
+  item?: Maybe<Item>;
+  launchpadDetails?: Maybe<LaunchpadDetails>;
+  marketConfig: MarketConfig;
+  platform?: Maybe<Platform>;
+  price: Price;
+  signature?: Maybe<Scalars["String"]>;
+  startTime?: Maybe<Scalars["DateTime"]>;
+  supply: Scalars["Int"];
+  totalSupply: Scalars["Int"];
+  type: OfferType;
+  unlistedAt?: Maybe<Scalars["DateTime"]>;
+  user: User;
+  whitelistStage: LaunchpadCountDownType;
+  whitelistVoucher?: Maybe<WhitelistVoucher>;
+};
+
+export type SaleOfferMarketConfigArgs = {
+  storeId?: InputMaybe<Scalars["ID"]>;
+};
 
 export type SearchFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
@@ -1837,8 +1910,8 @@ export type CreateContractMutation = {
   };
 };
 
-export type ItemSaleInfoFragment = {
-  __typename?: "Offer";
+export type ItemSaleInfo_MintOffer_Fragment = {
+  __typename?: "MintOffer";
   id: string;
   createdAt?: any | null | undefined;
   type: OfferType;
@@ -1859,6 +1932,33 @@ export type ItemSaleInfoFragment = {
     | null
     | undefined;
 };
+
+export type ItemSaleInfo_SaleOffer_Fragment = {
+  __typename?: "SaleOffer";
+  id: string;
+  createdAt?: any | null | undefined;
+  type: OfferType;
+  supply: number;
+  price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+  auction?:
+    | {
+        __typename?: "Auction";
+        id: string;
+        startPrice?: number | null | undefined;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        highestBid?:
+          | { __typename?: "Bid"; transactionHash: string; bidAmount: number }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
+};
+
+export type ItemSaleInfoFragment =
+  | ItemSaleInfo_MintOffer_Fragment
+  | ItemSaleInfo_SaleOffer_Fragment;
 
 export type ItemInfoFragment = {
   __typename?: "Item";
@@ -1950,7 +2050,37 @@ export type GetItemsWithOfferFragment = {
   };
   nextEditionForSale?:
     | {
-        __typename?: "Offer";
+        __typename?: "MintOffer";
+        id: string;
+        createdAt?: any | null | undefined;
+        type: OfferType;
+        supply: number;
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              startPrice?: number | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | {
+        __typename?: "SaleOffer";
         id: string;
         createdAt?: any | null | undefined;
         type: OfferType;
@@ -1996,7 +2126,37 @@ export type UserItemsFragment = {
   chainId: number;
   nextEditionForSale?:
     | {
-        __typename?: "Offer";
+        __typename?: "MintOffer";
+        id: string;
+        createdAt?: any | null | undefined;
+        type: OfferType;
+        supply: number;
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              startPrice?: number | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | {
+        __typename?: "SaleOffer";
         id: string;
         createdAt?: any | null | undefined;
         type: OfferType;
@@ -2105,8 +2265,8 @@ export type AuctionFragment = {
     | undefined;
 };
 
-export type OfferFragment = {
-  __typename?: "Offer";
+export type Offer_MintOffer_Fragment = {
+  __typename?: "MintOffer";
   id: string;
   type: OfferType;
   active: boolean;
@@ -2192,6 +2352,95 @@ export type OfferFragment = {
     | undefined;
 };
 
+export type Offer_SaleOffer_Fragment = {
+  __typename?: "SaleOffer";
+  id: string;
+  type: OfferType;
+  active: boolean;
+  supply: number;
+  totalSupply: number;
+  startTime?: any | null | undefined;
+  endTime?: any | null | undefined;
+  signature?: string | null | undefined;
+  blockchainId?: string | null | undefined;
+  whitelistStage: LaunchpadCountDownType;
+  user: {
+    __typename?: "User";
+    id: string;
+    ethAddress?: string | null | undefined;
+  };
+  price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
+  auction?:
+    | {
+        __typename?: "Auction";
+        id: string;
+        auctionId?: string | null | undefined;
+        auctionContractAddress?: string | null | undefined;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        startPrice?: number | null | undefined;
+        bids: Array<{
+          __typename?: "Bid";
+          transactionHash: string;
+          bidAmount: number;
+          bidTime: any;
+          bidder?:
+            | {
+                __typename?: "User";
+                ethAddress?: string | null | undefined;
+                description?: string | null | undefined;
+                name?: string | null | undefined;
+                profileImage?: string | null | undefined;
+              }
+            | null
+            | undefined;
+        }>;
+        highestBid?:
+          | {
+              __typename?: "Bid";
+              transactionHash: string;
+              bidAmount: number;
+              bidTime: any;
+              bidder?:
+                | {
+                    __typename?: "User";
+                    ethAddress?: string | null | undefined;
+                    description?: string | null | undefined;
+                    name?: string | null | undefined;
+                    profileImage?: string | null | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
+  marketConfig: {
+    __typename?: "MarketConfig";
+    data: string;
+    signature: string;
+    buyServiceFeeBps?:
+      | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+      | null
+      | undefined;
+  };
+  whitelistVoucher?:
+    | {
+        __typename?: "WhitelistVoucher";
+        whitelistType: WhitelistType;
+        limit: number;
+        signature: string;
+        startTime: any;
+        price: number;
+      }
+    | null
+    | undefined;
+};
+
+export type OfferFragment = Offer_MintOffer_Fragment | Offer_SaleOffer_Fragment;
+
 export type GetUserOfferItemsQueryVariables = Exact<{
   ethAddress: Scalars["String"];
   filter?: InputMaybe<UserItemOnOfferFilterInput>;
@@ -2263,7 +2512,37 @@ export type GetUserOfferItemsQuery = {
                   };
                   nextEditionForSale?:
                     | {
-                        __typename?: "Offer";
+                        __typename?: "MintOffer";
+                        id: string;
+                        createdAt?: any | null | undefined;
+                        type: OfferType;
+                        supply: number;
+                        price: {
+                          __typename?: "Price";
+                          amount: number;
+                          currency: PriceCurrency;
+                        };
+                        auction?:
+                          | {
+                              __typename?: "Auction";
+                              id: string;
+                              startPrice?: number | null | undefined;
+                              startTime?: any | null | undefined;
+                              endTime?: any | null | undefined;
+                              highestBid?:
+                                | {
+                                    __typename?: "Bid";
+                                    transactionHash: string;
+                                    bidAmount: number;
+                                  }
+                                | null
+                                | undefined;
+                            }
+                          | null
+                          | undefined;
+                      }
+                    | {
+                        __typename?: "SaleOffer";
                         id: string;
                         createdAt?: any | null | undefined;
                         type: OfferType;
@@ -2323,7 +2602,110 @@ export type GetOfferQuery = {
   __typename?: "Query";
   offer?:
     | {
-        __typename?: "Offer";
+        __typename?: "MintOffer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        item?:
+          | {
+              __typename?: "Item";
+              id: string;
+              type: TokenType;
+              tokenId: string;
+              contractAddress: string;
+              supply: number;
+              totalSupply: number;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
+          signature: string;
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+            | null
+            | undefined;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      }
+    | {
+        __typename?: "SaleOffer";
         id: string;
         type: OfferType;
         active: boolean;
@@ -2461,7 +2843,37 @@ export type GetUserItemsQuery = {
                   chainId: number;
                   nextEditionForSale?:
                     | {
-                        __typename?: "Offer";
+                        __typename?: "MintOffer";
+                        id: string;
+                        createdAt?: any | null | undefined;
+                        type: OfferType;
+                        supply: number;
+                        price: {
+                          __typename?: "Price";
+                          amount: number;
+                          currency: PriceCurrency;
+                        };
+                        auction?:
+                          | {
+                              __typename?: "Auction";
+                              id: string;
+                              startPrice?: number | null | undefined;
+                              startTime?: any | null | undefined;
+                              endTime?: any | null | undefined;
+                              highestBid?:
+                                | {
+                                    __typename?: "Bid";
+                                    transactionHash: string;
+                                    bidAmount: number;
+                                  }
+                                | null
+                                | undefined;
+                            }
+                          | null
+                          | undefined;
+                      }
+                    | {
+                        __typename?: "SaleOffer";
                         id: string;
                         createdAt?: any | null | undefined;
                         type: OfferType;
@@ -2631,51 +3043,39 @@ export type CreateOfferForEditionsMutationVariables = Exact<{
 
 export type CreateOfferForEditionsMutation = {
   __typename?: "Mutation";
-  createOfferForItems: {
-    __typename?: "Offer";
-    id: string;
-    type: OfferType;
-    active: boolean;
-    supply: number;
-    totalSupply: number;
-    startTime?: any | null | undefined;
-    endTime?: any | null | undefined;
-    signature?: string | null | undefined;
-    blockchainId?: string | null | undefined;
-    whitelistStage: LaunchpadCountDownType;
-    user: {
-      __typename?: "User";
-      id: string;
-      ethAddress?: string | null | undefined;
-    };
-    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-    auction?:
-      | {
-          __typename?: "Auction";
+  createOfferForItems:
+    | {
+        __typename?: "MintOffer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        user: {
+          __typename?: "User";
           id: string;
-          auctionId?: string | null | undefined;
-          auctionContractAddress?: string | null | undefined;
-          startTime?: any | null | undefined;
-          endTime?: any | null | undefined;
-          startPrice?: number | null | undefined;
-          bids: Array<{
-            __typename?: "Bid";
-            transactionHash: string;
-            bidAmount: number;
-            bidTime: any;
-            bidder?:
-              | {
-                  __typename?: "User";
-                  ethAddress?: string | null | undefined;
-                  description?: string | null | undefined;
-                  name?: string | null | undefined;
-                  profileImage?: string | null | undefined;
-                }
-              | null
-              | undefined;
-          }>;
-          highestBid?:
-            | {
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
                 __typename?: "Bid";
                 transactionHash: string;
                 bidAmount: number;
@@ -2690,33 +3090,140 @@ export type CreateOfferForEditionsMutation = {
                     }
                   | null
                   | undefined;
-              }
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
+          signature: string;
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
             | null
             | undefined;
-        }
-      | null
-      | undefined;
-    marketConfig: {
-      __typename?: "MarketConfig";
-      data: string;
-      signature: string;
-      buyServiceFeeBps?:
-        | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
-        | null
-        | undefined;
-    };
-    whitelistVoucher?:
-      | {
-          __typename?: "WhitelistVoucher";
-          whitelistType: WhitelistType;
-          limit: number;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      }
+    | {
+        __typename?: "SaleOffer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
           signature: string;
-          startTime: any;
-          price: number;
-        }
-      | null
-      | undefined;
-  };
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+            | null
+            | undefined;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      };
 };
 
 export type CreateMintOfferMutationVariables = Exact<{
@@ -2726,59 +3233,47 @@ export type CreateMintOfferMutationVariables = Exact<{
 
 export type CreateMintOfferMutation = {
   __typename?: "Mutation";
-  createMintOffer: {
-    __typename?: "Offer";
-    id: string;
-    type: OfferType;
-    active: boolean;
-    supply: number;
-    totalSupply: number;
-    startTime?: any | null | undefined;
-    endTime?: any | null | undefined;
-    signature?: string | null | undefined;
-    blockchainId?: string | null | undefined;
-    whitelistStage: LaunchpadCountDownType;
-    contract?:
-      | {
-          __typename?: "ContractOutput";
-          contractAddress: string;
-          chainId: number;
-        }
-      | null
-      | undefined;
-    user: {
-      __typename?: "User";
-      id: string;
-      ethAddress?: string | null | undefined;
-    };
-    price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
-    auction?:
-      | {
-          __typename?: "Auction";
+  createMintOffer:
+    | {
+        __typename?: "MintOffer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        contract?:
+          | {
+              __typename?: "ContractOutput";
+              contractAddress: string;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        user: {
+          __typename?: "User";
           id: string;
-          auctionId?: string | null | undefined;
-          auctionContractAddress?: string | null | undefined;
-          startTime?: any | null | undefined;
-          endTime?: any | null | undefined;
-          startPrice?: number | null | undefined;
-          bids: Array<{
-            __typename?: "Bid";
-            transactionHash: string;
-            bidAmount: number;
-            bidTime: any;
-            bidder?:
-              | {
-                  __typename?: "User";
-                  ethAddress?: string | null | undefined;
-                  description?: string | null | undefined;
-                  name?: string | null | undefined;
-                  profileImage?: string | null | undefined;
-                }
-              | null
-              | undefined;
-          }>;
-          highestBid?:
-            | {
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
                 __typename?: "Bid";
                 transactionHash: string;
                 bidAmount: number;
@@ -2793,32 +3288,148 @@ export type CreateMintOfferMutation = {
                     }
                   | null
                   | undefined;
-              }
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
+          signature: string;
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
             | null
             | undefined;
-        }
-      | null
-      | undefined;
-    marketConfig: {
-      __typename?: "MarketConfig";
-      data: string;
-      signature: string;
-      buyServiceFeeBps?:
-        | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
-        | null
-        | undefined;
-    };
-    whitelistVoucher?:
-      | {
-          __typename?: "WhitelistVoucher";
-          whitelistType: WhitelistType;
-          limit: number;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      }
+    | {
+        __typename?: "SaleOffer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        contract?:
+          | {
+              __typename?: "ContractOutput";
+              contractAddress: string;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
           signature: string;
-          startTime: any;
-        }
-      | null
-      | undefined;
-  };
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+            | null
+            | undefined;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      };
 };
 
 export type PurchaseItemMutationVariables = Exact<{
