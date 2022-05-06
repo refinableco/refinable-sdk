@@ -455,6 +455,11 @@ export enum FileType {
   Video = "VIDEO",
 }
 
+export type FindContractInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+};
+
 export type FineHolderBenefits = {
   __typename?: "FineHolderBenefits";
   auctionAllowance?: Maybe<Scalars["Float"]>;
@@ -1180,8 +1185,6 @@ export type PreviewFileProperties = {
   fileUrl?: Maybe<Scalars["String"]>;
   imagePreview?: Maybe<Scalars["String"]>;
   mimeType?: Maybe<Scalars["String"]>;
-  originalFileUrl?: Maybe<Scalars["String"]>;
-  originalThumbnailUrl?: Maybe<Scalars["String"]>;
   thumbnailUrl?: Maybe<Scalars["String"]>;
 };
 
@@ -1253,6 +1256,7 @@ export type Query = {
   collections: CollectionsResponse;
   collectionsExist: Array<Scalars["Boolean"]>;
   contractCount: ContractCount;
+  findContract?: Maybe<ContractOutput>;
   getMetadata?: Maybe<GetMetadataOutput>;
   getUploadUrl: GetUploadUrlOutput;
   hotCollections: CollectionsResponse;
@@ -1307,6 +1311,10 @@ export type QueryCollectionsExistArgs = {
 export type QueryContractCountArgs = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
+};
+
+export type QueryFindContractArgs = {
+  input: FindContractInput;
 };
 
 export type QueryGetMetadataArgs = {
@@ -1894,6 +1902,25 @@ export type GetCollectionBySlugQuery = {
   collection?: { __typename?: "Collection"; slug: string } | null | undefined;
 };
 
+export type GetTokenContractQueryVariables = Exact<{
+  input: FindContractInput;
+}>;
+
+export type GetTokenContractQuery = {
+  __typename?: "Query";
+  findContract?:
+    | {
+        __typename?: "ContractOutput";
+        contractAddress: string;
+        contractABI: string;
+        type: string;
+        chainId: number;
+        tags: Array<ContractTag>;
+      }
+    | null
+    | undefined;
+};
+
 export type CreateContractMutationVariables = Exact<{
   data: CreateContractInput;
 }>;
@@ -2441,6 +2468,31 @@ export type Offer_SaleOffer_Fragment = {
 
 export type OfferFragment = Offer_MintOffer_Fragment | Offer_SaleOffer_Fragment;
 
+export type MintOfferFragment = {
+  __typename?: "MintOffer";
+  name?: string | null | undefined;
+  description?: string | null | undefined;
+  chainId: number;
+  previewFile?:
+    | {
+        __typename?: "PreviewFileProperties";
+        fileUrl?: string | null | undefined;
+        imagePreview?: string | null | undefined;
+      }
+    | null
+    | undefined;
+  contract?:
+    | {
+        __typename?: "ContractOutput";
+        contractAddress: string;
+        contractABI: string;
+        type: string;
+        chainId: number;
+      }
+    | null
+    | undefined;
+};
+
 export type GetUserOfferItemsQueryVariables = Exact<{
   ethAddress: Scalars["String"];
   filter?: InputMaybe<UserItemOnOfferFilterInput>;
@@ -2603,6 +2655,9 @@ export type GetOfferQuery = {
   offer?:
     | {
         __typename?: "MintOffer";
+        name?: string | null | undefined;
+        description?: string | null | undefined;
+        chainId: number;
         id: string;
         type: OfferType;
         active: boolean;
@@ -2622,6 +2677,24 @@ export type GetOfferQuery = {
               contractAddress: string;
               supply: number;
               totalSupply: number;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        previewFile?:
+          | {
+              __typename?: "PreviewFileProperties";
+              fileUrl?: string | null | undefined;
+              imagePreview?: string | null | undefined;
+            }
+          | null
+          | undefined;
+        contract?:
+          | {
+              __typename?: "ContractOutput";
+              contractAddress: string;
+              contractABI: string;
+              type: string;
               chainId: number;
             }
           | null
@@ -3246,14 +3319,9 @@ export type CreateMintOfferMutation = {
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
-        contract?:
-          | {
-              __typename?: "ContractOutput";
-              contractAddress: string;
-              chainId: number;
-            }
-          | null
-          | undefined;
+        name?: string | null | undefined;
+        description?: string | null | undefined;
+        chainId: number;
         user: {
           __typename?: "User";
           id: string;
@@ -3331,6 +3399,24 @@ export type CreateMintOfferMutation = {
             }
           | null
           | undefined;
+        previewFile?:
+          | {
+              __typename?: "PreviewFileProperties";
+              fileUrl?: string | null | undefined;
+              imagePreview?: string | null | undefined;
+            }
+          | null
+          | undefined;
+        contract?:
+          | {
+              __typename?: "ContractOutput";
+              contractAddress: string;
+              contractABI: string;
+              type: string;
+              chainId: number;
+            }
+          | null
+          | undefined;
       }
     | {
         __typename?: "SaleOffer";
@@ -3344,14 +3430,6 @@ export type CreateMintOfferMutation = {
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
-        contract?:
-          | {
-              __typename?: "ContractOutput";
-              contractAddress: string;
-              chainId: number;
-            }
-          | null
-          | undefined;
         user: {
           __typename?: "User";
           id: string;

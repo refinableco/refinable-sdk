@@ -18,6 +18,7 @@
     "/lib"
   ],
   "dependencies": {
+    "@apollo/client": "^3.6.2",
     "@metaplex-foundation/mpl-auction": "^0.0.2",
     "@metaplex-foundation/mpl-core": "^0.0.2",
     "@metaplex-foundation/mpl-metaplex": "^0.0.5",

@@ -1,6 +1,9 @@
+import { addTypenameToDocument } from "@apollo/client/utilities";
+import { parse } from "graphql";
 import { gql } from "graphql-request";
 import {
   ItemWithOfferFragment,
+  MintOfferFragment,
   OfferFragment,
   UserItemsFragment,
 } from "./fragments";
@@ -35,7 +38,8 @@ export const GET_USER_OFFER_ITEMS = gql`
   ${ItemWithOfferFragment}
 `;
 
-export const GET_OFFER = gql`
+export const GET_OFFER = addTypenameToDocument(
+  parse(`
   query getOffer($id: ID!, $storeId: ID) {
     offer(id: $id) {
       ...Offer
@@ -48,11 +52,16 @@ export const GET_OFFER = gql`
         totalSupply
         chainId
       }
+      ... on MintOffer {
+        ...MintOffer
+      }
     }
   }
 
   ${OfferFragment}
-`;
+  ${MintOfferFragment}
+`)
+);
 
 export const GET_USER_ITEMS = gql`
   query getUserItems(

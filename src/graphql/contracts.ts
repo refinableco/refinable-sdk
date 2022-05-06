@@ -46,6 +46,18 @@ export const GET_COLLECTION = gql`
   }
 `;
 
+export const FIND_TOKEN_CONTRACT = gql`
+  query getTokenContract($input: FindContractInput!) {
+    findContract(input: $input) {
+      contractAddress
+      contractABI
+      type
+      chainId
+      tags
+    }
+  }
+`;
+
 export const CREATE_CONTRACT = gql`
   mutation createContract($data: CreateContractInput!) {
     createContract(data: $data) {

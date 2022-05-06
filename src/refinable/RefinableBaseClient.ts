@@ -9,6 +9,7 @@ import {
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
+  OfferType,
   TokenType,
   UserItemFilterType,
 } from "../@types/graphql";
@@ -28,6 +29,7 @@ import {
   Options,
   RefinableOptions,
 } from "../types/RefinableOptions";
+import { isMintOffer } from "../utils/is";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
 import { OfferClient } from "./offer/OfferClient";
@@ -35,12 +37,6 @@ import { OfferClient } from "./offer/OfferClient";
 const defaultOptions: RefinableOptions = {
   environment: Environment.Mainnet,
 };
-
-// If we dont again define this, types break
-export enum OfferType {
-  Auction = "AUCTION",
-  Sale = "SALE",
-}
 
 export abstract class RefinableBaseClient<O extends object = {}> {
   protected _apiClient?: GraphQLClient;
@@ -134,10 +130,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
-  async getOffer<O extends Offer = Offer>(
-    id: string,
-    storeId?: string
-  ): Promise<O> {
+  async getOffer(id: string, storeId?: string) {
     const queryResponse = await this.apiClient.request<
       GetOfferQuery,
       GetOfferQueryVariables
@@ -147,10 +140,15 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     });
 
     if (!queryResponse?.offer) return null;
-
-    const nft = this.createNft(queryResponse?.offer?.item);
-
-    return OfferFactory.createOffer<O>(this, queryResponse?.offer, nft);
+    if (
+      isMintOffer(queryResponse.offer) &&
+      queryResponse.offer.__typename === "MintOffer"
+    ) {
+      return this.offer.createMintOffer(queryResponse?.offer) as any;
+    } else {
+      const nft = this.createNft(queryResponse?.offer?.item);
+      return OfferFactory.createOffer(this, queryResponse?.offer, nft);
+    }
   }
 
   async getItemsOnAuction(
