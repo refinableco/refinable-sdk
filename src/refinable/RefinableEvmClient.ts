@@ -43,7 +43,6 @@ export enum UserItemFilterType {
 
 export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions> {
   public account: EvmAccount;
-  public contracts: Contracts;
 
   static async getAddress(provider: any): Promise<string> {
     return provider.getAddress();
