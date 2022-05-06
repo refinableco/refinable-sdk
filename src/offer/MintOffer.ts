@@ -14,6 +14,7 @@ import {
 import { CREATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
+import { WhitelistVoucherParams } from "../nft/interfaces/Voucher";
 import { Chain } from "../refinable/Chain";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import EvmTransaction from "../transaction/EvmTransaction";
