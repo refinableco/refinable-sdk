@@ -43,7 +43,6 @@ export enum UserItemFilterType {
 
 export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions> {
   public account: EvmAccount;
-  public contracts: Contracts;
 
   static async getAddress(provider: any): Promise<string> {
     return provider.getAddress();
@@ -72,10 +71,11 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
 
   constructor(
     public readonly provider: Signer,
-    public readonly accountAddress: string,
+    accountAddress: string,
     options: Options<RefinableEvmOptions & { apiOrBearerToken: string }>
   ) {
     super(options.apiOrBearerToken, options, { waitConfirmations: 3 });
+    this._accountAddress = accountAddress;
 
     this.account = new EvmAccount(accountAddress, this);
     this.contracts = new Contracts(this);

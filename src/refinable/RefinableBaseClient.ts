@@ -22,7 +22,7 @@ import {
 import { uploadFile } from "../graphql/utils";
 import { Account } from "../interfaces/Account";
 import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
-import { Offer, PartialOffer } from "../offer/Offer";
+import { BasicOffer, Offer, PartialOffer } from "../offer/Offer";
 import { OfferFactory } from "../offer/OfferFactory";
 import {
   Environment,
@@ -32,6 +32,7 @@ import {
 import { isMintOffer } from "../utils/is";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
+import { Contracts } from "./Contracts";
 import { OfferClient } from "./offer/OfferClient";
 
 const defaultOptions: RefinableOptions = {
@@ -42,8 +43,17 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   protected _apiClient?: GraphQLClient;
   protected _options: Options<O>;
   protected _apiKey: string;
-  protected accountAddress: string;
+  protected _accountAddress: string;
   protected account: Account;
+  public contracts: Contracts;
+
+  get accountAddress() {
+    return this.accountAddress;
+  }
+
+  set accountAddress(_accountAddress: string) {
+    this._accountAddress = _accountAddress;
+  }
 
   get apiKey() {
     return this._apiKey;
@@ -130,7 +140,10 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
-  async getOffer(id: string, storeId?: string) {
+  async getOffer<O extends BasicOffer = BasicOffer>(
+    id: string,
+    storeId?: string
+  ): Promise<O> {
     const queryResponse = await this.apiClient.request<
       GetOfferQuery,
       GetOfferQueryVariables
@@ -141,7 +154,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
 
     if (!queryResponse?.offer) return null;
     if (
-      isMintOffer(queryResponse.offer) &&
+      isMintOffer(queryResponse.offer as any) &&
       queryResponse.offer.__typename === "MintOffer"
     ) {
       return this.offer.createMintOffer(queryResponse?.offer) as any;

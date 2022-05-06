@@ -4,21 +4,18 @@ import { RefinableEvmClient } from "..";
 import {
   LaunchpadDetailsInput,
   Price,
-  PurchaseMetadata,
   OfferType,
   PriceCurrency,
   CreateMintOfferMutation,
   CreateMintOfferMutationVariables,
   TokenType,
-  Contract as GraphqlContract,
-  MarketConfig,
   MintOfferFragment,
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
-import { WhitelistVoucherParams } from "../nft/interfaces/Voucher";
 import { Chain } from "../refinable/Chain";
+import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
@@ -30,15 +27,15 @@ interface BuyParams {
 }
 
 export class MintOffer extends BasicOffer {
-  _chain: Chain;
-  _contract: ethers.Contract;
+  private _chain: Chain;
+  private _contract: ethers.Contract;
 
   constructor(
-    protected readonly refinable: RefinableEvmClient,
+    protected readonly refinable: RefinableBaseClient,
     protected readonly chainId: number,
     protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
-    super(refinable as any, offer);
+    super(refinable, offer);
     this._chain = new Chain(chainId);
   }
 
@@ -94,7 +91,7 @@ export class MintOffer extends BasicOffer {
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
     const signature = await this.createMintSignature({
       nonce: nonceResult.toNumber(),
-      signer: this.refinable.provider,
+      signer: (this.refinable as any).provider,
       contractAddress,
       chainId: this.chainId,
       message: {
