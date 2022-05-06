@@ -3,8 +3,6 @@ import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
 import { RefinableEvmClient } from "..";
 import {
-  GetOfferQuery,
-  GetOfferQueryVariables,
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
