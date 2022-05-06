@@ -30,7 +30,6 @@ import {
 import { isMintOffer } from "../utils/is";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
-import { Contracts } from "./Contracts";
 import { OfferClient } from "./offer/OfferClient";
 
 const defaultOptions: RefinableOptions = {
@@ -43,10 +42,9 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   protected _apiKey: string;
   protected _accountAddress: string;
   protected account: Account;
-  public contracts: Contracts;
 
   get accountAddress() {
-    return this.accountAddress;
+    return this._accountAddress;
   }
 
   set accountAddress(_accountAddress: string) {
