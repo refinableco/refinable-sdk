@@ -270,17 +270,14 @@ export class MintOffer extends BasicOffer {
       throw new Error("Offer was not set");
     }
 
-    if (this._contract) {
-      return this._contract;
-    }
-
-    const contract = await this.refinable.contracts.findContract({
+    const contract = await (
+      this.refinable as RefinableEvmClient
+    ).contracts.findContract({
       contractAddress: this.offer.contract.contractAddress,
       chainId: this.chainId,
     });
 
-    this._contract = contract.toEthersContract();
-    return this._contract;
+    return contract.toEthersContract();
   }
 
   public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {
@@ -289,7 +286,9 @@ export class MintOffer extends BasicOffer {
 
   get nonceContract(): Contract {
     // right now there are no plans for 1155 lazy mint
-    const saleNonceHolder = this.refinable.contracts.getBaseContract(
+    const saleNonceHolder = (
+      this.refinable as RefinableEvmClient
+    ).contracts.getBaseContract(
       this.chainId,
       `${TokenType.Erc721}_SALE_NONCE_HOLDER`
     );

@@ -188,6 +188,10 @@ export class Contracts {
     contractAddress: string;
     chainId: Chain;
   }): Promise<Contract> {
+    const hasContract = this.getCachedContract(chainId, contractAddress);
+
+    if (hasContract) return hasContract;
+
     const response = await this.refinable.apiClient.request<
       GetTokenContractQuery,
       GetTokenContractQueryVariables
@@ -195,7 +199,7 @@ export class Contracts {
       input: { contractAddress, chainId },
     });
 
-    return new Contract(this.refinable, response?.findContract);
+    return this.cacheContract(response?.findContract);
   }
 
   getBaseContract(chainId: Chain, type: string) {
