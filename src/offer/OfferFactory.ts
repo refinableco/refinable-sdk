@@ -2,7 +2,7 @@ import { OfferType } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { AuctionOffer } from "./AuctionOffer";
-import { Offer, PartialOffer } from "./Offer";
+import { BasicOffer, PartialOffer } from "./Offer";
 import { SaleOffer } from "./SaleOffer";
 
 export { OfferType };
@@ -26,7 +26,7 @@ type ClassType<A extends OfferType, F> =
   | F;
 
 export class OfferFactory {
-  public static createOffer<O extends Offer>(
+  public static createOffer<O extends BasicOffer>(
     refinable: RefinableBaseClient,
     offer: PartialOffer,
     nft: AbstractNFT

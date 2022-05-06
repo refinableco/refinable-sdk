@@ -4,19 +4,22 @@ import { RefinableEvmClient } from "..";
 import {
   LaunchpadDetailsInput,
   Price,
-  PurchaseMetadata,
   OfferType,
   PriceCurrency,
   CreateMintOfferMutation,
   CreateMintOfferMutationVariables,
   TokenType,
+  MintOfferFragment,
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
+import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
+import { optionalParam } from "../utils/utils";
 import { BasicOffer, PartialOffer } from "./Offer";
 
 interface BuyParams {
@@ -24,14 +27,15 @@ interface BuyParams {
 }
 
 export class MintOffer extends BasicOffer {
-  _chain: Chain;
+  private _chain: Chain;
+  private _contract: ethers.Contract;
 
   constructor(
-    protected readonly refinable: RefinableEvmClient,
+    protected readonly refinable: RefinableBaseClient,
     protected readonly chainId: number,
-    protected readonly offer?: PartialOffer
+    protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
-    super(refinable as any, offer);
+    super(refinable, offer);
     this._chain = new Chain(chainId);
   }
 
@@ -87,7 +91,7 @@ export class MintOffer extends BasicOffer {
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
     const signature = await this.createMintSignature({
       nonce: nonceResult.toNumber(),
-      signer: this.refinable.provider,
+      signer: (this.refinable as any).provider,
       contractAddress,
       chainId: this.chainId,
       message: {
@@ -205,8 +209,75 @@ export class MintOffer extends BasicOffer {
     return { signedData, signature };
   }
 
-  public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
-    throw new Error("Not Implemented");
+  public async buy(params: BuyParams): Promise<Transaction> {
+    const contract = await this.getContract();
+
+    const paymentToken = this._chain.getPaymentToken(
+      this._offer.price.currency
+    );
+    const value = this._chain.parseCurrency(
+      this._offer.price.currency,
+      this._offer.price.amount
+    );
+
+    const nonceResult: BigNumber = await this.nonceContract.getNonce(
+      this.offer.contract.contractAddress,
+      0,
+      this._offer.user?.ethAddress
+    );
+
+    const isNativeCurrency = this._chain.isNativeCurrency(
+      this._offer.price.currency
+    );
+
+    const message = {
+      nonce: nonceResult.toString(),
+      currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
+      price: value ?? "0",
+      supply: this._offer.totalSupply.toString() ?? "0",
+      payee: this._offer.user?.ethAddress,
+      seller: this._offer.user?.ethAddress,
+      startTime: getUnixEpochTimeStampFromDateOr0(this._offer.startTime),
+      endTime: getUnixEpochTimeStampFromDateOr0(this._offer.endTime),
+      recipient: "0x0000000000000000000000000000000000000000", // using the zero address means anyone can claim
+      data: [],
+    };
+
+    const buyTx = await contract.claim(
+      {
+        ...message,
+        signature: this._offer.signature,
+        marketConfigData: this._offer.marketConfig?.data ?? "0x",
+        marketConfigDataSignature: this._offer.marketConfig?.signature ?? "0x",
+      },
+      this.refinable.accountAddress,
+      params.amount ?? 1,
+      // If currency is Native, send msg.value
+      ...optionalParam(isNativeCurrency, {
+        value,
+      })
+    );
+
+    return new EvmTransaction(buyTx);
+  }
+
+  /**
+   * Singleton to get the corresponding lazy mint contract
+   * @returns ethers.Contract
+   */
+  async getContract(): Promise<ethers.Contract> {
+    if (!this.offer) {
+      throw new Error("Offer was not set");
+    }
+
+    const contract = await (
+      this.refinable as RefinableEvmClient
+    ).contracts.findContract({
+      contractAddress: this.offer.contract.contractAddress,
+      chainId: this.chainId,
+    });
+
+    return contract.toEthersContract();
   }
 
   public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {
@@ -215,7 +286,9 @@ export class MintOffer extends BasicOffer {
 
   get nonceContract(): Contract {
     // right now there are no plans for 1155 lazy mint
-    const saleNonceHolder = this.refinable.contracts.getBaseContract(
+    const saleNonceHolder = (
+      this.refinable as RefinableEvmClient
+    ).contracts.getBaseContract(
       this.chainId,
       `${TokenType.Erc721}_SALE_NONCE_HOLDER`
     );

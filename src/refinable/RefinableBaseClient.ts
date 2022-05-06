@@ -9,6 +9,7 @@ import {
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
+  OfferType,
   TokenType,
   UserItemFilterType,
 } from "../@types/graphql";
@@ -21,13 +22,14 @@ import {
 import { uploadFile } from "../graphql/utils";
 import { Account } from "../interfaces/Account";
 import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
-import { Offer, PartialOffer } from "../offer/Offer";
+import { BasicOffer, Offer, PartialOffer } from "../offer/Offer";
 import { OfferFactory } from "../offer/OfferFactory";
 import {
   Environment,
   Options,
   RefinableOptions,
 } from "../types/RefinableOptions";
+import { isMintOffer } from "../utils/is";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
 import { OfferClient } from "./offer/OfferClient";
@@ -36,18 +38,20 @@ const defaultOptions: RefinableOptions = {
   environment: Environment.Mainnet,
 };
 
-// If we dont again define this, types break
-export enum OfferType {
-  Auction = "AUCTION",
-  Sale = "SALE",
-}
-
 export abstract class RefinableBaseClient<O extends object = {}> {
   protected _apiClient?: GraphQLClient;
   protected _options: Options<O>;
   protected _apiKey: string;
-  protected accountAddress: string;
+  protected _accountAddress: string;
   protected account: Account;
+
+  get accountAddress() {
+    return this._accountAddress;
+  }
+
+  set accountAddress(_accountAddress: string) {
+    this._accountAddress = _accountAddress;
+  }
 
   get apiKey() {
     return this._apiKey;
@@ -134,7 +138,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
-  async getOffer<O extends Offer = Offer>(
+  async getOffer<O extends BasicOffer = BasicOffer>(
     id: string,
     storeId?: string
   ): Promise<O> {
@@ -147,10 +151,15 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     });
 
     if (!queryResponse?.offer) return null;
-
-    const nft = this.createNft(queryResponse?.offer?.item);
-
-    return OfferFactory.createOffer<O>(this, queryResponse?.offer, nft);
+    if (
+      isMintOffer(queryResponse.offer as any) &&
+      queryResponse.offer.__typename === "MintOffer"
+    ) {
+      return this.offer.createMintOffer(queryResponse?.offer) as any;
+    } else {
+      const nft = this.createNft(queryResponse?.offer?.item);
+      return OfferFactory.createOffer(this, queryResponse?.offer, nft);
+    }
   }
 
   async getItemsOnAuction(

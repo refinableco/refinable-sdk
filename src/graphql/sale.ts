@@ -1,5 +1,5 @@
 import { gql } from "graphql-request";
-import { OfferFragment } from "./fragments";
+import { MintOfferFragment, OfferFragment } from "./fragments";
 
 export const CREATE_OFFER = gql`
   mutation createOfferForEditions($input: CreateOfferInput!, $storeId: ID) {
@@ -14,13 +14,11 @@ export const CREATE_MINT_OFFER = gql`
   mutation createMintOffer($input: CreateMintOfferInput!, $storeId: ID) {
     createMintOffer(input: $input) {
       ...Offer
-      contract {
-        contractAddress
-        chainId
-      }
+      ...MintOffer
     }
   }
   ${OfferFragment}
+  ${MintOfferFragment}
 `;
 
 export const PURCHASE_ITEM = gql`

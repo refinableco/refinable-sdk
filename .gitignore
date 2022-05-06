@@ -5,3 +5,4 @@ lib
 .env.local
 .env.testnet
 tests/e2e/secrets/*
+yarn-error.log

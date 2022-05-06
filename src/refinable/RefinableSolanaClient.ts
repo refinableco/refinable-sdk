@@ -36,11 +36,11 @@ export class RefinableSolanaClient extends RefinableBaseClient<RefinableSolanaOp
 
   constructor(
     public readonly provider: Wallet,
-    public readonly accountAddress: string,
+    accountAddress: string,
     options: Options<RefinableSolanaOptions & { apiOrBearerToken: string }>
   ) {
     super(options.apiOrBearerToken, options, { commitment: "finalized" });
-
+    this._accountAddress = accountAddress;
     this.account = new SolanaAccount(accountAddress, this);
     this._connection = getConnectionByChainId(
       solanaChainIds[this.options.environment]
