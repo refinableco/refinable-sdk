@@ -70,5 +70,29 @@ describe("MintOffer - E2E", () => {
       const txnReceipt = await txnResponse.wait();
       expect(txnReceipt.success).toEqual(true);
     });
+
+    it("Allows a buyer to purchase multiple NFTs from a lazy-mintable collection", async () => {
+      const mintOffer = await refinableBuyer.getOffer<MintOffer>(offer.id);
+
+      const txnResponse = await mintOffer.buy({
+        amount: 2,
+      });
+
+      expect(txnResponse).toBeDefined();
+      const txnReceipt = await txnResponse.wait();
+      expect(txnReceipt.success).toEqual(true);
+    });
+
+    it("Fails when a buyer tries to purchase more than the allowed amount of nfts", async () => {
+      const mintOffer = await refinableBuyer.getOffer<MintOffer>(offer.id);
+
+      try {
+        await mintOffer.buy({
+          amount: 4,
+        });
+      } catch (ex) {
+        expect(ex.message).toContain("ERC721Lazy: Buyer limit reached");
+      }
+    });
   });
 });
