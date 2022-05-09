@@ -51,14 +51,6 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     this._accountAddress = _accountAddress;
   }
 
-  get accountAddress() {
-    return this._accountAddress;
-  }
-
-  set accountAddress(_accountAddress: string) {
-    this._accountAddress = _accountAddress;
-  }
-
   get apiKey() {
     return this._apiKey;
   }
@@ -148,10 +140,8 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     id: string,
     storeId?: string
   ): Promise<O> {
-    const queryResponse = await this.apiClient.request<
-      GetOfferQuery,
-      GetOfferQueryVariables
-    >(GET_OFFER, {
+    // can not be typed as we use `parse` and it's not supported by typegen
+    const queryResponse = await this.apiClient.request(GET_OFFER, {
       id,
       storeId,
     });
