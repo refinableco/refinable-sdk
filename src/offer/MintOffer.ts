@@ -217,18 +217,12 @@ export class MintOffer extends BasicOffer {
       this._offer.price.amount
     );
 
-    const priceWithServiceFee = await this._chain.getPriceWithBuyServiceFee(
-      this._offer.price,
-      this._offer.marketConfig.buyServiceFeeBps.value,
-      params.amount ?? 1
-    );
-
     const paymentToken = this._chain.getPaymentToken(
       this._offer.price.currency
     );
     const value = this._chain.parseCurrency(
-      priceWithServiceFee.currency,
-      priceWithServiceFee.amount
+      this._offer.price.currency,
+      this._offer.price.amount * params.amount
     );
 
     const nonceResult: BigNumber = await this.nonceContract.getNonce(
@@ -238,7 +232,7 @@ export class MintOffer extends BasicOffer {
     );
 
     const isNativeCurrency = this._chain.isNativeCurrency(
-      priceWithServiceFee.currency
+      this._offer.price.currency
     );
 
     const message = {

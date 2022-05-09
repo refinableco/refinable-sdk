@@ -3,6 +3,8 @@ import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
 import { RefinableEvmClient } from "..";
 import {
+  GetOfferQuery,
+  GetOfferQueryVariables,
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
@@ -140,8 +142,10 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     id: string,
     storeId?: string
   ): Promise<O> {
-    // can not be typed as we use `parse` and it's not supported by typegen
-    const queryResponse = await this.apiClient.request(GET_OFFER, {
+    const queryResponse = await this.apiClient.request<
+      GetOfferQuery,
+      GetOfferQueryVariables
+    >(GET_OFFER, {
       id,
       storeId,
     });

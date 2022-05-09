@@ -2645,6 +2645,245 @@ export type GetUserOfferItemsQuery = {
     | undefined;
 };
 
+export type GetOfferQueryVariables = Exact<{
+  id: Scalars["ID"];
+  storeId?: InputMaybe<Scalars["ID"]>;
+}>;
+
+export type GetOfferQuery = {
+  __typename?: "Query";
+  offer?:
+    | {
+        __typename?: "MintOffer";
+        name?: string | null | undefined;
+        description?: string | null | undefined;
+        chainId: number;
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        item?:
+          | {
+              __typename?: "Item";
+              id: string;
+              type: TokenType;
+              tokenId: string;
+              contractAddress: string;
+              supply: number;
+              totalSupply: number;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        previewFile?:
+          | {
+              __typename?: "PreviewFileProperties";
+              fileUrl?: string | null | undefined;
+              imagePreview?: string | null | undefined;
+            }
+          | null
+          | undefined;
+        contract?:
+          | {
+              __typename?: "ContractOutput";
+              contractAddress: string;
+              contractABI: string;
+              type: string;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
+          signature: string;
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+            | null
+            | undefined;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      }
+    | {
+        __typename?: "SaleOffer";
+        id: string;
+        type: OfferType;
+        active: boolean;
+        supply: number;
+        totalSupply: number;
+        startTime?: any | null | undefined;
+        endTime?: any | null | undefined;
+        signature?: string | null | undefined;
+        blockchainId?: string | null | undefined;
+        whitelistStage: LaunchpadCountDownType;
+        item?:
+          | {
+              __typename?: "Item";
+              id: string;
+              type: TokenType;
+              tokenId: string;
+              contractAddress: string;
+              supply: number;
+              totalSupply: number;
+              chainId: number;
+            }
+          | null
+          | undefined;
+        user: {
+          __typename?: "User";
+          id: string;
+          ethAddress?: string | null | undefined;
+        };
+        price: {
+          __typename?: "Price";
+          amount: number;
+          currency: PriceCurrency;
+        };
+        auction?:
+          | {
+              __typename?: "Auction";
+              id: string;
+              auctionId?: string | null | undefined;
+              auctionContractAddress?: string | null | undefined;
+              startTime?: any | null | undefined;
+              endTime?: any | null | undefined;
+              startPrice?: number | null | undefined;
+              bids: Array<{
+                __typename?: "Bid";
+                transactionHash: string;
+                bidAmount: number;
+                bidTime: any;
+                bidder?:
+                  | {
+                      __typename?: "User";
+                      ethAddress?: string | null | undefined;
+                      description?: string | null | undefined;
+                      name?: string | null | undefined;
+                      profileImage?: string | null | undefined;
+                    }
+                  | null
+                  | undefined;
+              }>;
+              highestBid?:
+                | {
+                    __typename?: "Bid";
+                    transactionHash: string;
+                    bidAmount: number;
+                    bidTime: any;
+                    bidder?:
+                      | {
+                          __typename?: "User";
+                          ethAddress?: string | null | undefined;
+                          description?: string | null | undefined;
+                          name?: string | null | undefined;
+                          profileImage?: string | null | undefined;
+                        }
+                      | null
+                      | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        marketConfig: {
+          __typename?: "MarketConfig";
+          data: string;
+          signature: string;
+          buyServiceFeeBps?:
+            | { __typename?: "ServiceFee"; type: ServiceFeeType; value: number }
+            | null
+            | undefined;
+        };
+        whitelistVoucher?:
+          | {
+              __typename?: "WhitelistVoucher";
+              whitelistType: WhitelistType;
+              limit: number;
+              signature: string;
+              startTime: any;
+              price: number;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
+};
+
 export type GetUserItemsQueryVariables = Exact<{
   ethAddress: Scalars["String"];
   filter: UserItemFilterInput;
