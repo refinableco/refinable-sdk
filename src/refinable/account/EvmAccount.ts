@@ -1,5 +1,8 @@
-import { ethers } from "ethers";
+import type { TransactionResponse } from "@ethersproject/abstract-provider";
+import { Contract, ethers } from "ethers";
 import { Account } from "../../interfaces/Account";
+import { NativeCurrency } from "../../interfaces/Config";
+import EvmTransaction from "../../transaction/EvmTransaction";
 import { RefinableEvmClient } from "../RefinableEvmClient";
 
 export default class EvmAccount implements Account {
@@ -92,5 +95,41 @@ export default class EvmAccount implements Account {
 
     const result = await getBalancePromise;
     return ethers.utils.formatEther(result).toString();
+  }
+
+  /**
+   * Approve a certain allowance for a ERC20 token
+   * @param token
+   * @param amount
+   * @param spenderAddress
+   * @returns {Promise<EvmTransaction>}
+   */
+  public async approveTokenContractAllowance(
+    token: NativeCurrency,
+    amount: number,
+    spenderAddress: string
+  ): Promise<EvmTransaction> {
+    // Native currency does not need to be approved
+    if (token.native === true) return;
+
+    const erc20Contract = new Contract(
+      token.address,
+      [`function approve(address _spender, uint256 _value)`],
+      this.refinable.provider
+    );
+
+    const formattedAmount = ethers.utils
+      .parseUnits(amount.toString(), token.decimals)
+      .toString();
+
+    const approvalResult: TransactionResponse = await erc20Contract.approve(
+      spenderAddress,
+      formattedAmount
+    );
+
+    // Wait for 1 confirmation
+    await approvalResult.wait(this.refinable.options.waitConfirmations);
+
+    return new EvmTransaction(approvalResult);
   }
 }

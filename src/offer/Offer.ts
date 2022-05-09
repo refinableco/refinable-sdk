@@ -1,6 +1,11 @@
 import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
+import {
+  WhitelistType,
+  WhitelistVoucherParams,
+} from "../nft/interfaces/Voucher";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
 
 export interface PartialOffer
   extends Pick<
@@ -61,6 +66,19 @@ export class BasicOffer {
 
   get whitelistStage() {
     return this._offer.whitelistStage;
+  }
+
+  protected get whitelistVoucher(): WhitelistVoucherParams | null {
+    if (!this._offer.whitelistVoucher) return null;
+
+    delete this._offer.whitelistVoucher.__typename;
+
+    return {
+      ...this._offer.whitelistVoucher,
+      startTime: getUnixEpochTimeStampFromDateOr0(
+        this._offer.whitelistVoucher?.startTime
+      ),
+    };
   }
 
   protected subtractOfferSupply(amount: number) {

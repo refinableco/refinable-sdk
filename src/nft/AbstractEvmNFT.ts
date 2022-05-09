@@ -202,41 +202,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     voucher: WhitelistVoucherParams
   ): Promise<EvmTransaction>;
 
-  protected async approveForTokenIfNeeded(
-    price: Price,
-    spenderAddress: string
-  ): Promise<any> {
-    const isNativeCurrency = this.isNativeCurrency(price.currency);
-
-    // When native currency, we do not need to approve
-    if (!isNativeCurrency) {
-      const currency = getSupportedCurrency(
-        this._chain.supportedCurrencies,
-        price.currency
-      );
-
-      const erc20Contract = new Contract(
-        currency.address,
-        [`function approve(address _spender, uint256 _value)`],
-        this.refinable.provider
-      );
-
-      const amount = this.parseCurrency(price.currency, price.amount);
-
-      const approvalResult: TransactionResponse = await erc20Contract.approve(
-        spenderAddress,
-        amount
-      );
-
-      // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-
-      return new EvmTransaction(approvalResult);
-    }
-
-    return;
-  }
-
   async putForAuction({
     price,
     auctionStartDate,
@@ -323,8 +288,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       marketConfig.buyServiceFeeBps.value
     );
 
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
+    await this.refinable.account.approveTokenContractAllowance(
+      this.getCurrency(priceWithServiceFee.currency),
+      priceWithServiceFee.amount,
       auctionContractAddress
     );
 
@@ -598,7 +564,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     amount?: number;
     startTime?: Date;
     endTime?: Date;
-    voucher?: WhitelistVoucherParams & { startTime: Date };
+    voucher?: WhitelistVoucherParams;
     marketConfig?: MarketConfig;
   }): Promise<EvmTransaction> {
     const {
@@ -632,8 +598,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         amount
       );
 
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
+    await this.refinable.account.approveTokenContractAllowance(
+      this.getCurrency(priceWithServiceFee.currency),
+      priceWithServiceFee.amount,
       this.saleContract.address
     );
 
@@ -686,7 +653,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ...optionalParam(params.voucher != null, {
         ...params.voucher,
         price: voucherPrice,
-        startTime: getUnixEpochTimeStampFromDateOr0(params.voucher?.startTime),
       }),
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {

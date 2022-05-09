@@ -857,13 +857,7 @@ export type LaunchpadDetails = {
   __typename?: "LaunchpadDetails";
   currentStage?: Maybe<LaunchpadStage>;
   nextStage?: Maybe<LaunchpadStage>;
-  /** @deprecated Deprecated in favour of `stages` */
-  privateStartDate?: Maybe<Scalars["DateTime"]>;
-  /** @deprecated Deprecated in favour of `stages` */
-  publicStartDate?: Maybe<Scalars["DateTime"]>;
   stages: Array<LaunchpadStage>;
-  /** @deprecated Deprecated in favour of `stages` */
-  vipStartDate?: Maybe<Scalars["DateTime"]>;
 };
 
 export type LaunchpadDetailsInput = {
@@ -872,6 +866,7 @@ export type LaunchpadDetailsInput = {
 
 export type LaunchpadStage = {
   __typename?: "LaunchpadStage";
+  isWhitelisted: Scalars["Boolean"];
   price?: Maybe<Scalars["Float"]>;
   stage: WhitelistType;
   startTime?: Maybe<Scalars["DateTime"]>;
@@ -879,6 +874,7 @@ export type LaunchpadStage = {
 };
 
 export type LaunchpadStageInput = {
+  limit?: InputMaybe<Scalars["Float"]>;
   price?: InputMaybe<Scalars["Float"]>;
   stage: WhitelistType;
   startTime?: InputMaybe<Scalars["DateTime"]>;
@@ -1800,6 +1796,7 @@ export type WhitelistVoucher = {
   price: Scalars["Float"];
   signature: Scalars["String"];
   startTime: Scalars["DateTime"];
+  /** @deprecated No longer needed */
   whitelistType: WhitelistType;
 };
 
@@ -2369,7 +2366,6 @@ export type Offer_MintOffer_Fragment = {
   whitelistVoucher?:
     | {
         __typename?: "WhitelistVoucher";
-        whitelistType: WhitelistType;
         limit: number;
         signature: string;
         startTime: any;
@@ -2456,7 +2452,6 @@ export type Offer_SaleOffer_Fragment = {
   whitelistVoucher?:
     | {
         __typename?: "WhitelistVoucher";
-        whitelistType: WhitelistType;
         limit: number;
         signature: string;
         startTime: any;
@@ -2768,7 +2763,6 @@ export type GetOfferQuery = {
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
-              whitelistType: WhitelistType;
               limit: number;
               signature: string;
               startTime: any;
@@ -2871,7 +2865,6 @@ export type GetOfferQuery = {
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
-              whitelistType: WhitelistType;
               limit: number;
               signature: string;
               startTime: any;
@@ -3198,7 +3191,6 @@ export type CreateOfferForEditionsMutation = {
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
-              whitelistType: WhitelistType;
               limit: number;
               signature: string;
               startTime: any;
@@ -3288,7 +3280,6 @@ export type CreateOfferForEditionsMutation = {
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
-              whitelistType: WhitelistType;
               limit: number;
               signature: string;
               startTime: any;
@@ -3391,7 +3382,6 @@ export type CreateMintOfferMutation = {
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
-              whitelistType: WhitelistType;
               limit: number;
               signature: string;
               startTime: any;
@@ -3499,7 +3489,6 @@ export type CreateMintOfferMutation = {
         whitelistVoucher?:
           | {
               __typename?: "WhitelistVoucher";
-              whitelistType: WhitelistType;
               limit: number;
               signature: string;
               startTime: any;
