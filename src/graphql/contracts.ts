@@ -48,7 +48,7 @@ export const GET_COLLECTION = gql`
 
 export const FIND_TOKEN_CONTRACT = gql`
   query getTokenContract($input: FindContractInput!) {
-    findContract(input: $input) {
+    contract(input: $input) {
       contractAddress
       contractABI
       type

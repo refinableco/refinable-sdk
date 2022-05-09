@@ -37,7 +37,7 @@ async function main() {
         currency: PriceCurrency.Bnb,
       },
       startTime: new Date(),
-      supply: 10000,
+      supply: 3,
       previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",

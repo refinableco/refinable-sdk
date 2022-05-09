@@ -1,4 +1,4 @@
-import { PriceCurrency } from "../@types/graphql";
+import { Price, PriceCurrency } from "../@types/graphql";
 import { chainMap } from "../config/chains";
 import { IChainConfig } from "../interfaces/Config";
 import { getSupportedCurrency } from "../utils/chain";
@@ -41,5 +41,25 @@ export class Chain {
     const currency = this.getCurrency(priceCurrency);
 
     return utils.parseUnits(amount.toString(), currency.decimals).toString();
+  }
+
+  public async getPriceWithBuyServiceFee(
+    price: Price,
+    serviceFeeBps: number,
+    amount = 1
+  ): Promise<Price> {
+    const currency = this.getCurrency(price.currency);
+
+    // We need to do this because of the rounding in our contracts
+    const weiAmount = utils
+      .parseUnits(price.amount.toString(), currency.decimals)
+      .mul(10000 + serviceFeeBps)
+      .div(10000)
+      .toString();
+
+    return {
+      ...price,
+      amount: Number(utils.formatUnits(weiAmount, currency.decimals)) * amount,
+    };
   }
 }

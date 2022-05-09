@@ -199,7 +199,7 @@ export class Contracts {
       input: { contractAddress, chainId },
     });
 
-    return this.cacheContract(response?.findContract);
+    return this.cacheContract(response?.contract);
   }
 
   getBaseContract(chainId: Chain, type: string) {

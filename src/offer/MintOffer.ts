@@ -212,12 +212,23 @@ export class MintOffer extends BasicOffer {
   public async buy(params: BuyParams): Promise<Transaction> {
     const contract = await this.getContract();
 
+    const price = this._chain.parseCurrency(
+      this._offer.price.currency,
+      this._offer.price.amount
+    );
+
+    const priceWithServiceFee = await this._chain.getPriceWithBuyServiceFee(
+      this._offer.price,
+      this._offer.marketConfig.buyServiceFeeBps.value,
+      params.amount ?? 1
+    );
+
     const paymentToken = this._chain.getPaymentToken(
       this._offer.price.currency
     );
     const value = this._chain.parseCurrency(
-      this._offer.price.currency,
-      this._offer.price.amount
+      priceWithServiceFee.currency,
+      priceWithServiceFee.amount
     );
 
     const nonceResult: BigNumber = await this.nonceContract.getNonce(
@@ -227,13 +238,13 @@ export class MintOffer extends BasicOffer {
     );
 
     const isNativeCurrency = this._chain.isNativeCurrency(
-      this._offer.price.currency
+      priceWithServiceFee.currency
     );
 
     const message = {
       nonce: nonceResult.toString(),
       currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
-      price: value ?? "0",
+      price: price ?? "0",
       supply: this._offer.totalSupply.toString() ?? "0",
       payee: this._offer.user?.ethAddress,
       seller: this._offer.user?.ethAddress,

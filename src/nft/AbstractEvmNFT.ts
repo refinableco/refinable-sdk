@@ -318,7 +318,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     this.verifyItem();
 
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+    const priceWithServiceFee = await this._chain.getPriceWithBuyServiceFee(
       price,
       marketConfig.buyServiceFeeBps.value
     );
@@ -546,26 +546,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     return parseBPS(BigNumber.from(totalBuyFeeBps));
   }
 
-  public async getPriceWithBuyServiceFee(
-    price: Price,
-    serviceFeeBps: number,
-    amount = 1
-  ): Promise<Price> {
-    const currency = this.getCurrency(price.currency);
-
-    // We need to do this because of the rounding in our contracts
-    const weiAmount = utils
-      .parseUnits(price.amount.toString(), currency.decimals)
-      .mul(10000 + serviceFeeBps)
-      .div(10000)
-      .toString();
-
-    return {
-      ...price,
-      amount: Number(utils.formatUnits(weiAmount, currency.decimals)) * amount,
-    };
-  }
-
   async getMinBidIncrement(auctionContractAddress: string): Promise<number> {
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
@@ -635,21 +615,22 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     this.verifyItem();
 
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+    const priceWithServiceFee = await this._chain.getPriceWithBuyServiceFee(
       pricePerCopy,
       marketConfig.buyServiceFeeBps.value,
       amount
     );
 
     const voucherPriceAmount = params.voucher?.price ?? 0;
-    const voucherPriceWithServiceFee = await this.getPriceWithBuyServiceFee(
-      {
-        amount: voucherPriceAmount,
-        currency: pricePerCopy.currency,
-      },
-      marketConfig.buyServiceFeeBps.value,
-      amount
-    );
+    const voucherPriceWithServiceFee =
+      await this._chain.getPriceWithBuyServiceFee(
+        {
+          amount: voucherPriceAmount,
+          currency: pricePerCopy.currency,
+        },
+        marketConfig.buyServiceFeeBps.value,
+        amount
+      );
 
     await this.approveForTokenIfNeeded(
       priceWithServiceFee,
