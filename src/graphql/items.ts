@@ -38,8 +38,7 @@ export const GET_USER_OFFER_ITEMS = gql`
   ${ItemWithOfferFragment}
 `;
 
-export const GET_OFFER = addTypenameToDocument(
-  parse(`
+export const GET_OFFER_DOCUMENT = gql`
   query getOffer($id: ID!, $storeId: ID) {
     offer(id: $id) {
       ...Offer
@@ -60,8 +59,9 @@ export const GET_OFFER = addTypenameToDocument(
 
   ${OfferFragment}
   ${MintOfferFragment}
-`)
-);
+`;
+
+export const GET_OFFER = addTypenameToDocument(parse(GET_OFFER_DOCUMENT));
 
 export const GET_USER_ITEMS = gql`
   query getUserItems(

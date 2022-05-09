@@ -355,7 +355,7 @@ export type CreateMintOfferInput = {
   offerContractAddress?: InputMaybe<Scalars["String"]>;
   previewImage: Scalars["String"];
   price?: InputMaybe<PriceInput>;
-  signature?: InputMaybe<Scalars["String"]>;
+  signature: Scalars["String"];
   startTime?: InputMaybe<Scalars["DateTime"]>;
   supply: Scalars["Float"];
   transactionHash?: InputMaybe<Scalars["String"]>;
@@ -1255,8 +1255,8 @@ export type Query = {
   collectionMetadataValues: Array<CollectionMetadataValues>;
   collections: CollectionsResponse;
   collectionsExist: Array<Scalars["Boolean"]>;
+  contract?: Maybe<ContractOutput>;
   contractCount: ContractCount;
-  findContract?: Maybe<ContractOutput>;
   getMetadata?: Maybe<GetMetadataOutput>;
   getUploadUrl: GetUploadUrlOutput;
   hotCollections: CollectionsResponse;
@@ -1308,13 +1308,13 @@ export type QueryCollectionsExistArgs = {
   input: CheckCollectionsInput;
 };
 
+export type QueryContractArgs = {
+  input: FindContractInput;
+};
+
 export type QueryContractCountArgs = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
-};
-
-export type QueryFindContractArgs = {
-  input: FindContractInput;
 };
 
 export type QueryGetMetadataArgs = {
@@ -1908,7 +1908,7 @@ export type GetTokenContractQueryVariables = Exact<{
 
 export type GetTokenContractQuery = {
   __typename?: "Query";
-  findContract?:
+  contract?:
     | {
         __typename?: "ContractOutput";
         contractAddress: string;
