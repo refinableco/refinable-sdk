@@ -152,7 +152,6 @@ export const OfferFragment = gql`
       }
     }
     whitelistVoucher {
-      whitelistType
       limit
       signature
       startTime

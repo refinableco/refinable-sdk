@@ -53,16 +53,8 @@ export class SaleOffer extends Offer {
 
     let result: Transaction;
 
-    if (this._offer.whitelistVoucher && isEVMNFT(this.nft)) {
-      // Convert graphql enum (PUBLIC) to a numeric enum
-      const voucher: WhitelistVoucherParams = {
-        ...this._offer.whitelistVoucher,
-        whitelistType: WhitelistType[
-          this._offer.whitelistVoucher.whitelistType
-        ] as unknown as WhitelistType,
-      };
-
-      result = await this.nft.buyUsingVoucher(buyParams, voucher);
+    if (this.whitelistVoucher && isEVMNFT(this.nft)) {
+      result = await this.nft.buyUsingVoucher(buyParams, this.whitelistVoucher);
     } else {
       result = await this.nft.buy(buyParams);
     }

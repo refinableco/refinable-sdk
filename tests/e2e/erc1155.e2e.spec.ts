@@ -259,7 +259,7 @@ describe("ERC1155 - E2E", () => {
         expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
         expect(offer.buy()).rejects.toThrowError(
-          "reverted with reason string 'You are not whitelisted or public sale has not started"
+          "reverted with reason string 'Whitelist: You are not whitelisted or public sale has not started"
         );
       });
 

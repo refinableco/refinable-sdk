@@ -9,6 +9,13 @@ import {
   RefinableEvmClient,
 } from "../../src";
 import dotenv from "dotenv";
+import { PutForSaleParams } from "../../src/offer/MintOffer";
+import { addDays, subDays } from "date-fns";
+import {
+  LaunchpadCountDownType,
+  WhitelistType,
+} from "../../src/@types/graphql";
+
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 describe("MintOffer - E2E", () => {
@@ -34,29 +41,37 @@ describe("MintOffer - E2E", () => {
     });
   });
 
+  async function putLazyContractForSale(
+    override: Partial<PutForSaleParams> = {}
+  ) {
+    const mintOffer = await refinableSeller.offer.createMintOffer();
+
+    const fileStream = fs.createReadStream(
+      path.join(__dirname, "../assets/image.jpg")
+    );
+
+    return await mintOffer.putForSale({
+      contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
+      price: {
+        amount: 0.18,
+        currency: PriceCurrency.Bnb,
+      },
+      startTime: new Date(),
+      supply: 10000,
+      previewImage: fileStream,
+      name: "Some test collection",
+      description: "Always room for a description",
+      ...override,
+    });
+  }
+
   describe("With a MintOffer put for sale", () => {
     let offer: MintOffer;
 
     beforeEach(async () => {
       // create Mint offer
       //
-      const fileStream = fs.createReadStream(
-        path.join(__dirname, "../assets/image.jpg")
-      );
-
-      const mintOffer = await refinableSeller.offer.createMintOffer();
-      offer = await mintOffer.putForSale({
-        contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
-        price: {
-          amount: 0.18,
-          currency: PriceCurrency.Bnb,
-        },
-        startTime: new Date(),
-        supply: 10000,
-        previewImage: fileStream,
-        name: "Some test collection",
-        description: "Always room for a description",
-      });
+      offer = await putLazyContractForSale();
     });
 
     it("Allows a buyer to purchase 1 NFT from a lazy-mintable collection", async () => {
@@ -82,17 +97,116 @@ describe("MintOffer - E2E", () => {
       const txnReceipt = await txnResponse.wait();
       expect(txnReceipt.success).toEqual(true);
     });
+  });
 
-    it("Fails when a buyer tries to purchase more than the allowed amount of nfts", async () => {
-      const mintOffer = await refinableBuyer.getOffer<MintOffer>(offer.id);
+  describe("Whitelist", () => {
+    it("should be able to create a whitelisted sale", async () => {
+      const mintOffer = await putLazyContractForSale({
+        startTime: addDays(new Date(), 4),
+        launchpadDetails: {
+          stages: [
+            {
+              stage: WhitelistType.Vip,
+              startTime: subDays(new Date(), 1),
+              whitelist: ["0x7633Fe8542c2218B5A25777477F63D395aA5aFB4"],
+            },
+          ],
+        },
+      });
 
-      try {
-        await mintOffer.buy({
-          amount: 4,
-        });
-      } catch (ex) {
-        expect(ex.message).toContain("ERC721Lazy: Buyer limit reached");
-      }
+      const offer = await refinableBuyer.getOffer(mintOffer.id);
+
+      expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+    });
+
+    it("should not be able to buy when sale has whitelist and user not vip", async () => {
+      const mintOffer = await putLazyContractForSale({
+        startTime: addDays(new Date(), 4),
+        launchpadDetails: {
+          stages: [
+            {
+              stage: WhitelistType.Vip,
+              startTime: subDays(new Date(), 1),
+              whitelist: ["0x7633Fe8542c2218B5A25777477F63D395aA5aFB4"],
+            },
+          ],
+        },
+      });
+
+      const offer = await refinableBuyer.getOffer<MintOffer>(mintOffer.id);
+
+      expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
+
+      expect(offer.buy()).rejects.toThrowError(
+        "reverted with reason string 'Whitelist: You are not whitelisted or public sale has not started"
+      );
+    });
+
+    it("should be able to buy when sale has whitelist and user not vip but public startDate has come up", async () => {
+      const mintOffer = await putLazyContractForSale({
+        startTime: subDays(new Date(), 1),
+        launchpadDetails: {
+          stages: [
+            {
+              stage: WhitelistType.Vip,
+              startTime: subDays(new Date(), 4),
+              whitelist: ["0x7633Fe8542c2218B5A25777477F63D395aA5aFB4"],
+            },
+          ],
+        },
+      });
+
+      const offer = await refinableBuyer.getOffer<MintOffer>(mintOffer.id);
+
+      expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
+
+      const txnResponse = await offer.buy();
+      expect(txnResponse).toBeDefined();
+      const txnReceipt = await txnResponse.wait();
+      expect(txnReceipt.success).toEqual(true);
+    });
+
+    it("should be able to create a whitelisted sale with user2", async () => {
+      const mintOffer = await putLazyContractForSale({
+        startTime: addDays(new Date(), 4),
+        launchpadDetails: {
+          stages: [
+            {
+              stage: WhitelistType.Vip,
+              startTime: subDays(new Date(), 1),
+              whitelist: [refinableBuyer.accountAddress.toLowerCase()],
+            },
+          ],
+        },
+      });
+
+      const offer = await refinableBuyer.getOffer(mintOffer.id);
+
+      expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+    });
+
+    it("should be able to buy a whitelisted item", async () => {
+      const itemOnSale = await putLazyContractForSale({
+        startTime: addDays(new Date(), 4),
+        launchpadDetails: {
+          stages: [
+            {
+              stage: WhitelistType.Vip,
+              startTime: subDays(new Date(), 1),
+              whitelist: [refinableBuyer.accountAddress.toLowerCase()],
+            },
+          ],
+        },
+      });
+
+      const offer = await refinableBuyer.getOffer<MintOffer>(itemOnSale.id);
+
+      expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+
+      const txnResponse = await offer.buy();
+      expect(txnResponse).toBeDefined();
+      const txnReceipt = await txnResponse.wait();
+      expect(txnReceipt.success).toEqual(true);
     });
   });
 });

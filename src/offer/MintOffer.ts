@@ -2,17 +2,18 @@ import { BigNumber, Contract, ethers } from "ethers";
 import { Stream } from "form-data";
 import { RefinableEvmClient } from "..";
 import {
-  LaunchpadDetailsInput,
-  Price,
-  OfferType,
-  PriceCurrency,
   CreateMintOfferMutation,
   CreateMintOfferMutationVariables,
-  TokenType,
+  LaunchpadDetailsInput,
   MintOfferFragment,
+  OfferType,
+  Price,
+  PriceCurrency,
+  TokenType
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
+import { MintVoucher } from "../nft/interfaces/MintVoucher";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
@@ -24,6 +25,18 @@ import { BasicOffer, PartialOffer } from "./Offer";
 
 interface BuyParams {
   amount?: number;
+  recipient?: string;
+}
+export interface PutForSaleParams {
+  contractAddress: string;
+  price: Price;
+  startTime?: Date;
+  endTime?: Date;
+  launchpadDetails?: LaunchpadDetailsInput;
+  supply: number;
+  previewImage?: Stream;
+  name?: string;
+  description?: string;
 }
 
 export class MintOffer extends BasicOffer {
@@ -39,17 +52,7 @@ export class MintOffer extends BasicOffer {
     this._chain = new Chain(chainId);
   }
 
-  public async putForSale(params: {
-    contractAddress: string;
-    price: Price;
-    startTime?: Date;
-    endTime?: Date;
-    launchpadDetails?: LaunchpadDetailsInput;
-    supply: number;
-    previewImage?: Stream;
-    name?: string;
-    description?: string;
-  }): Promise<this> {
+  public async putForSale(params: PutForSaleParams): Promise<this> {
     const {
       price,
       startTime,
@@ -209,61 +212,87 @@ export class MintOffer extends BasicOffer {
     return { signedData, signature };
   }
 
-  public async buy(params: BuyParams): Promise<Transaction> {
+  public async buy(params: BuyParams = {}): Promise<Transaction> {
     const contract = await this.getContract();
+    const amountToClaim = params.amount ?? 1;
 
-    const price = this._chain.parseCurrency(
+    const price =
+      this.whitelistVoucher?.price > 0
+        ? this.whitelistVoucher?.price
+        : this._offer.price.amount;
+    const priceTimesAmount = price * amountToClaim;
+
+    const parsedPrice = this._chain.parseCurrency(
       this._offer.price.currency,
-      this._offer.price.amount
+      priceTimesAmount
     );
 
-    const paymentToken = this._chain.getPaymentToken(
-      this._offer.price.currency
-    );
-    const value = this._chain.parseCurrency(
+    const voucherPrice = this._chain.parseCurrency(
       this._offer.price.currency,
-      this._offer.price.amount * params.amount
+      this.whitelistVoucher?.price ?? 0
     );
 
-    const nonceResult: BigNumber = await this.nonceContract.getNonce(
-      this.offer.contract.contractAddress,
-      0,
-      this._offer.user?.ethAddress
+    // Add allows as much as the price requests
+    await (this.refinable as RefinableEvmClient).account.approveTokenContractAllowance(
+      this._chain.getCurrency(this._offer.price.currency),
+      priceTimesAmount,
+      contract.address
     );
 
     const isNativeCurrency = this._chain.isNativeCurrency(
       this._offer.price.currency
     );
 
-    const message = {
-      nonce: nonceResult.toString(),
+    const mintVoucher = this.getMintVoucher();
+
+    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
+    const method = this.whitelistVoucher ? "claimWithVoucher" : "claim";
+
+    const claimTx = await contract[method](
+      // LibMintVoucher.MintVoucher calldata mintVoucher
+      mintVoucher,
+      // address recipient
+      params.recipient ?? this.refinable.accountAddress,
+      // uint256 numberOfTokens
+      amountToClaim,
+      // WhitelistVoucherParams memory voucher - optional
+      ...optionalParam(this.whitelistVoucher != null, {
+        ...this.whitelistVoucher,
+        price: voucherPrice,
+      }),
+      // If currency is Native, send msg.value
+      ...optionalParam(isNativeCurrency, {
+        value: parsedPrice,
+      })
+    );
+
+    return new EvmTransaction(claimTx);
+  }
+
+  private getMintVoucher(): MintVoucher {
+    const paymentToken = this._chain.getPaymentToken(
+      this._offer.price.currency
+    );
+
+    const offerPrice = this._chain.parseCurrency(
+      this._offer.price.currency,
+      this._offer.price.amount
+    );
+
+    return {
       currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
-      price: price ?? "0",
+      price: offerPrice ?? "0",
       supply: this._offer.totalSupply.toString() ?? "0",
       payee: this._offer.user?.ethAddress,
       seller: this._offer.user?.ethAddress,
       startTime: getUnixEpochTimeStampFromDateOr0(this._offer.startTime),
       endTime: getUnixEpochTimeStampFromDateOr0(this._offer.endTime),
       recipient: "0x0000000000000000000000000000000000000000", // using the zero address means anyone can claim
-      data: [],
+      data: "0x",
+      signature: this._offer.signature,
+      marketConfigData: this._offer.marketConfig?.data ?? "0x",
+      marketConfigDataSignature: this._offer.marketConfig?.signature ?? "0x",
     };
-
-    const buyTx = await contract.claim(
-      {
-        ...message,
-        signature: this._offer.signature,
-        marketConfigData: this._offer.marketConfig?.data ?? "0x",
-        marketConfigDataSignature: this._offer.marketConfig?.signature ?? "0x",
-      },
-      this.refinable.accountAddress,
-      params.amount ?? 1,
-      // If currency is Native, send msg.value
-      ...optionalParam(isNativeCurrency, {
-        value,
-      })
-    );
-
-    return new EvmTransaction(buyTx);
   }
 
   /**
