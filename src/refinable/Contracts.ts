@@ -13,6 +13,8 @@ import {
   CollectionInput,
   GetCollectionBySlugQuery,
   GetCollectionBySlugQueryVariables,
+  GetTokenContractQuery,
+  GetTokenContractQueryVariables,
 } from "../@types/graphql";
 import {
   contractMetadata,
@@ -23,6 +25,7 @@ import {
 import { Contract, IContract } from "../Contract";
 import {
   CREATE_CONTRACT,
+  FIND_TOKEN_CONTRACT,
   GET_COLLECTION,
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
@@ -47,9 +50,14 @@ export class Contracts {
     [chainId: string]: { [type: string]: Contract };
   };
 
+  private initializing = false;
+
   constructor(private readonly refinable: RefinableEvmClient) {}
 
   async initialize() {
+    if (this.initializing) return;
+
+    this.initializing = true;
     await this.getBaseContracts(0);
   }
 
@@ -173,6 +181,27 @@ export class Contracts {
     return code !== "0x0";
   }
 
+  async findContract({
+    contractAddress,
+    chainId,
+  }: {
+    contractAddress: string;
+    chainId: Chain;
+  }): Promise<Contract> {
+    const hasContract = this.getCachedContract(chainId, contractAddress);
+
+    if (hasContract) return hasContract;
+
+    const response = await this.refinable.apiClient.request<
+      GetTokenContractQuery,
+      GetTokenContractQueryVariables
+    >(FIND_TOKEN_CONTRACT, {
+      input: { contractAddress, chainId },
+    });
+
+    return this.cacheContract(response?.contract);
+  }
+
   getBaseContract(chainId: Chain, type: string) {
     if (!this.baseContracts[chainId])
       throw new Error(
@@ -189,7 +218,8 @@ export class Contracts {
   }
 
   private getCachedContract(chainId: Chain, contractAddress: string) {
-    return this.cachedContracts?.[chainId]?.[contractAddress];
+    if (!contractAddress || !chainId) return null;
+    return this.cachedContracts?.[chainId]?.[contractAddress.toLowerCase()];
   }
 
   private cacheContract(contractOutput: IContract) {

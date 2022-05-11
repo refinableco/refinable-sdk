@@ -1,18 +1,19 @@
 import type { TransactionResponse } from "@ethersproject/abstract-provider";
 import assert from "assert";
-import { BigNumber, constants, Contract, utils } from "ethers";
+import { BigNumber, Contract, utils } from "ethers";
 import { soliditySha3 } from "web3-utils";
 import {
   ContractTag,
   ContractTypes,
   CreateOfferForEditionsMutation,
+  MarketConfig,
   OfferType,
   Price,
   TokenType,
 } from "../@types/graphql";
-import serviceFeeProxyABI from "../abi/serviceFeeProxy.abi.json";
+import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
-import { IChainConfig } from "../interfaces/Config";
+import { LibPart } from "../interfaces/LibPart";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
@@ -25,17 +26,26 @@ import {
   getUnixEpochTimeStampFromDateOr0,
 } from "../utils/time";
 import { optionalParam } from "../utils/utils";
-import { AbstractNFT, PartialNFTItem } from "./AbstractNFT";
+import {
+  AbstractNFT,
+  NFTEndAuctionParams,
+  NFTPlaceBidParams,
+  PartialNFTItem,
+} from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
 
+const auctionTypes = [
+  ContractTypes.Auction,
+  ContractTypes.Erc1155Auction,
+  ContractTypes.Erc721Auction,
+];
+
 export abstract class AbstractEvmNFT extends AbstractNFT {
   protected _item: PartialNFTItem;
-  protected _chain: IChainConfig;
-
   private nftTokenContract: Contract | null;
 
   constructor(
@@ -44,12 +54,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     protected item: PartialNFTItem
   ) {
     super(type, refinable, item);
-  }
-
-  get auctionType() {
-    return isERC1155Item(this)
-      ? ContractTypes.Erc1155Auction
-      : ContractTypes.Erc721Auction;
   }
 
   async getSaleId() {
@@ -81,7 +85,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   get auctionContract(): Contract {
     const auction = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      this.auctionType
+      ContractTypes.Auction
     );
 
     return auction.toEthersContract();
@@ -177,11 +181,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     signature?: string;
     price: Price;
     ownerEthAddress: string;
-    royaltyContractAddress?: string;
     supply?: number;
     amount?: number;
     startTime?: Date;
     endTime?: Date;
+    marketConfig?: MarketConfig;
   }): Promise<EvmTransaction>;
   abstract buyUsingVoucher(
     params: {
@@ -189,87 +193,37 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       signature?: string;
       price: Price;
       ownerEthAddress: string;
-      royaltyContractAddress?: string;
       supply?: number;
       amount?: number;
       startTime?: Date;
       endTime?: Date;
+      marketConfig?: MarketConfig;
     },
     voucher: WhitelistVoucherParams
   ): Promise<EvmTransaction>;
-
-  protected async approveForTokenIfNeeded(
-    price: Price,
-    spenderAddress: string
-  ): Promise<any> {
-    const isNativeCurrency = this.isNativeCurrency(price.currency);
-
-    // When native currency, we do not need to approve
-    if (!isNativeCurrency) {
-      const currency = getSupportedCurrency(
-        this._chain.supportedCurrencies,
-        price.currency
-      );
-
-      const erc20Contract = new Contract(
-        currency.address,
-        [`function approve(address _spender, uint256 _value)`],
-        this.refinable.provider
-      );
-
-      const amount = this.parseCurrency(price.currency, price.amount);
-
-      const approvalResult: TransactionResponse = await erc20Contract.approve(
-        spenderAddress,
-        amount
-      );
-
-      // Wait for 1 confirmation
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
-
-      return new EvmTransaction(approvalResult);
-    }
-
-    return;
-  }
 
   async putForAuction({
     price,
     auctionStartDate,
     auctionEndDate,
-    royaltyContractAddress,
   }: {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-    royaltyContractAddress?: string;
   }): Promise<{
     txResponse: EvmTransaction;
     offer: AuctionOffer;
   }> {
-    await this.isValidRoyaltyContract(royaltyContractAddress);
     await this.approveIfNeeded(this.auctionContract.address);
-
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
 
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         this.auctionContract.address,
-        type
+        auctionTypes
       );
-    const isDiamondContract = currentAuctionContract.hasTagSemver(
-      "AUCTION",
-      ">=4.0.0"
-    );
 
-    // We are using tranferProxy for diamondContracts so need to approve the address
-    const addressToApprove = isDiamondContract
-      ? this.transferProxyContract.address
-      : this.auctionContract.address;
+    const addressToApprove = this.auctionContract.address;
     await this.approveIfNeeded(addressToApprove);
 
     const ethersContracts = currentAuctionContract.toEthersContract();
@@ -279,11 +233,6 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const blockchainAuctionResponse = await ethersContracts.createAuction(
       // address _token
       this.item.contractAddress,
-      // address _royaltyToken
-      ...optionalParam(
-        !isDiamondContract,
-        royaltyContractAddress ?? constants.AddressZero
-      ),
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
@@ -318,8 +267,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       this.refinable.options.waitConfirmations
     );
 
-    const offer = this.refinable.createOffer<OfferType.Auction>(
-      { ...result.createOfferForItems, type: OfferType.Auction },
+    const offer = this.refinable.createOffer<AuctionOffer>(
+      result.createOfferForItems,
       this
     );
 
@@ -329,27 +278,19 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     };
   }
 
-  async placeBid(
-    auctionContractAddress: string,
-    price: Price,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<EvmTransaction> {
+  async placeBid(params: NFTPlaceBidParams): Promise<EvmTransaction> {
+    const { auctionContractAddress, price, marketConfig, auctionId } = params;
+
     this.verifyItem();
 
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+    const priceWithServiceFee = await this._chain.getPriceWithBuyServiceFee(
       price,
-      auctionContractAddress,
-      type
+      marketConfig.buyServiceFeeBps.value
     );
 
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
+    await this.refinable.account.approveTokenContractAllowance(
+      this.getCurrency(priceWithServiceFee.currency),
+      priceWithServiceFee.amount,
       auctionContractAddress
     );
 
@@ -370,41 +311,45 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
     const ethersContracts = currentAuctionContract.toEthersContract();
 
     let placeBidTx: TransactionResponse;
 
-    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
-      placeBidTx = await ethersContracts.placeBid(
-        this.item.tokenId, //tokenId, // uint256 tokenId
-        ownerEthAddress,
-        ...valueParam
-      );
-    } else {
-      if (!auctionId) {
-        auctionId = await this.getAuctionId(auctionContractAddress);
-      }
+    if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0))
+      throw new Error("No longer supported");
 
-      assert(!!auctionId, "AuctionId must be defined");
-      placeBidTx = await ethersContracts.placeBid(auctionId, ...valueParam);
+    let auctionIdOrFetch = auctionId;
+
+    if (!auctionId) {
+      auctionIdOrFetch = await this.getAuctionId(auctionContractAddress);
     }
+
+    assert(!!auctionIdOrFetch, "AuctionId must be defined");
+
+    const bidAmount = this.parseCurrency(price.currency, price.amount);
+
+    placeBidTx = await ethersContracts.placeBid(
+      auctionIdOrFetch,
+      ...optionalParam(
+        currentAuctionContract.hasTag(ContractTag.AuctionV5_0_0),
+        bidAmount, // uint256 bidAmount
+        marketConfig.data ?? "0x",
+        marketConfig.signature ?? "0x"
+      ),
+      ...valueParam
+    );
 
     return new EvmTransaction(placeBidTx);
   }
 
   async getAuctionId(auctionContractAddress: string): Promise<string> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     return currentAuctionContract
@@ -428,16 +373,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     auctionId?: string,
     ownerEthAddress?: string
   ): Promise<EvmTransaction> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -464,25 +404,18 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   /**
    * Ends an Auction where time has run out. Ending an auction will transfer the nft to the winning bid.
-   * @param auctionContractAddress The contractAddress for the auction contract you are interacting with
-   * @param auctionId The auction identifier bound to the owner and token address and id
-   * @param ownerEthAddress
+   * @param params NFTEndAuctionParams
+   * @returns
    */
-  async endAuction(
-    auctionContractAddress: string,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<EvmTransaction> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
+  async endAuction(params: NFTEndAuctionParams): Promise<EvmTransaction> {
+    const { auctionContractAddress, ownerEthAddress, marketConfig, auctionId } =
+      params;
 
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -495,54 +428,34 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         ownerEthAddress
       );
     } else {
+      let auctionIdOrFetch = auctionId;
+
       if (!auctionId) {
-        auctionId = await this.getAuctionId(auctionContractAddress);
+        auctionIdOrFetch = await this.getAuctionId(auctionContractAddress);
       }
 
-      assert(!!auctionId, "AuctionId must be defined");
+      assert(!!auctionIdOrFetch, "AuctionId must be defined");
 
-      endAuctionTx = await ethersContract.endAuction(auctionId);
+      endAuctionTx = await ethersContract.endAuction(
+        auctionIdOrFetch,
+        ...optionalParam(
+          currentAuctionContract.hasTag(ContractTag.AuctionV5_0_0),
+          marketConfig.data ?? "0x",
+          marketConfig.signature ?? "0x"
+        )
+      );
     }
 
     return new EvmTransaction(endAuctionTx);
   }
 
-  async cancelSale(params: {
-    price?: Price;
-    signature?: string;
-    selling?: number;
-  }): Promise<EvmTransaction> {
-    const { price, signature, selling = 1 } = params;
+  async cancelSale(): Promise<EvmTransaction> {
     this.verifyItem();
 
-    const isERC1155 = isERC1155Item(this);
-
-    const saleContract = await this.refinable.contracts.getRefinableContract(
-      this.item.chainId,
-      this.saleContract.address,
-      [ContractTypes.Sale]
+    const cancelTx: TransactionResponse = await this.saleContract.cancel(
+      this.item.contractAddress,
+      this.item.tokenId
     );
-    const isDiamondContract = saleContract.hasTagSemver("SALE", ">=4.0.0");
-
-    let cancelTx: TransactionResponse;
-
-    if (isDiamondContract) {
-      const paymentToken = this.getPaymentToken(price.currency);
-      const parsedPrice = this.parseCurrency(price.currency, price.amount);
-      cancelTx = await this.saleContract.cancel(
-        this.item.contractAddress,
-        this.item.tokenId,
-        paymentToken,
-        parsedPrice.toString(),
-        ...optionalParam(isERC1155, selling),
-        signature
-      );
-    } else {
-      cancelTx = await this.saleContract.cancel(
-        this.item.contractAddress,
-        this.item.tokenId
-      );
-    }
 
     return new EvmTransaction(cancelTx);
   }
@@ -572,97 +485,39 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   public async getBuyServiceFee(
-    serviceFeeUserAddress: string,
-    address: string,
-    type: ContractTypes[]
+    contractAddress: string,
+    marketConfigData: string = "0x",
+    marketConfigDataSignature: string = "0x"
   ): Promise<number> {
-    const contract = await this.refinable.contracts.getRefinableContract(
+    const sale = this.refinable.contracts.getBaseContract(
       this.item.chainId,
-      serviceFeeUserAddress,
-      type
+      ContractTypes.ServiceFeeV2
     );
-    // Get ServiceFeeProxyAddress from user contract (sale or auction)
-    const serviceFeeUserContract = new Contract(
-      serviceFeeUserAddress,
-      [
-        {
-          inputs: [],
-          name: "serviceFeeProxy",
-          outputs: [
-            {
-              name: "",
-              type: "address",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-          constant: true,
-        },
-      ],
-      this.refinable.provider
-    );
-    const isDiamondContract =
-      contract.hasTagSemver("AUCTION", ">=4.0.0") ||
-      contract.hasTagSemver("SALE", ">=4.0.0");
-    const serviceFeeProxyAddress = isDiamondContract
-      ? contract?.contractAddress
-      : await serviceFeeUserContract.serviceFeeProxy();
 
-    if (!serviceFeeProxyAddress)
-      throw new Error(
-        `Unable to fetch serviceFeeProxy from address ${serviceFeeUserAddress}`
+    const fees: LibPart[] = await sale
+      .toEthersContract()
+      .getServiceFees(
+        FeeType.BUY,
+        this.refinable.account,
+        contractAddress,
+        marketConfigData,
+        marketConfigDataSignature
       );
 
-    const serviceFeeProxyContract = new Contract(
-      serviceFeeProxyAddress,
-      serviceFeeProxyABI,
-      this.refinable.provider
+    const totalBuyFeeBps = fees.reduce(
+      (total, { value }) => (total += value.toNumber()),
+      0
     );
 
-    const serviceFee: BigNumber =
-      await serviceFeeProxyContract.getBuyServiceFeeBps(address);
-
-    return parseBPS(serviceFee);
-  }
-
-  public async getPriceWithBuyServiceFee(
-    price: Price,
-    contractAddress: string,
-    type: ContractTypes[],
-    amount = 1
-  ): Promise<Price> {
-    const serviceFeeBps = await this.getBuyServiceFee(
-      contractAddress,
-      this.refinable.accountAddress,
-      type
-    );
-
-    const currency = this.getCurrency(price.currency);
-
-    // We need to do this because of the rounding in our contracts
-    const weiAmount = utils
-      .parseUnits(price.amount.toString(), currency.decimals)
-      .mul(10000 + serviceFeeBps)
-      .div(10000)
-      .toString();
-
-    return {
-      ...price,
-      amount: Number(utils.formatUnits(weiAmount, currency.decimals)) * amount,
-    };
+    return parseBPS(BigNumber.from(totalBuyFeeBps));
   }
 
   async getMinBidIncrement(auctionContractAddress: string): Promise<number> {
-    const isERC1155 = isERC1155Item(this);
-    const type = isERC1155
-      ? [ContractTypes.Erc1155Auction]
-      : [ContractTypes.Erc721Auction];
-
     const currentAuctionContract =
       await this.refinable.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
-        type
+        auctionTypes
       );
 
     const ethersContract = currentAuctionContract.toEthersContract();
@@ -670,32 +525,10 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     if (currentAuctionContract.hasTagSemver("AUCTION", "<3.1.0")) {
       return 0;
     }
-    const isDiamondContract = currentAuctionContract.hasTagSemver(
-      "AUCTION",
-      ">=4.0.0"
-    );
-    const minBidIncrementBps: BigNumber = isDiamondContract
-      ? await ethersContract.getMinBidIncrementBps()
-      : await ethersContract.minBidIncrementBps();
+    const minBidIncrementBps: BigNumber =
+      await ethersContract.minBidIncrementBps();
 
     return parseBPS(minBidIncrementBps) / 100;
-  }
-
-  protected async isValidRoyaltyContract(royaltyContractAddress?: string) {
-    if (!royaltyContractAddress) return false;
-
-    const isCustomRoyaltyContractDeployed =
-      royaltyContractAddress != null &&
-      (await this.refinable.contracts.isContractDeployed(
-        royaltyContractAddress
-      ));
-
-    // Verify Royalty address
-    if (royaltyContractAddress && !isCustomRoyaltyContractDeployed) {
-      throw new Error(
-        `RoyaltyContract at address ${royaltyContractAddress} is not deployed`
-      );
-    }
   }
 
   public async approveIfNeeded(
@@ -727,75 +560,99 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     blockchainId?: string;
     price: Price;
     ownerEthAddress: string;
-    royaltyContractAddress?: string;
     supply?: number;
     amount?: number;
     startTime?: Date;
     endTime?: Date;
-    voucher?: WhitelistVoucherParams & { startTime: Date };
+    voucher?: WhitelistVoucherParams;
+    marketConfig?: MarketConfig;
   }): Promise<EvmTransaction> {
     const {
       signature,
       price: pricePerCopy,
       ownerEthAddress,
-      royaltyContractAddress,
       supply = 1,
       amount = 1,
       blockchainId,
       startTime,
       endTime,
+      marketConfig,
     } = params;
 
     this.verifyItem();
-    await this.isValidRoyaltyContract(royaltyContractAddress);
 
-    const priceWithServiceFee = await this.getPriceWithBuyServiceFee(
+    const priceWithServiceFee = await this._chain.getPriceWithBuyServiceFee(
       pricePerCopy,
-      this.saleContract.address,
-      [ContractTypes.Sale],
+      marketConfig.buyServiceFeeBps.value,
       amount
     );
 
-    await this.approveForTokenIfNeeded(
-      priceWithServiceFee,
+    const voucherPriceAmount = params.voucher?.price ?? 0;
+    const voucherPriceWithServiceFee =
+      await this._chain.getPriceWithBuyServiceFee(
+        {
+          amount: voucherPriceAmount,
+          currency: pricePerCopy.currency,
+        },
+        marketConfig.buyServiceFeeBps.value,
+        amount
+      );
+
+    await this.refinable.account.approveTokenContractAllowance(
+      this.getCurrency(priceWithServiceFee.currency),
+      priceWithServiceFee.amount,
       this.saleContract.address
     );
 
     const paymentToken = this.getPaymentToken(pricePerCopy.currency);
     const isNativeCurrency = this.isNativeCurrency(pricePerCopy.currency);
-    const value = this.parseCurrency(
+    let value = this.parseCurrency(
       pricePerCopy.currency,
       priceWithServiceFee.amount
     );
+    const price = this.parseCurrency(
+      pricePerCopy.currency,
+      pricePerCopy.amount
+    );
+    const voucherPrice = this.parseCurrency(
+      pricePerCopy.currency,
+      voucherPriceAmount
+    );
+
+    if (params?.voucher?.price > 0) {
+      value = this.parseCurrency(
+        voucherPriceWithServiceFee.currency,
+        voucherPriceWithServiceFee.amount
+      );
+    }
 
     const saleID = ERCSaleID.fromBlockchainId(blockchainId);
 
     const saleInfo: SaleInfo = {
-      royaltyToken: royaltyContractAddress ?? constants.AddressZero,
-      payToken: paymentToken,
-      saleVersion: saleID?.version ?? SaleVersion.V1,
-      seller: ownerEthAddress,
+      token: this.item.contractAddress,
+      tokenId: this.item.tokenId,
       signature,
-      startTime: getUnixEpochTimeStampFromDateOr0(startTime),
-      endTime: getUnixEpochTimeStampFromDateOr0(endTime),
+      saleVersion: saleID?.version ?? SaleVersion.V1,
+      price,
+      payToken: paymentToken,
+      seller: ownerEthAddress,
       selling: supply,
       buying: amount,
+      startTime: getUnixEpochTimeStampFromDateOr0(startTime),
+      endTime: getUnixEpochTimeStampFromDateOr0(endTime),
+      marketConfigData: marketConfig?.data ?? "0x",
+      marketConfigDataSignature: marketConfig?.signature ?? "0x",
     };
 
     // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
     const method = params.voucher ? "buyUsingVoucher" : "buy";
-    
     const buyTx = await this.saleContract[method](
-      // address _token
-      this.item.contractAddress,
-      // uint256 _tokenId
-      this.item.tokenId,
       // SaleInfo memory _saleInfo
       saleInfo,
       // WhitelistVoucherParams memory voucher - optional
       ...optionalParam(params.voucher != null, {
         ...params.voucher,
-        startTime: getUnixEpochTimeStampFromDateOr0(params.voucher?.startTime),
+        price: voucherPrice,
       }),
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {

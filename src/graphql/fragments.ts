@@ -142,13 +142,39 @@ export const OfferFragment = gql`
     auction {
       ...Auction
     }
+    whitelistStage
+    marketConfig(storeId: $storeId) {
+      data
+      signature
+      buyServiceFeeBps {
+        type
+        value
+      }
+    }
     whitelistVoucher {
-      whitelistType
       limit
       signature
       startTime
+      price
     }
-    whitelistStage
   }
   ${AuctionFragment}
+`;
+
+export const MintOfferFragment = gql`
+  fragment MintOffer on MintOffer {
+    name
+    description
+    chainId
+    previewFile {
+      fileUrl
+      imagePreview
+    }
+    contract {
+      contractAddress
+      contractABI
+      type
+      chainId
+    }
+  }
 `;

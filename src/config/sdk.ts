@@ -1,7 +1,6 @@
 import { ContractTag } from "../@types/graphql";
-import { Chain, ChainType } from "../interfaces/Network";
+import { Chain } from "../interfaces/Network";
 import { Environment } from "../types/RefinableOptions";
-import { selectChainType } from "../utils/utils";
 
 export const apiUrl = {
   [Environment.Mainnet]: "https://api.refinable.com/graphql",
@@ -32,33 +31,30 @@ export const getContractsTags = (
   environment: Environment,
   chainId: Chain
 ): ContractTag[] => {
-  const chain = selectChainType(chainId);
-
   switch (environment) {
     case Environment.Mainnet:
       return [
-        ContractTag.SaleV3_2_0,
-        ContractTag.AuctionV3_1_1,
+        ContractTag.ServiceFeeV1_0_0,
+        ContractTag.SaleV4_1_0,
+        ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
       ];
     case Environment.Testnet:
       return [
-        ContractTag.SaleV3_2_0,
-        ContractTag.AuctionV3_1_0,
+        ContractTag.ServiceFeeV1_0_0,
+        ContractTag.SaleV4_1_0,
+        ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
       ];
     case Environment.Local:
       return [
-        chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
-          ? ContractTag.SaleV4_0_0
-          : ContractTag.SaleV3_2_0,
-        chain === ChainType.BSC && process.env.FLAG_USE_DIAMOND
-          ? ContractTag.AuctionV4_0_0
-          : ContractTag.AuctionV3_1_1,
+        ContractTag.ServiceFeeV1_0_0,
+        ContractTag.SaleV4_1_0,
+        ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,

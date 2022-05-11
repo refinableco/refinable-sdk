@@ -1,5 +1,6 @@
 import { utils } from "ethers";
 import {
+  MarketConfig,
   Price,
   PriceCurrency,
   RefreshMetadataMutation,
@@ -10,6 +11,7 @@ import { REFRESH_METADATA } from "../graphql/items";
 import { IChainConfig } from "../interfaces/Config";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
+import { Chain } from "../refinable/Chain";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { Transaction } from "../transaction/Transaction";
 import { getSupportedCurrency } from "../utils/chain";
@@ -26,29 +28,38 @@ export interface NFTBuyParams {
   signature: string;
   price: Price;
   ownerEthAddress: string;
-  royaltyContractAddress?: string;
   supply: number;
   amount?: number;
   blockchainId: string;
   startTime?: Date;
   endTime?: Date;
+  marketConfig?: MarketConfig;
+}
+
+export interface NFTPlaceBidParams {
+  auctionContractAddress: string;
+  price: Price;
+  auctionId?: string;
+  marketConfig?: MarketConfig;
+}
+export interface NFTEndAuctionParams {
+  auctionContractAddress: string;
+  auctionId?: string;
+  ownerEthAddress?: string;
+  marketConfig?: MarketConfig;
 }
 
 export abstract class AbstractNFT {
   protected _item: PartialNFTItem;
-  protected _chain: IChainConfig;
+  protected _chain: Chain;
 
   constructor(
     public type: TokenType,
     protected refinable: RefinableBaseClient,
     protected item: PartialNFTItem
   ) {
-    if (!chainMap[item.chainId]) {
-      throw new Error(`Chain ${item.chainId} is not supported`);
-    }
-
     this._item = item;
-    this._chain = chainMap[item.chainId];
+    this._chain = new Chain(item.chainId);
   }
 
   public getItem() {
@@ -91,23 +102,16 @@ export abstract class AbstractNFT {
     price,
     auctionStartDate,
     auctionEndDate,
-    royaltyContractAddress,
   }: {
     price: Price;
     auctionStartDate: Date;
     auctionEndDate: Date;
-    royaltyContractAddress?: string;
   }): Promise<{
     txResponse: Transaction;
     offer: AuctionOffer;
   }>;
 
-  abstract placeBid(
-    auctionContractAddress: string,
-    price: Price,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<Transaction>;
+  abstract placeBid(params: NFTPlaceBidParams): Promise<Transaction>;
 
   abstract cancelAuction(
     auctionContractAddress: string,
@@ -115,11 +119,7 @@ export abstract class AbstractNFT {
     ownerEthAddress?: string
   ): Promise<Transaction>;
 
-  abstract endAuction(
-    auctionContractAddress: string,
-    auctionId?: string,
-    ownerEthAddress?: string
-  ): Promise<Transaction>;
+  abstract endAuction(params: NFTEndAuctionParams): Promise<Transaction>;
 
   abstract airdrop(recipients: string[]): Promise<Transaction>;
 
@@ -143,27 +143,15 @@ export abstract class AbstractNFT {
   }
 
   protected getPaymentToken(priceCurrency: PriceCurrency) {
-    const currency = this._chain.supportedCurrencies.find(
-      (c) => c.symbol === priceCurrency
-    );
-
-    if (!currency) throw new Error("Unsupported currency");
-
-    return currency.address;
+    return this._chain.getPaymentToken(priceCurrency);
   }
-
   protected getCurrency(priceCurrency: PriceCurrency) {
-    return getSupportedCurrency(this._chain.supportedCurrencies, priceCurrency);
+    return this._chain.getCurrency(priceCurrency);
   }
-
   protected isNativeCurrency(priceCurrency: PriceCurrency) {
-    const currency = this.getCurrency(priceCurrency);
-
-    return currency && currency.native === true;
+    return this._chain.isNativeCurrency(priceCurrency);
   }
   protected parseCurrency(priceCurrency: PriceCurrency, amount: number) {
-    const currency = this.getCurrency(priceCurrency);
-
-    return utils.parseUnits(amount.toString(), currency.decimals).toString();
+    return this._chain.parseCurrency(priceCurrency, amount);
   }
 }

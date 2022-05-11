@@ -72,10 +72,11 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
 
   constructor(
     public readonly provider: Signer,
-    public readonly accountAddress: string,
+    accountAddress: string,
     options: Options<RefinableEvmOptions & { apiOrBearerToken: string }>
   ) {
     super(options.apiOrBearerToken, options, { waitConfirmations: 3 });
+    this._accountAddress = accountAddress;
 
     this.account = new EvmAccount(accountAddress, this);
     this.contracts = new Contracts(this);

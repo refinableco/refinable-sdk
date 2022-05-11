@@ -5,6 +5,7 @@ import {
   PurchaseItemMutationVariables,
   PurchaseMetadata,
 } from "../@types/graphql";
+import { NotEnoughSupplyError } from "../errors/NotEnoughSupplyError";
 import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT, NFTBuyParams } from "../nft/AbstractNFT";
 import { ERCSaleID } from "../nft/ERCSaleId";
@@ -16,17 +17,16 @@ import {
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { Transaction } from "../transaction/Transaction";
 import { isERC1155Item, isEVMNFT } from "../utils/is";
-import { Offer, PartialOfferInput } from "./Offer";
+import { Offer, PartialOffer } from "./Offer";
 
 interface BuyParams {
-  royaltyContractAddress?: string;
   amount?: number;
 }
 
 export class SaleOffer extends Offer {
   constructor(
     refinable: RefinableBaseClient,
-    offer: PartialOfferInput,
+    offer: PartialOffer,
     nft: AbstractNFT
   ) {
     super(refinable, offer, nft);
@@ -35,30 +35,26 @@ export class SaleOffer extends Offer {
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
     let supply = await this.getSupplyOnSale();
 
+    const amount = params?.amount ?? 1;
+
+    if (this._offer.supply - amount < 0) throw new NotEnoughSupplyError();
+
     const buyParams: NFTBuyParams = {
-      signature: this.signature,
-      price: this.price,
-      ownerEthAddress: this.user?.ethAddress,
-      royaltyContractAddress: params?.royaltyContractAddress,
+      signature: this._offer.signature,
+      price: this._offer.price,
+      ownerEthAddress: this._offer.user?.ethAddress,
       supply,
-      blockchainId: this.blockchainId,
-      amount: params?.amount ?? 1,
-      endTime: this.endTime,
-      startTime: this.startTime,
+      blockchainId: this._offer.blockchainId,
+      amount,
+      endTime: this._offer.endTime,
+      startTime: this._offer.startTime,
+      marketConfig: this._offer.marketConfig,
     };
 
     let result: Transaction;
 
-    if (this?.whitelistVoucher && isEVMNFT(this.nft)) {
-      // Convert graphql enum (PUBLIC) to a numeric enum
-      const voucher: WhitelistVoucherParams = {
-        ...this.whitelistVoucher,
-        whitelistType: WhitelistType[
-          this.whitelistVoucher.whitelistType
-        ] as unknown as WhitelistType,
-      };
-
-      result = await this.nft.buyUsingVoucher(buyParams, voucher);
+    if (this.whitelistVoucher && isEVMNFT(this.nft)) {
+      result = await this.nft.buyUsingVoucher(buyParams, this.whitelistVoucher);
     } else {
       result = await this.nft.buy(buyParams);
     }
@@ -73,12 +69,14 @@ export class SaleOffer extends Offer {
         PurchaseItemMutationVariables
       >(PURCHASE_ITEM, {
         input: {
-          offerId: this.id,
+          offerId: this._offer.id,
           amount: buyParams.amount,
           transactionHash: result.txId,
           metadata,
         },
       });
+
+      this.subtractOfferSupply(amount);
     }
 
     return result;
@@ -89,9 +87,9 @@ export class SaleOffer extends Offer {
 
     return this.nft.cancelSale({
       price: this.price,
-      signature: this.signature,
+      signature: this._offer.signature,
       selling,
-      blockchainId: this.blockchainId,
+      blockchainId: this._offer.blockchainId,
     }) as Promise<T>;
   }
 
@@ -100,28 +98,29 @@ export class SaleOffer extends Offer {
    */
   private async getSupplyOnSale() {
     if (isERC1155Item(this.nft)) {
-      const saleID = ERCSaleID.fromBlockchainId(this.blockchainId);
+      const saleID = ERCSaleID.fromBlockchainId(this._offer.blockchainId);
 
       const saleParamsWithOfferSupply = await this.nft.getSaleParamsHash({
         price: this.price,
-        ethAddress: this.user?.ethAddress,
-        supply: this.totalSupply,
-        endTime: this.endTime,
-        startTime: this.startTime,
+        ethAddress: this._offer.user?.ethAddress,
+        supply: this._offer.totalSupply,
+        endTime: this._offer.endTime,
+        startTime: this._offer.startTime,
         isV2: saleID?.version === SaleVersion.V2,
       });
 
       const address = ethers.utils.verifyMessage(
         // For some reason we need to remove 0x and parse it as buffer for it to work
         Buffer.from(saleParamsWithOfferSupply.slice(2), "hex"),
-        this.signature
+        this._offer.signature
       );
 
-      return address.toLowerCase() === this.user?.ethAddress.toLowerCase()
-        ? this.totalSupply
+      return address.toLowerCase() ===
+        this._offer.user?.ethAddress.toLowerCase()
+        ? this._offer.totalSupply
         : this.nft.getItem().totalSupply;
     }
 
-    return this.totalSupply;
+    return this._offer.totalSupply;
   }
 }

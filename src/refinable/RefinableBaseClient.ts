@@ -1,6 +1,7 @@
 import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
+import { RefinableEvmClient } from "..";
 import {
   GetOfferQuery,
   GetOfferQueryVariables,
@@ -8,7 +9,8 @@ import {
   GetUserItemsQueryVariables,
   GetUserOfferItemsQuery,
   GetUserOfferItemsQueryVariables,
-  OfferFragment,
+  OfferType,
+  TokenType,
   UserItemFilterType,
 } from "../@types/graphql";
 import { apiUrl } from "../config/sdk";
@@ -19,32 +21,37 @@ import {
 } from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { Account } from "../interfaces/Account";
-import { AbstractNFT } from "../nft/AbstractNFT";
-import { PartialOfferInput } from "../offer/Offer";
+import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
+import { BasicOffer, Offer, PartialOffer } from "../offer/Offer";
 import { OfferFactory } from "../offer/OfferFactory";
 import {
   Environment,
   Options,
   RefinableOptions,
 } from "../types/RefinableOptions";
+import { isMintOffer } from "../utils/is";
 import { limit } from "../utils/limitItems";
+import { CheckoutClient } from "./checkout/CheckoutClient";
+import { OfferClient } from "./offer/OfferClient";
 
 const defaultOptions: RefinableOptions = {
   environment: Environment.Mainnet,
 };
 
-// If we dont again define this, types break
-export enum OfferType {
-  Auction = "AUCTION",
-  Sale = "SALE",
-}
-
 export abstract class RefinableBaseClient<O extends object = {}> {
   protected _apiClient?: GraphQLClient;
   protected _options: Options<O>;
   protected _apiKey: string;
-  protected accountAddress: string;
+  protected _accountAddress: string;
   protected account: Account;
+
+  get accountAddress() {
+    return this._accountAddress;
+  }
+
+  set accountAddress(_accountAddress: string) {
+    this._accountAddress = _accountAddress;
+  }
 
   get apiKey() {
     return this._apiKey;
@@ -90,18 +97,19 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   }
 
   abstract init(): void | Promise<void>;
+  abstract createNft(item: PartialNFTItem & { type: TokenType }): AbstractNFT;
 
-  createOffer<K extends OfferType>(
-    offer: PartialOfferInput & { type: K },
+  createOffer<O extends Offer = Offer>(
+    offer: PartialOffer & { type: O["type"] },
     nft: AbstractNFT
-  ) {
-    return OfferFactory.createOffer<K>(this, offer, nft);
+  ): O {
+    return OfferFactory.createOffer<O>(this, offer, nft);
   }
 
   private async getItemsWithOffer(
+    filter?: GetUserOfferItemsQueryVariables["filter"],
     paging = 30,
-    after?: string,
-    type?: OfferType
+    after?: string
   ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
     const itemsPerPage = limit(paging);
     const queryResponse = await this.apiClient.request<
@@ -109,7 +117,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
       GetUserOfferItemsQueryVariables
     >(GET_USER_OFFER_ITEMS, {
       ethAddress: this.accountAddress,
-      filter: { type },
+      filter,
       paging: {
         first: itemsPerPage,
         after: after,
@@ -119,28 +127,51 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   }
 
   async getItemsOnSale(
+    filter?: GetUserOfferItemsQueryVariables["filter"],
     paging = 30,
     after?: string
-  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    return this.getItemsWithOffer(paging, after, OfferType.Sale);
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"]> {
+    return this.getItemsWithOffer(
+      { ...filter, type: OfferType.Sale },
+      paging,
+      after
+    ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
-  async getOffer(id: string): Promise<OfferFragment> {
+  async getOffer<O extends BasicOffer = BasicOffer>(
+    id: string,
+    storeId?: string
+  ): Promise<O> {
     const queryResponse = await this.apiClient.request<
       GetOfferQuery,
       GetOfferQueryVariables
     >(GET_OFFER, {
       id,
+      storeId,
     });
 
-    return queryResponse?.offer;
+    if (!queryResponse?.offer) return null;
+    if (
+      isMintOffer(queryResponse.offer as any) &&
+      queryResponse.offer.__typename === "MintOffer"
+    ) {
+      return this.offer.createMintOffer(queryResponse?.offer) as any;
+    } else {
+      const nft = this.createNft(queryResponse?.offer?.item);
+      return OfferFactory.createOffer(this, queryResponse?.offer, nft);
+    }
   }
 
   async getItemsOnAuction(
+    filter?: GetUserOfferItemsQueryVariables["filter"],
     paging = 30,
     after?: string
-  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"] | []> {
-    return this.getItemsWithOffer(paging, after, OfferType.Auction);
+  ): Promise<GetUserOfferItemsQuery["user"]["itemsOnOffer"]> {
+    return this.getItemsWithOffer(
+      { ...filter, type: OfferType.Auction },
+      paging,
+      after
+    ) as GetUserOfferItemsQuery["user"]["itemsOnOffer"];
   }
 
   private async getItems(
@@ -191,5 +222,16 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     }
 
     return uploadedFileName;
+  }
+
+  get checkout(): CheckoutClient {
+    return new CheckoutClient(this);
+  }
+
+  get offer(): OfferClient {
+    if (!(this instanceof RefinableEvmClient)) {
+      throw new Error("offer namespace is only supported for EVM");
+    }
+    return new OfferClient(this);
   }
 }

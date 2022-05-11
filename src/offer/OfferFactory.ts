@@ -2,12 +2,14 @@ import { OfferType } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { AuctionOffer } from "./AuctionOffer";
-import { PartialOffer, PartialOfferInput } from "./Offer";
+import { BasicOffer, PartialOffer } from "./Offer";
 import { SaleOffer } from "./SaleOffer";
 
 export { OfferType };
 
-export const offerClassMap = {
+// any is needed because we won't be using this for MintOffers, the parameters are different
+// we will be deprecating the OfferFactory soon
+export const offerClassMap: any = {
   [OfferType.Auction]: AuctionOffer,
   [OfferType.Sale]: SaleOffer,
 };
@@ -24,11 +26,11 @@ type ClassType<A extends OfferType, F> =
   | F;
 
 export class OfferFactory {
-  public static createOffer<K extends OfferType>(
+  public static createOffer<O extends BasicOffer>(
     refinable: RefinableBaseClient,
-    offer: PartialOfferInput & { type: SingleKeys<K> },
+    offer: PartialOffer,
     nft: AbstractNFT
-  ): ClassType<K, never> {
+  ): ClassType<O["type"], never> {
     return new offerClassMap[offer.type](refinable, offer, nft);
   }
 }
