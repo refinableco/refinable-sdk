@@ -271,9 +271,13 @@ export class MintOffer extends BasicOffer {
     return new EvmTransaction(claimTx);
   }
 
-  public async getRemaining(): Promise<number> {
+  public async getRemaining(recipient?: string): Promise<number> {
     const contract = await this.getContract();
-    return contract.getRemaining(this.refinable.accountAddress).toNumber();
+    return contract
+      .getRemaining(
+        recipient && recipient != "" ? recipient : this.refinable.accountAddress
+      )
+      .toNumber();
   }
 
   private getMintVoucher(): MintVoucher {
