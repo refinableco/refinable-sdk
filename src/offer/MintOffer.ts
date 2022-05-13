@@ -9,7 +9,7 @@ import {
   OfferType,
   Price,
   PriceCurrency,
-  TokenType
+  TokenType,
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
@@ -233,7 +233,9 @@ export class MintOffer extends BasicOffer {
     );
 
     // Add allows as much as the price requests
-    await (this.refinable as RefinableEvmClient).account.approveTokenContractAllowance(
+    await (
+      this.refinable as RefinableEvmClient
+    ).account.approveTokenContractAllowance(
       this._chain.getCurrency(this._offer.price.currency),
       priceTimesAmount,
       contract.address
@@ -267,6 +269,15 @@ export class MintOffer extends BasicOffer {
     );
 
     return new EvmTransaction(claimTx);
+  }
+
+  public async getRemaining(recipient?: string): Promise<number> {
+    const contract = await this.getContract();
+    return contract
+      .getRemaining(
+        recipient && recipient != "" ? recipient : this.refinable.accountAddress
+      )
+      .toNumber();
   }
 
   private getMintVoucher(): MintVoucher {
