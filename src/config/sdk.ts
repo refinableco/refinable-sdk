@@ -35,7 +35,7 @@ export const getContractsTags = (
     case Environment.Mainnet:
       return [
         ContractTag.ServiceFeeV1_0_0,
-        ContractTag.SaleV4_1_0,
+        ContractTag.SaleV4_1_1,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
@@ -44,7 +44,7 @@ export const getContractsTags = (
     case Environment.Testnet:
       return [
         ContractTag.ServiceFeeV1_0_0,
-        ContractTag.SaleV4_1_0,
+        ContractTag.SaleV4_1_1,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
@@ -53,7 +53,7 @@ export const getContractsTags = (
     case Environment.Local:
       return [
         ContractTag.ServiceFeeV1_0_0,
-        ContractTag.SaleV4_1_0,
+        ContractTag.SaleV4_1_1,
         ContractTag.AuctionV5_0_0,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
