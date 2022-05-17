@@ -135,7 +135,7 @@ export type CheckCollectionsInput = {
 export type Collection = {
   __typename?: "Collection";
   bannerUrl?: Maybe<Scalars["String"]>;
-  chainId: Scalars["Float"];
+  chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
@@ -284,6 +284,7 @@ export enum ContractTag {
   SaleV3_2_0 = "SALE_v3_2_0",
   SaleV4_0_0 = "SALE_v4_0_0",
   SaleV4_1_0 = "SALE_v4_1_0",
+  SaleV4_1_1 = "SALE_v4_1_1",
   ServiceFeeProxyV1_0_0 = "SERVICE_FEE_PROXY_v1_0_0",
   ServiceFeeV1_0_0 = "SERVICE_FEE_v1_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
