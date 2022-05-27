@@ -37,6 +37,7 @@ export interface PutForSaleParams {
   previewImage?: Stream;
   name?: string;
   description?: string;
+  payee: string;
 }
 
 export class MintOffer extends BasicOffer {
@@ -62,6 +63,7 @@ export class MintOffer extends BasicOffer {
       supply,
       name,
       description,
+      payee,
     } = params;
 
     // validate launchpad
@@ -103,6 +105,7 @@ export class MintOffer extends BasicOffer {
         startTime: getUnixEpochTimeStampFromDateOr0(startTime),
         endTime: getUnixEpochTimeStampFromDateOr0(endTime),
         supply,
+        payee,
       },
     });
 
@@ -127,6 +130,7 @@ export class MintOffer extends BasicOffer {
         previewImage,
         name,
         description,
+        payee,
       },
     });
 
@@ -158,6 +162,7 @@ export class MintOffer extends BasicOffer {
       startTime: number;
       endTime: number;
       data?: any[];
+      payee: string;
     };
     signer: any;
   }) {
@@ -194,7 +199,7 @@ export class MintOffer extends BasicOffer {
         currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
         price: value ?? "0",
         supply: message?.supply.toString() ?? "0",
-        payee: signer.address,
+        payee: message.payee,
         seller,
         startTime: message?.startTime ?? 0,
         endTime: message?.endTime ?? 0, // 1 year late
@@ -281,28 +286,26 @@ export class MintOffer extends BasicOffer {
   }
 
   private getMintVoucher(): MintVoucher {
-    const paymentToken = this._chain.getPaymentToken(
-      this._offer.price.currency
-    );
+    const paymentToken = this._chain.getPaymentToken(this.offer.price.currency);
 
     const offerPrice = this._chain.parseCurrency(
-      this._offer.price.currency,
-      this._offer.price.amount
+      this.offer.price.currency,
+      this.offer.price.amount
     );
 
     return {
       currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
       price: offerPrice ?? "0",
-      supply: this._offer.totalSupply.toString() ?? "0",
-      payee: this._offer.user?.ethAddress,
-      seller: this._offer.user?.ethAddress,
-      startTime: getUnixEpochTimeStampFromDateOr0(this._offer.startTime),
-      endTime: getUnixEpochTimeStampFromDateOr0(this._offer.endTime),
+      supply: this.offer.totalSupply.toString() ?? "0",
+      payee: this.offer.payee,
+      seller: this.offer.user?.ethAddress,
+      startTime: getUnixEpochTimeStampFromDateOr0(this.offer.startTime),
+      endTime: getUnixEpochTimeStampFromDateOr0(this.offer.endTime),
       recipient: "0x0000000000000000000000000000000000000000", // using the zero address means anyone can claim
       data: "0x",
-      signature: this._offer.signature,
-      marketConfigData: this._offer.marketConfig?.data ?? "0x",
-      marketConfigDataSignature: this._offer.marketConfig?.signature ?? "0x",
+      signature: this.offer.signature,
+      marketConfigData: this.offer.marketConfig?.data ?? "0x",
+      marketConfigDataSignature: this.offer.marketConfig?.signature ?? "0x",
     };
   }
 

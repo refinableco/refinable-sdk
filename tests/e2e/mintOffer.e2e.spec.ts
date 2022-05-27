@@ -62,6 +62,7 @@ describe("MintOffer - E2E", () => {
       name: "Some test collection",
       description: "Always room for a description",
       ...override,
+      payee: refinableSeller.accountAddress,
     });
   }
 

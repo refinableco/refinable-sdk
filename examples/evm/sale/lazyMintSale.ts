@@ -33,7 +33,7 @@ async function main() {
     const offer = await mintOffer.putForSale({
       contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
       price: {
-        amount: 0.18,
+        amount: 0.08,
         currency: PriceCurrency.Bnb,
       },
       startTime: new Date(),
@@ -41,6 +41,7 @@ async function main() {
       previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",
+      payee: "0x4c3Da80eAEc19399Bc4ce3486ec58755a875d645",
     });
 
     // Create checkout

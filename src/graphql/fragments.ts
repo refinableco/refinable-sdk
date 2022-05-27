@@ -166,6 +166,7 @@ export const MintOfferFragment = gql`
     name
     description
     chainId
+    payee
     previewFile {
       fileUrl
       imagePreview
