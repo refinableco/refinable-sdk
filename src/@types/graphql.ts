@@ -22,6 +22,8 @@ export type Scalars = {
   DateTime: any;
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: any;
+  /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
+  JSONObject: any;
   /** The `Upload` scalar type represents a file upload. */
   Upload: any;
 };
@@ -133,8 +135,9 @@ export type Brand = {
   name: Scalars["String"];
 };
 
-export type CheckCollectionsInput = {
-  collections: Array<CollectionInputField>;
+export type CheckCollectionInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
 };
 
 export type Collection = {
@@ -179,11 +182,6 @@ export type CollectionInput = {
   symbol: Scalars["String"];
   title: Scalars["String"];
   tokenType: Scalars["String"];
-};
-
-export type CollectionInputField = {
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
 };
 
 export type CollectionMetadataFilterInput = {
@@ -249,13 +247,6 @@ export enum ContentType {
   VerifiedContent = "VERIFIED_CONTENT",
 }
 
-export type Contract = {
-  __typename?: "Contract";
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
-  contractId?: Maybe<Scalars["String"]>;
-};
-
 export type ContractCount = {
   __typename?: "ContractCount";
   minted: Scalars["Int"];
@@ -265,6 +256,7 @@ export type ContractCount = {
 export type ContractInput = {
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
+  hidden?: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type ContractOutput = {
@@ -463,6 +455,12 @@ export type FeesInput = {
   payoutAddress?: InputMaybe<Scalars["String"]>;
 };
 
+export type FiatCheckoutWidgetData = {
+  __typename?: "FiatCheckoutWidgetData";
+  externalTransactionId: Scalars["String"];
+  url: Scalars["String"];
+};
+
 export enum FileType {
   Image = "IMAGE",
   Video = "VIDEO",
@@ -498,6 +496,7 @@ export type FinishMintOutput = {
 export type GetMetadataInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
+  tokenId?: InputMaybe<Scalars["String"]>;
 };
 
 export type GetMetadataOutput = {
@@ -507,6 +506,7 @@ export type GetMetadataOutput = {
   external_url?: Maybe<Scalars["String"]>;
   image?: Maybe<Scalars["String"]>;
   name: Scalars["String"];
+  originalMetadata: Scalars["JSONObject"];
   video?: Maybe<Scalars["String"]>;
 };
 
@@ -624,6 +624,7 @@ export type Item = {
   history: ItemHistoryResponse;
   id: Scalars["String"];
   isLiked: Scalars["Boolean"];
+  isOwner?: Maybe<Scalars["Boolean"]>;
   likes?: Maybe<Scalars["Float"]>;
   marketingDescription?: Maybe<Scalars["String"]>;
   name: Scalars["String"];
@@ -950,6 +951,15 @@ export type MintOfferMarketConfigArgs = {
   storeId?: InputMaybe<Scalars["ID"]>;
 };
 
+export type Moonpay = {
+  __typename?: "Moonpay";
+  fiatCheckoutWidgetData: FiatCheckoutWidgetData;
+};
+
+export type MoonpayFiatCheckoutWidgetDataArgs = {
+  offerId: Scalars["ID"];
+};
+
 export type Mutation = {
   __typename?: "Mutation";
   createContract: ContractOutput;
@@ -977,6 +987,7 @@ export type Mutation = {
   toggleLike?: Maybe<Item>;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
+  updateStoreCollections?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: UserImportCollectionOutput;
@@ -1076,6 +1087,11 @@ export type MutationUpdateNotificationSeenStatusArgs = {
 
 export type MutationUpdateStoreArgs = {
   data: UpdateStoreInput;
+  id: Scalars["ID"];
+};
+
+export type MutationUpdateStoreCollectionsArgs = {
+  data: UpdateStoreCollectionsInput;
   id: Scalars["ID"];
 };
 
@@ -1272,9 +1288,9 @@ export type Query = {
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
   collection?: Maybe<Collection>;
+  collectionExist?: Maybe<Scalars["String"]>;
   collectionMetadataValues: Array<CollectionMetadataValues>;
   collections: CollectionsResponse;
-  collectionsExist: Array<Scalars["Boolean"]>;
   contract?: Maybe<ContractOutput>;
   contractCount: ContractCount;
   getMetadata?: Maybe<GetMetadataOutput>;
@@ -1288,6 +1304,7 @@ export type Query = {
   itemsOnOffer: ItemsWithOffersResponse;
   me: User;
   mintableCollections: Array<Collection>;
+  moonpay: Moonpay;
   notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   purchaseSession: PurchaseSession;
@@ -1314,6 +1331,10 @@ export type QueryCollectionArgs = {
   slug?: InputMaybe<Scalars["String"]>;
 };
 
+export type QueryCollectionExistArgs = {
+  input: CheckCollectionInput;
+};
+
 export type QueryCollectionMetadataValuesArgs = {
   input: CollectionMetadataValuesInput;
 };
@@ -1322,10 +1343,6 @@ export type QueryCollectionsArgs = {
   filter?: InputMaybe<CollectionsFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
-};
-
-export type QueryCollectionsExistArgs = {
-  input: CheckCollectionsInput;
 };
 
 export type QueryContractArgs = {
@@ -1533,8 +1550,9 @@ export type Store = {
   backgroundColor: Scalars["String"];
   backgroundImage?: Maybe<Scalars["String"]>;
   banner?: Maybe<Scalars["String"]>;
+  /** @deprecated Use contract.collectionId */
   collectionIds: Array<Scalars["String"]>;
-  contracts: Array<Contract>;
+  contracts: Array<StoreContract>;
   creator?: Maybe<Scalars["String"]>;
   customGa?: Maybe<Scalars["String"]>;
   customLinks?: Maybe<Array<CustomLink>>;
@@ -1559,14 +1577,28 @@ export type Store = {
   secondaryColor?: Maybe<Scalars["String"]>;
   secondaryFontColor?: Maybe<Scalars["String"]>;
   telegram?: Maybe<Scalars["String"]>;
+  theme?: Maybe<Scalars["JSON"]>;
   twitter?: Maybe<Scalars["String"]>;
   website?: Maybe<Scalars["String"]>;
+};
+
+export type StoreContractsArgs = {
+  includeHidden?: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type StoreItemsArgs = {
   filter?: InputMaybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type StoreContract = {
+  __typename?: "StoreContract";
+  chainId: Scalars["Float"];
+  collection?: Maybe<Collection>;
+  collectionId: Scalars["String"];
+  contractAddress: Scalars["String"];
+  hidden?: Maybe<Scalars["Boolean"]>;
 };
 
 export type StoreWithFallbackInput = {
@@ -1702,9 +1734,14 @@ export type UpdateStore = {
   success: Scalars["Boolean"];
 };
 
+export type UpdateStoreCollectionsInput = {
+  contracts?: InputMaybe<Array<ContractInput>>;
+};
+
 export type UpdateStoreInput = {
   backgroundColor?: InputMaybe<Scalars["String"]>;
   banner?: InputMaybe<Scalars["String"]>;
+  contracts?: InputMaybe<Array<ContractInput>>;
   customGa?: InputMaybe<Scalars["String"]>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
   description?: InputMaybe<Scalars["String"]>;
@@ -2402,6 +2439,22 @@ export type Offer_MintOffer_Fragment = {
       }
     | null
     | undefined;
+  launchpadDetails?:
+    | {
+        __typename?: "LaunchpadDetails";
+        currentStage?:
+          | {
+              __typename?: "LaunchpadStage";
+              startTime?: any | null | undefined;
+              stage: WhitelistType;
+              price?: number | null | undefined;
+              isWhitelisted: boolean;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
   marketConfig: {
     __typename?: "MarketConfig";
     data: string;
@@ -2482,6 +2535,22 @@ export type Offer_SaleOffer_Fragment = {
                   }
                 | null
                 | undefined;
+            }
+          | null
+          | undefined;
+      }
+    | null
+    | undefined;
+  launchpadDetails?:
+    | {
+        __typename?: "LaunchpadDetails";
+        currentStage?:
+          | {
+              __typename?: "LaunchpadStage";
+              startTime?: any | null | undefined;
+              stage: WhitelistType;
+              price?: number | null | undefined;
+              isWhitelisted: boolean;
             }
           | null
           | undefined;
@@ -2801,6 +2870,22 @@ export type GetOfferQuery = {
             }
           | null
           | undefined;
+        launchpadDetails?:
+          | {
+              __typename?: "LaunchpadDetails";
+              currentStage?:
+                | {
+                    __typename?: "LaunchpadStage";
+                    startTime?: any | null | undefined;
+                    stage: WhitelistType;
+                    price?: number | null | undefined;
+                    isWhitelisted: boolean;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
         marketConfig: {
           __typename?: "MarketConfig";
           data: string;
@@ -2897,6 +2982,22 @@ export type GetOfferQuery = {
                         }
                       | null
                       | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        launchpadDetails?:
+          | {
+              __typename?: "LaunchpadDetails";
+              currentStage?:
+                | {
+                    __typename?: "LaunchpadStage";
+                    startTime?: any | null | undefined;
+                    stage: WhitelistType;
+                    price?: number | null | undefined;
+                    isWhitelisted: boolean;
                   }
                 | null
                 | undefined;
@@ -3229,6 +3330,22 @@ export type CreateOfferForEditionsMutation = {
             }
           | null
           | undefined;
+        launchpadDetails?:
+          | {
+              __typename?: "LaunchpadDetails";
+              currentStage?:
+                | {
+                    __typename?: "LaunchpadStage";
+                    startTime?: any | null | undefined;
+                    stage: WhitelistType;
+                    price?: number | null | undefined;
+                    isWhitelisted: boolean;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
         marketConfig: {
           __typename?: "MarketConfig";
           data: string;
@@ -3312,6 +3429,22 @@ export type CreateOfferForEditionsMutation = {
                         }
                       | null
                       | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        launchpadDetails?:
+          | {
+              __typename?: "LaunchpadDetails";
+              currentStage?:
+                | {
+                    __typename?: "LaunchpadStage";
+                    startTime?: any | null | undefined;
+                    stage: WhitelistType;
+                    price?: number | null | undefined;
+                    isWhitelisted: boolean;
                   }
                 | null
                 | undefined;
@@ -3421,6 +3554,22 @@ export type CreateMintOfferMutation = {
             }
           | null
           | undefined;
+        launchpadDetails?:
+          | {
+              __typename?: "LaunchpadDetails";
+              currentStage?:
+                | {
+                    __typename?: "LaunchpadStage";
+                    startTime?: any | null | undefined;
+                    stage: WhitelistType;
+                    price?: number | null | undefined;
+                    isWhitelisted: boolean;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
         marketConfig: {
           __typename?: "MarketConfig";
           data: string;
@@ -3522,6 +3671,22 @@ export type CreateMintOfferMutation = {
                         }
                       | null
                       | undefined;
+                  }
+                | null
+                | undefined;
+            }
+          | null
+          | undefined;
+        launchpadDetails?:
+          | {
+              __typename?: "LaunchpadDetails";
+              currentStage?:
+                | {
+                    __typename?: "LaunchpadStage";
+                    startTime?: any | null | undefined;
+                    stage: WhitelistType;
+                    price?: number | null | undefined;
+                    isWhitelisted: boolean;
                   }
                 | null
                 | undefined;

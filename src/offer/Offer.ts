@@ -22,6 +22,7 @@ export interface PartialOffer
     | "endTime"
     | "whitelistStage"
     | "whitelistVoucher"
+    | "launchpadDetails"
     | "marketConfig"
     | "supply"
   > {}
@@ -66,6 +67,10 @@ export class BasicOffer {
 
   get whitelistStage() {
     return this._offer.whitelistStage;
+  }
+  
+  get currentStage() {
+    return this._offer.launchpadDetails.currentStage;
   }
 
   protected get whitelistVoucher(): WhitelistVoucherParams | null {

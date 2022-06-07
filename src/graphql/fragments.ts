@@ -143,6 +143,14 @@ export const OfferFragment = gql`
       ...Auction
     }
     whitelistStage
+    launchpadDetails {
+      currentStage {
+        startTime
+        stage
+        price
+        isWhitelisted
+      }
+    }
     marketConfig(storeId: $storeId) {
       data
       signature
