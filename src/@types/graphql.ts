@@ -74,6 +74,7 @@ export type Auth = {
 
 export type AuthUser = {
   __typename?: "AuthUser";
+  collectionWatchlist: CollectionsResponse;
   description?: Maybe<Scalars["String"]>;
   email?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
@@ -91,6 +92,10 @@ export type AuthUser = {
   twitter?: Maybe<Scalars["String"]>;
   verified?: Maybe<Scalars["Boolean"]>;
   website?: Maybe<Scalars["String"]>;
+};
+
+export type AuthUserCollectionWatchlistArgs = {
+  paging: PagingInput;
 };
 
 export type AuthUserItemsArgs = {
@@ -129,7 +134,7 @@ export type Brand = {
 };
 
 export type CheckCollectionsInput = {
-  collectionIds: Array<Scalars["String"]>;
+  collections: Array<CollectionInputField>;
 };
 
 export type Collection = {
@@ -143,6 +148,7 @@ export type Collection = {
   iconUrl: Scalars["String"];
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
+  isAddedToWatchList: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
   name: Scalars["String"];
   slug: Scalars["String"];
@@ -173,6 +179,11 @@ export type CollectionInput = {
   symbol: Scalars["String"];
   title: Scalars["String"];
   tokenType: Scalars["String"];
+};
+
+export type CollectionInputField = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
 };
 
 export type CollectionMetadataFilterInput = {
@@ -354,6 +365,7 @@ export type CreateMintOfferInput = {
   launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
   name?: InputMaybe<Scalars["String"]>;
   offerContractAddress?: InputMaybe<Scalars["String"]>;
+  payee: Scalars["String"];
   previewImage: Scalars["String"];
   price?: InputMaybe<PriceInput>;
   signature: Scalars["String"];
@@ -919,6 +931,7 @@ export type MintOffer = Offer & {
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
   name?: Maybe<Scalars["String"]>;
+  payee: Scalars["String"];
   platform?: Maybe<Platform>;
   previewFile?: Maybe<PreviewFileProperties>;
   price: Price;
@@ -960,11 +973,13 @@ export type Mutation = {
   placeAuctionBid: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
+  toggleAddToWatchList?: Maybe<Collection>;
   toggleLike?: Maybe<Item>;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
+  userImportCollection: UserImportCollectionOutput;
 };
 
 export type MutationCreateContractArgs = {
@@ -1047,6 +1062,10 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
+export type MutationToggleAddToWatchListArgs = {
+  collectionId: Scalars["String"];
+};
+
 export type MutationToggleLikeArgs = {
   itemId: Scalars["String"];
 };
@@ -1066,6 +1085,10 @@ export type MutationUpdateUserArgs = {
 
 export type MutationUploadFileArgs = {
   file: Scalars["Upload"];
+};
+
+export type MutationUserImportCollectionArgs = {
+  input: UserImportCollectionInput;
 };
 
 export type Notification = {
@@ -1718,6 +1741,7 @@ export enum UploadType {
 
 export type User = {
   __typename?: "User";
+  collectionWatchlist: CollectionsResponse;
   description?: Maybe<Scalars["String"]>;
   email?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
@@ -1737,6 +1761,10 @@ export type User = {
   website?: Maybe<Scalars["String"]>;
 };
 
+export type UserCollectionWatchlistArgs = {
+  paging: PagingInput;
+};
+
 export type UserItemsArgs = {
   filter: UserItemFilterInput;
   paging: PagingInput;
@@ -1751,6 +1779,25 @@ export type UserItemsOnOfferArgs = {
   filter?: InputMaybe<UserItemOnOfferFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type UserImportCollectionInput = {
+  bannerUrl: Scalars["String"];
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  description: Scalars["String"];
+  discord?: InputMaybe<Scalars["String"]>;
+  iconUrl: Scalars["String"];
+  instagram?: InputMaybe<Scalars["String"]>;
+  name: Scalars["String"];
+  telegram?: InputMaybe<Scalars["String"]>;
+  twitter?: InputMaybe<Scalars["String"]>;
+  website?: InputMaybe<Scalars["String"]>;
+};
+
+export type UserImportCollectionOutput = {
+  __typename?: "UserImportCollectionOutput";
+  slug: Scalars["String"];
 };
 
 export type UserItemFilterInput = {
@@ -2469,6 +2516,7 @@ export type MintOfferFragment = {
   name?: string | null | undefined;
   description?: string | null | undefined;
   chainId: number;
+  payee: string;
   previewFile?:
     | {
         __typename?: "PreviewFileProperties";
@@ -2654,6 +2702,7 @@ export type GetOfferQuery = {
         name?: string | null | undefined;
         description?: string | null | undefined;
         chainId: number;
+        payee: string;
         id: string;
         type: OfferType;
         active: boolean;
@@ -3314,6 +3363,7 @@ export type CreateMintOfferMutation = {
         name?: string | null | undefined;
         description?: string | null | undefined;
         chainId: number;
+        payee: string;
         user: {
           __typename?: "User";
           id: string;
