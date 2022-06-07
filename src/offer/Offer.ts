@@ -42,7 +42,14 @@ export class BasicOffer {
   }
 
   get price() {
-    return this._offer.price;
+    const amount =
+      this._offer.launchpadDetails?.currentStage.price ??
+      this._offer.price.amount;
+
+    return {
+      currency: this._offer.price.currency,
+      amount,
+    };
   }
 
   get supply() {
@@ -68,7 +75,7 @@ export class BasicOffer {
   get whitelistStage() {
     return this._offer.whitelistStage;
   }
-  
+
   get currentStage() {
     return this._offer.launchpadDetails.currentStage;
   }
