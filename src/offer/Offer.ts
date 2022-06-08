@@ -77,7 +77,7 @@ export class BasicOffer {
   }
 
   get currentStage() {
-    return this._offer.launchpadDetails.currentStage;
+    return this._offer.launchpadDetails?.currentStage;
   }
 
   protected get whitelistVoucher(): WhitelistVoucherParams | null {
