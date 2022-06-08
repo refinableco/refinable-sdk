@@ -46,7 +46,7 @@ export class MintOffer extends BasicOffer {
 
   constructor(
     protected readonly refinable: RefinableBaseClient,
-    protected readonly chainId: number,
+    chainId: number,
     protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
     super(refinable, offer);

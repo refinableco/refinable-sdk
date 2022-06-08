@@ -1,8 +1,7 @@
 import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import {
-  WhitelistType,
-  WhitelistVoucherParams,
+  WhitelistVoucherParams
 } from "../nft/interfaces/Voucher";
 import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
@@ -25,6 +24,7 @@ export interface PartialOffer
     | "launchpadDetails"
     | "marketConfig"
     | "supply"
+    | "chainId"
   > {}
 
 export class BasicOffer {
@@ -39,6 +39,10 @@ export class BasicOffer {
 
   get type() {
     return this._offer.type;
+  }
+
+  get chainId() {
+    return this._offer.chainId;
   }
 
   get price() {

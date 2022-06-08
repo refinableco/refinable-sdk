@@ -77,6 +77,7 @@ export type Auth = {
 export type AuthUser = {
   __typename?: "AuthUser";
   collectionWatchlist: CollectionsResponse;
+  creatorSuiteProfile?: Maybe<CreatorSuiteProfileOutput>;
   description?: Maybe<Scalars["String"]>;
   email?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
@@ -421,6 +422,17 @@ export type CreateStoreInput = {
   telegram?: InputMaybe<Scalars["String"]>;
   twitter?: InputMaybe<Scalars["String"]>;
   website?: InputMaybe<Scalars["String"]>;
+};
+
+export type CreatorSuiteProfileInput = {
+  email?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
+};
+
+export type CreatorSuiteProfileOutput = {
+  __typename?: "CreatorSuiteProfileOutput";
+  email?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
 };
 
 export type CustomLink = {
@@ -922,7 +934,7 @@ export type MintOffer = Offer & {
   active: Scalars["Boolean"];
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
-  chainId: Scalars["Float"];
+  chainId: Scalars["Int"];
   contract?: Maybe<ContractOutput>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   description?: Maybe<Scalars["String"]>;
@@ -1168,6 +1180,7 @@ export type Offer = {
   active: Scalars["Boolean"];
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
+  chainId: Scalars["Int"];
   contract?: Maybe<ContractOutput>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
@@ -1478,6 +1491,7 @@ export type SaleOffer = Offer & {
   active: Scalars["Boolean"];
   auction?: Maybe<Auction>;
   blockchainId?: Maybe<Scalars["String"]>;
+  chainId: Scalars["Int"];
   contract?: Maybe<ContractOutput>;
   createdAt?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
@@ -1760,6 +1774,7 @@ export type UpdateStoreInput = {
 };
 
 export type UpdateUserInput = {
+  creatorSuiteProfile?: InputMaybe<CreatorSuiteProfileInput>;
   description?: InputMaybe<Scalars["String"]>;
   email?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
@@ -1779,6 +1794,7 @@ export enum UploadType {
 export type User = {
   __typename?: "User";
   collectionWatchlist: CollectionsResponse;
+  creatorSuiteProfile?: Maybe<CreatorSuiteProfileOutput>;
   description?: Maybe<Scalars["String"]>;
   email?: Maybe<Scalars["String"]>;
   ethAddress?: Maybe<Scalars["String"]>;
@@ -2023,6 +2039,7 @@ export type ItemSaleInfo_MintOffer_Fragment = {
   __typename?: "MintOffer";
   id: string;
   createdAt?: any | null | undefined;
+  chainId: number;
   type: OfferType;
   supply: number;
   price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
@@ -2046,6 +2063,7 @@ export type ItemSaleInfo_SaleOffer_Fragment = {
   __typename?: "SaleOffer";
   id: string;
   createdAt?: any | null | undefined;
+  chainId: number;
   type: OfferType;
   supply: number;
   price: { __typename?: "Price"; amount: number; currency: PriceCurrency };
@@ -2162,6 +2180,7 @@ export type GetItemsWithOfferFragment = {
         __typename?: "MintOffer";
         id: string;
         createdAt?: any | null | undefined;
+        chainId: number;
         type: OfferType;
         supply: number;
         price: {
@@ -2192,6 +2211,7 @@ export type GetItemsWithOfferFragment = {
         __typename?: "SaleOffer";
         id: string;
         createdAt?: any | null | undefined;
+        chainId: number;
         type: OfferType;
         supply: number;
         price: {
@@ -2238,6 +2258,7 @@ export type UserItemsFragment = {
         __typename?: "MintOffer";
         id: string;
         createdAt?: any | null | undefined;
+        chainId: number;
         type: OfferType;
         supply: number;
         price: {
@@ -2268,6 +2289,7 @@ export type UserItemsFragment = {
         __typename?: "SaleOffer";
         id: string;
         createdAt?: any | null | undefined;
+        chainId: number;
         type: OfferType;
         supply: number;
         price: {
@@ -2380,6 +2402,7 @@ export type Offer_MintOffer_Fragment = {
   type: OfferType;
   active: boolean;
   supply: number;
+  chainId: number;
   totalSupply: number;
   startTime?: any | null | undefined;
   endTime?: any | null | undefined;
@@ -2482,6 +2505,7 @@ export type Offer_SaleOffer_Fragment = {
   type: OfferType;
   active: boolean;
   supply: number;
+  chainId: number;
   totalSupply: number;
   startTime?: any | null | undefined;
   endTime?: any | null | undefined;
@@ -2680,6 +2704,7 @@ export type GetUserOfferItemsQuery = {
                         __typename?: "MintOffer";
                         id: string;
                         createdAt?: any | null | undefined;
+                        chainId: number;
                         type: OfferType;
                         supply: number;
                         price: {
@@ -2710,6 +2735,7 @@ export type GetUserOfferItemsQuery = {
                         __typename?: "SaleOffer";
                         id: string;
                         createdAt?: any | null | undefined;
+                        chainId: number;
                         type: OfferType;
                         supply: number;
                         price: {
@@ -2912,6 +2938,7 @@ export type GetOfferQuery = {
         type: OfferType;
         active: boolean;
         supply: number;
+        chainId: number;
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
@@ -3063,6 +3090,7 @@ export type GetUserItemsQuery = {
                         __typename?: "MintOffer";
                         id: string;
                         createdAt?: any | null | undefined;
+                        chainId: number;
                         type: OfferType;
                         supply: number;
                         price: {
@@ -3093,6 +3121,7 @@ export type GetUserItemsQuery = {
                         __typename?: "SaleOffer";
                         id: string;
                         createdAt?: any | null | undefined;
+                        chainId: number;
                         type: OfferType;
                         supply: number;
                         price: {
@@ -3267,6 +3296,7 @@ export type CreateOfferForEditionsMutation = {
         type: OfferType;
         active: boolean;
         supply: number;
+        chainId: number;
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
@@ -3372,6 +3402,7 @@ export type CreateOfferForEditionsMutation = {
         type: OfferType;
         active: boolean;
         supply: number;
+        chainId: number;
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
@@ -3487,6 +3518,7 @@ export type CreateMintOfferMutation = {
         type: OfferType;
         active: boolean;
         supply: number;
+        chainId: number;
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
@@ -3495,7 +3527,6 @@ export type CreateMintOfferMutation = {
         whitelistStage: LaunchpadCountDownType;
         name?: string | null | undefined;
         description?: string | null | undefined;
-        chainId: number;
         payee: string;
         user: {
           __typename?: "User";
@@ -3614,6 +3645,7 @@ export type CreateMintOfferMutation = {
         type: OfferType;
         active: boolean;
         supply: number;
+        chainId: number;
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;

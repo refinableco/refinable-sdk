@@ -4,6 +4,7 @@ const saleInfoFragment = gql`
   fragment itemSaleInfo on Offer {
     id
     createdAt
+    chainId
     type
     supply
     price {
@@ -126,6 +127,7 @@ export const OfferFragment = gql`
     type
     active
     supply
+    chainId
     totalSupply
     startTime
     endTime
