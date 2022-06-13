@@ -1,4 +1,4 @@
-import { Chain } from "..";
+import { Chain } from "../interfaces/Network";
 import { Environment } from "../types/RefinableOptions";
 
 export const solanaChainIds = {

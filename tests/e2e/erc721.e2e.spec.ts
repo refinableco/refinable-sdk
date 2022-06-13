@@ -65,8 +65,6 @@ describe("ERC721 - E2E", () => {
   });
 
   it("should get the current instance", async () => {
-    const apiKey = refinable.apiKey;
-    expect(apiKey).toBeDefined();
     const currentChainId = await refinable.provider.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });

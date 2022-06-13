@@ -16,7 +16,6 @@ import {
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { AbstractNFT, AuctionOffer, SaleOffer } from "..";
 import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
@@ -25,6 +24,8 @@ import {
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
+import { AuctionOffer } from "../offer/AuctionOffer";
+import { SaleOffer } from "../offer/SaleOffer";
 import { RefinableSolanaClient } from "../refinable/client/RefinableSolanaClient";
 import { Refinable } from "../refinable/Refinable";
 import {
@@ -42,11 +43,8 @@ import { toPublicKey } from "../solana/utils";
 import SolanaTransaction from "../transaction/SolanaTransaction";
 import { getConnectionByChainId } from "../utils/connection";
 import { getOrCreateAssociatedAccountInfo } from "../utils/sol";
-import {
-  NFTEndAuctionParams,
-  NFTPlaceBidParams,
-  PartialNFTItem,
-} from "./AbstractNFT";
+import { AbstractNFT, NFTEndAuctionParams, NFTPlaceBidParams, PartialNFTItem } from "./AbstractNFT";
+
 
 const treasuryMint = NATIVE_MINT;
 
