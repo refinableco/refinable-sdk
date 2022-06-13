@@ -19,10 +19,12 @@ async function main() {
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
   try {
     // create wallet
-    const refinable = await RefinableEvmClient.create(wallet, API_KEY, {
+    const refinable = await RefinableEvmClient.create(API_KEY, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
+
+    await refinable.connect(wallet);
 
     // create Mint offer
     //

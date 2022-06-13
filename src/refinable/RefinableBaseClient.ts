@@ -43,6 +43,7 @@ export abstract class RefinableBaseClient<O extends object = {}> {
   protected _options: Options<O>;
   protected _apiKey: string;
   protected _accountAddress: string;
+  protected _provider: any;
   protected account: Account;
 
   get accountAddress() {
@@ -72,12 +73,31 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     this._apiClient = apiClient;
   }
 
+  get provider() {
+    if (!this._provider)
+      throw new Error("Provider not set, please connect() provider first");
+    return this._provider;
+  }
+
+  async connect(provider: unknown) {
+    this._provider = provider;
+
+    this.accountAddress = await RefinableEvmClient.getAddress(provider);
+
+    return this;
+  }
+
+  disconnect() {
+    this._provider = null;
+    this.accountAddress = null;
+  }
+
   constructor(
-    apiOrBearerToken: string,
+    apiToken: string,
     options: Options<O>,
     defaultClientOptions?: Options<O>
   ) {
-    if (!apiOrBearerToken) throw new Error("No authentication key present");
+    if (!apiToken) throw new Error("No authentication key present");
 
     this._options = merge(
       defaultOptions as any,
@@ -87,12 +107,9 @@ export abstract class RefinableBaseClient<O extends object = {}> {
 
     const graphqlUrl = apiUrl[this._options.environment];
 
-    this._apiKey = apiOrBearerToken;
+    this._apiKey = apiToken;
     this.apiClient = new GraphQLClient(graphqlUrl, {
-      headers:
-        apiOrBearerToken.length === 32
-          ? { "X-API-KEY": apiOrBearerToken }
-          : { authorization: `Bearer ${apiOrBearerToken}` },
+      headers: { "X-API-KEY": apiToken },
     });
   }
 
@@ -151,10 +168,8 @@ export abstract class RefinableBaseClient<O extends object = {}> {
     });
 
     if (!queryResponse?.offer) return null;
-    if (
-      isMintOffer(queryResponse.offer as any) &&
-      queryResponse.offer.__typename === "MintOffer"
-    ) {
+
+    if (queryResponse.offer.__typename === "MintOffer") {
       return this.offer.createMintOffer(queryResponse?.offer) as any;
     } else {
       const nft = this.createNft(queryResponse?.offer?.item);

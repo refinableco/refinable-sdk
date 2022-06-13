@@ -9,7 +9,7 @@ import EvmTransaction from "../transaction/EvmTransaction";
 export class Chain {
   protected _chain: IChainConfig;
 
-  constructor(private readonly chainId: number) {
+  constructor(public readonly chainId: number) {
     if (!chainMap[chainId]) {
       throw new Error(`Chain ${chainId} is not supported`);
     }

@@ -14,10 +14,12 @@ async function main() {
   const chainId = Chain.BscTestnet;
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
   try {
-    const refinable = await RefinableEvmClient.create(wallet, API_KEY, {
+    const refinable = await RefinableEvmClient.create(API_KEY, {
       waitConfirmations: 1,
       environment: Environment.Testnet,
     });
+
+    await refinable.connect(wallet);
 
     const res = await refinable.getItemsOnSale({}, 2);
 

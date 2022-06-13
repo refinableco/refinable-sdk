@@ -87,7 +87,7 @@ export class BasicOffer {
   protected get whitelistVoucher(): WhitelistVoucherParams | null {
     if (!this._offer.whitelistVoucher) return null;
 
-    delete this._offer.whitelistVoucher.__typename;
+    delete (this._offer.whitelistVoucher as any).__typename;
 
     return {
       ...this._offer.whitelistVoucher,

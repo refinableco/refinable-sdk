@@ -27,6 +27,7 @@ interface BuyParams {
   amount?: number;
   recipient?: string;
 }
+
 export interface PutForSaleParams {
   contractAddress: string;
   price: Price;
@@ -51,6 +52,10 @@ export class MintOffer extends BasicOffer {
   ) {
     super(refinable, offer);
     this._chain = new Chain(chainId);
+  }
+
+  get chainId() {
+    return this._chain.chainId;
   }
 
   public async putForSale(params: PutForSaleParams): Promise<this> {

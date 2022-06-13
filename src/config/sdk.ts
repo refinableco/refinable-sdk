@@ -27,10 +27,7 @@ export const signer = {
   [Environment.Local]: "0xd4039eB67CBB36429Ad9DD30187B94f6A5122215",
 };
 
-export const getContractsTags = (
-  environment: Environment,
-  chainId: Chain
-): ContractTag[] => {
+export const getContractsTags = (environment: Environment): ContractTag[] => {
   switch (environment) {
     case Environment.Mainnet:
       return [

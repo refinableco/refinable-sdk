@@ -31,14 +31,21 @@ describe("MintOffer - E2E", () => {
   const wallet2 = initializeWallet(PRIVATE_KEY_2, Chain.Local);
 
   beforeAll(async () => {
-    refinableSeller = await RefinableEvmClient.create(wallet, API_KEY, {
+    // init seller
+    refinableSeller = await RefinableEvmClient.create(API_KEY, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
-    refinableBuyer = await RefinableEvmClient.create(wallet2, API_KEY_2, {
+
+    await refinableSeller.connect(wallet);
+
+    // init buyer
+    refinableBuyer = await RefinableEvmClient.create(API_KEY_2, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
+
+    await refinableBuyer.connect(wallet2);
   });
 
   async function putLazyContractForSale(

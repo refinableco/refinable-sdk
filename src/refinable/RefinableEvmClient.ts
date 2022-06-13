@@ -44,21 +44,19 @@ export enum UserItemFilterType {
 export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions> {
   public account: EvmAccount;
   public contracts: Contracts;
+  protected _provider: Signer;
 
   static async getAddress(provider: any): Promise<string> {
     return provider.getAddress();
   }
 
   static async create(
-    provider: Signer,
-    apiOrBearerToken: string,
+    apiToken: string,
     options?: Options<RefinableEvmOptions>
   ) {
-    const accountAddress = await RefinableEvmClient.getAddress(provider);
-
-    const refinable = new RefinableEvmClient(provider, accountAddress, {
+    const refinable = new RefinableEvmClient({
       ...options,
-      apiOrBearerToken,
+      apiToken: apiToken,
     });
 
     await refinable.init();
@@ -70,24 +68,19 @@ export class RefinableEvmClient extends RefinableBaseClient<RefinableEvmOptions>
     await this.contracts.initialize();
   }
 
-  constructor(
-    public readonly provider: Signer,
-    accountAddress: string,
-    options: Options<RefinableEvmOptions & { apiOrBearerToken: string }>
-  ) {
-    super(options.apiOrBearerToken, options, { waitConfirmations: 3 });
-    this._accountAddress = accountAddress;
+  constructor(options: Options<RefinableEvmOptions & { apiToken: string }>) {
+    super(options.apiToken, options, { waitConfirmations: 3 });
 
-    this.account = new EvmAccount(accountAddress, this);
+    this.account = new EvmAccount(this);
     this.contracts = new Contracts(this);
+  }
+
+  connect(provider: Signer) {
+    return super.connect(provider);
   }
 
   nftBuilder(params?: NftBuilderParams) {
     return new NFTBuilder(this, params);
-  }
-
-  setApiClient(client: GraphQLClient) {
-    this.apiClient = client;
   }
 
   async personalSign(message: string) {

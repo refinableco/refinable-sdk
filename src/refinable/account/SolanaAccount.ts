@@ -6,7 +6,6 @@ import { RefinableSolanaClient } from "../RefinableSolanaClient";
 
 export default class SolanaAccount implements Account {
   constructor(
-    private readonly address: string,
     private readonly refinable: RefinableSolanaClient
   ) {}
 
@@ -23,7 +22,7 @@ export default class SolanaAccount implements Account {
       ? getConnectionByChainId(chainId)
       : this.refinable.connection;
 
-    const result = await connection.getBalance(new PublicKey(this.address));
+    const result = await connection.getBalance(new PublicKey(this.refinable.accountAddress));
 
     return fromLamports(result).toString();
   }

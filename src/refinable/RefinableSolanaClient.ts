@@ -11,20 +11,19 @@ import { RefinableBaseClient } from "./RefinableBaseClient";
 export class RefinableSolanaClient extends RefinableBaseClient<RefinableSolanaOptions> {
   public account: SolanaAccount;
   private _connection: Connection;
+  protected _provider: Wallet;
 
   static async getAddress(provider: any): Promise<string> {
     return provider.publicKey.toBase58();
   }
 
   static async create(
-    provider: Wallet,
-    apiOrBearerToken: string,
+    apiToken: string,
     options?: Options<RefinableSolanaOptions>
   ) {
-    const accountAddress = provider.publicKey.toBase58();
-    const refinable = new RefinableSolanaClient(provider, accountAddress, {
+    const refinable = new RefinableSolanaClient({
       ...options,
-      apiOrBearerToken,
+      apiToken: apiToken,
     });
 
     await refinable.init();
@@ -34,14 +33,9 @@ export class RefinableSolanaClient extends RefinableBaseClient<RefinableSolanaOp
 
   async init() {}
 
-  constructor(
-    public readonly provider: Wallet,
-    accountAddress: string,
-    options: Options<RefinableSolanaOptions & { apiOrBearerToken: string }>
-  ) {
-    super(options.apiOrBearerToken, options, { commitment: "finalized" });
-    this._accountAddress = accountAddress;
-    this.account = new SolanaAccount(accountAddress, this);
+  constructor(options: Options<RefinableSolanaOptions & { apiToken: string }>) {
+    super(options.apiToken, options, { commitment: "finalized" });
+    this.account = new SolanaAccount(this);
     this._connection = getConnectionByChainId(
       solanaChainIds[this.options.environment]
     );
@@ -49,6 +43,10 @@ export class RefinableSolanaClient extends RefinableBaseClient<RefinableSolanaOp
 
   get connection() {
     return this._connection;
+  }
+
+  async connect(provider: Wallet) {
+    return super.connect(provider);
   }
 
   createNft(item: PartialNFTItem): SPLNFT {

@@ -47,14 +47,20 @@ describe("ERC1155 - E2E", () => {
   const wallet2 = initializeWallet(PRIVATE_KEY_2, Chain.Local);
 
   beforeAll(async () => {
-    refinable = await RefinableEvmClient.create(wallet, API_KEY, {
+    refinable = await RefinableEvmClient.create(API_KEY, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
-    refinable2 = await RefinableEvmClient.create(wallet2, API_KEY_2, {
+
+
+    await refinable.connect(wallet);
+    refinable2 = await RefinableEvmClient.create(API_KEY_2, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
+
+
+    await refinable2.connect(wallet2);
   });
 
   it("should get the current instance", async () => {

@@ -17,10 +17,12 @@ describe("Refinable Create Contract", () => {
   wallet.getAddress().then(console.log);
 
   beforeAll(async () => {
-    refinable = await RefinableEvmClient.create(wallet, API_KEY, {
+    refinable = await RefinableEvmClient.create(API_KEY, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
+
+    await refinable.connect(wallet);
   });
 
   it("should get the current instance", async () => {

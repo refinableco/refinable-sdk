@@ -25,7 +25,7 @@ import {
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
-import { RefinableSolanaClient } from "../refinable/RefinableSolanaClient";
+import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
 import {
   AUCTION_HOUSE_PROGRAM_ID,
   getAuctionHouseKey,
@@ -41,7 +41,11 @@ import { toPublicKey } from "../solana/utils";
 import SolanaTransaction from "../transaction/SolanaTransaction";
 import { getConnectionByChainId } from "../utils/connection";
 import { getOrCreateAssociatedAccountInfo } from "../utils/sol";
-import { NFTEndAuctionParams, NFTPlaceBidParams, PartialNFTItem } from "./AbstractNFT";
+import {
+  NFTEndAuctionParams,
+  NFTPlaceBidParams,
+  PartialNFTItem,
+} from "./AbstractNFT";
 
 const treasuryMint = NATIVE_MINT;
 
@@ -50,7 +54,7 @@ export class SPLNFT extends AbstractNFT {
   private auctionHouseClient: Program<AuctionHouse>;
 
   constructor(
-    protected readonly refinable: RefinableSolanaClient,
+    protected readonly refinable: RefinableBaseClient,
     item: PartialNFTItem
   ) {
     super(TokenType.Spl, refinable, item);

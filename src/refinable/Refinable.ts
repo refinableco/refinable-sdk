@@ -32,8 +32,7 @@ type ClassType<A extends ClientType, F> =
 export class Refinable {
   public static async create<K extends ClientType>(
     type: SingleKeys<K>,
-    provider: any,
-    apiOrBearerToken: string,
+    apiToken: string,
     options: RefinableOptions & {
       evm?: RefinableEvmOptions;
       solana?: RefinableSolanaOptions;
@@ -44,8 +43,7 @@ export class Refinable {
     const optionsForClient = options[type.toLowerCase()];
 
     return Client.create(
-      provider,
-      apiOrBearerToken,
+      apiToken,
       merge(optionsForClient, omit(options, ["evm", "solana"]))
     );
   }

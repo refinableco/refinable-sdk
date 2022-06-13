@@ -9,7 +9,7 @@ import {
 import fs from "fs";
 import path from "path";
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config({ path: `.env` });
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 const API_KEY = process.env.API_KEY as string;
 
@@ -18,10 +18,12 @@ async function main() {
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
   try {
     // create wallet
-    const refinable = await RefinableEvmClient.create(wallet, API_KEY, {
+    const refinable = await RefinableEvmClient.create(API_KEY, {
       waitConfirmations: 1,
       environment: Environment.Local,
     });
+
+    await refinable.connect(wallet);
 
     // create Mint offer
     //
@@ -37,7 +39,7 @@ async function main() {
         currency: PriceCurrency.Bnb,
       },
       startTime: new Date(),
-      supply: 3,
+      supply: 100,
       previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",
