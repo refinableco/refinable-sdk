@@ -2,12 +2,14 @@ import { PublicKey } from "@solana/web3.js";
 import { Account } from "../../interfaces/Account";
 import { fromLamports } from "../../solana/utils";
 import { getConnectionByChainId } from "../../utils/connection";
-import { RefinableSolanaClient } from "../RefinableSolanaClient";
+import { Refinable } from "../Refinable";
 
 export default class SolanaAccount implements Account {
-  constructor(
-    private readonly refinable: RefinableSolanaClient
-  ) {}
+  constructor(protected readonly refinable: Refinable) {}
+
+  async getAddress(): Promise<string> {
+    return this.refinable.provider.publicKey.toBase58();
+  }
 
   /**
    * Balance of Any Token (converted from wei).
@@ -20,9 +22,11 @@ export default class SolanaAccount implements Account {
   public async getBalance(chainId?: number): Promise<string> {
     const connection = chainId
       ? getConnectionByChainId(chainId)
-      : this.refinable.connection;
+      : this.refinable.solana.connection;
 
-    const result = await connection.getBalance(new PublicKey(this.refinable.accountAddress));
+    const result = await connection.getBalance(
+      new PublicKey(this.refinable.accountAddress)
+    );
 
     return fromLamports(result).toString();
   }

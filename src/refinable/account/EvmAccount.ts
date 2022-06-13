@@ -3,10 +3,14 @@ import { Contract, ethers } from "ethers";
 import { Account } from "../../interfaces/Account";
 import { NativeCurrency } from "../../interfaces/Config";
 import EvmTransaction from "../../transaction/EvmTransaction";
-import { RefinableEvmClient } from "../RefinableEvmClient";
+import { Refinable } from "../Refinable";
 
 export default class EvmAccount implements Account {
-  constructor(private readonly refinable: RefinableEvmClient) {}
+  constructor(protected readonly refinable: Refinable) {}
+
+  async getAddress(): Promise<string> {
+    return this.refinable.provider.getAddress();
+  }
 
   /**
    * Balance of Any Token (converted from wei).
@@ -95,7 +99,7 @@ export default class EvmAccount implements Account {
     userEthAddress?: string
   ): Promise<string> {
     const getBalancePromise = chainId
-      ? this.refinable
+      ? this.refinable.evm
           .getProviderByChainId(chainId)
           .getBalance(userEthAddress ?? this.refinable.accountAddress)
       : this.refinable.provider.getBalance();
@@ -135,7 +139,7 @@ export default class EvmAccount implements Account {
     );
 
     // Wait for 1 confirmation
-    await approvalResult.wait(this.refinable.options.waitConfirmations);
+    await approvalResult.wait(this.refinable.evm.options.waitConfirmations);
 
     return new EvmTransaction(approvalResult);
   }

@@ -1,4 +1,3 @@
-import { utils } from "ethers";
 import {
   MarketConfig,
   Price,
@@ -6,15 +5,12 @@ import {
   RefreshMetadataMutation,
   TokenType,
 } from "../@types/graphql";
-import { chainMap } from "../config/chains";
 import { REFRESH_METADATA } from "../graphql/items";
-import { IChainConfig } from "../interfaces/Config";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Chain } from "../refinable/Chain";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { Refinable } from "../refinable/Refinable";
 import { Transaction } from "../transaction/Transaction";
-import { getSupportedCurrency } from "../utils/chain";
 
 export interface PartialNFTItem {
   contractAddress: string;
@@ -55,7 +51,7 @@ export abstract class AbstractNFT {
 
   constructor(
     public type: TokenType,
-    protected refinable: RefinableBaseClient,
+    protected refinable: Refinable,
     protected item: PartialNFTItem
   ) {
     this._item = item;

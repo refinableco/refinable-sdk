@@ -5,10 +5,10 @@ import {
   CreatePurchaseSessionMutationVariables,
 } from "../../@types/graphql";
 import { CREATE_PURCHASE_SESSION } from "../../graphql/checkout";
-import { RefinableBaseClient } from "../RefinableBaseClient";
+import { Refinable } from "../Refinable";
 
 export class CheckoutClient {
-  constructor(private readonly refinableClient: RefinableBaseClient) {}
+  constructor(private readonly refinableClient: Refinable) {}
 
   async create(
     input: Pick<CreatePurchaseSessionInput, "successUrl" | "cancelUrl"> &

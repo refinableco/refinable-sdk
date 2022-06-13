@@ -1,3 +1,5 @@
+import { addDays, subDays } from "date-fns";
+import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import {
@@ -6,21 +8,20 @@ import {
   initializeWallet,
   MintOffer,
   PriceCurrency,
-  RefinableEvmClient,
+  Refinable,
 } from "../../src";
-import dotenv from "dotenv";
-import { PutForSaleParams } from "../../src/offer/MintOffer";
-import { addDays, subDays } from "date-fns";
 import {
   LaunchpadCountDownType,
   WhitelistType,
 } from "../../src/@types/graphql";
+import { PutForSaleParams } from "../../src/offer/MintOffer";
+import { ClientType } from "../../src/refinable/Refinable";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 describe("MintOffer - E2E", () => {
-  let refinableSeller: RefinableEvmClient; // the refinable sdk instance for a seller
-  let refinableBuyer: RefinableEvmClient; // the refinable sdk instance for a buyer
+  let refinableSeller: Refinable; // the refinable sdk instance for a seller
+  let refinableBuyer: Refinable; // the refinable sdk instance for a buyer
 
   const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
   const API_KEY = process.env.API_KEY as string;
@@ -32,20 +33,20 @@ describe("MintOffer - E2E", () => {
 
   beforeAll(async () => {
     // init seller
-    refinableSeller = await RefinableEvmClient.create(API_KEY, {
-      waitConfirmations: 1,
+    refinableSeller = await Refinable.create(API_KEY, {
+      evm: { waitConfirmations: 1 },
       environment: Environment.Local,
     });
 
-    await refinableSeller.connect(wallet);
+    await refinableSeller.connect(ClientType.Evm, wallet);
 
     // init buyer
-    refinableBuyer = await RefinableEvmClient.create(API_KEY_2, {
-      waitConfirmations: 1,
+    refinableBuyer = await Refinable.create(API_KEY_2, {
+      evm: { waitConfirmations: 1 },
       environment: Environment.Local,
     });
 
-    await refinableBuyer.connect(wallet2);
+    await refinableBuyer.connect(ClientType.Evm, wallet2);
   });
 
   async function putLazyContractForSale(
@@ -83,7 +84,7 @@ describe("MintOffer - E2E", () => {
     });
 
     it("Allows a buyer to purchase 1 NFT from a lazy-mintable collection", async () => {
-      const mintOffer = await refinableBuyer.getOffer<MintOffer>(offer.id);
+      const mintOffer = await refinableBuyer.offer.getOffer<MintOffer>(offer.id);
 
       const txnResponse = await mintOffer.buy({
         amount: 1,
@@ -95,7 +96,7 @@ describe("MintOffer - E2E", () => {
     });
 
     it("Allows a buyer to purchase multiple NFTs from a lazy-mintable collection", async () => {
-      const mintOffer = await refinableBuyer.getOffer<MintOffer>(offer.id);
+      const mintOffer = await refinableBuyer.offer.getOffer<MintOffer>(offer.id);
 
       const txnResponse = await mintOffer.buy({
         amount: 2,
@@ -122,7 +123,7 @@ describe("MintOffer - E2E", () => {
         },
       });
 
-      const offer = await refinableBuyer.getOffer(mintOffer.id);
+      const offer = await refinableBuyer.offer.getOffer(mintOffer.id);
 
       expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
     });
@@ -141,7 +142,7 @@ describe("MintOffer - E2E", () => {
         },
       });
 
-      const offer = await refinableBuyer.getOffer<MintOffer>(mintOffer.id);
+      const offer = await refinableBuyer.offer.getOffer<MintOffer>(mintOffer.id);
 
       expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
@@ -164,7 +165,7 @@ describe("MintOffer - E2E", () => {
         },
       });
 
-      const offer = await refinableBuyer.getOffer<MintOffer>(mintOffer.id);
+      const offer = await refinableBuyer.offer.getOffer<MintOffer>(mintOffer.id);
 
       expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
 
@@ -188,7 +189,7 @@ describe("MintOffer - E2E", () => {
         },
       });
 
-      const offer = await refinableBuyer.getOffer(mintOffer.id);
+      const offer = await refinableBuyer.offer.getOffer(mintOffer.id);
 
       expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
     });
@@ -207,7 +208,7 @@ describe("MintOffer - E2E", () => {
         },
       });
 
-      const offer = await refinableBuyer.getOffer<MintOffer>(itemOnSale.id);
+      const offer = await refinableBuyer.offer.getOffer<MintOffer>(itemOnSale.id);
 
       expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
 

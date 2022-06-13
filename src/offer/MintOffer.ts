@@ -16,7 +16,7 @@ import { ERCSaleID } from "../nft/ERCSaleId";
 import { MintVoucher } from "../nft/interfaces/MintVoucher";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
@@ -38,7 +38,7 @@ export interface PutForSaleParams {
   previewImage?: Stream;
   name?: string;
   description?: string;
-  payee: string;
+  payee?: string;
 }
 
 export class MintOffer extends BasicOffer {
@@ -46,7 +46,8 @@ export class MintOffer extends BasicOffer {
   private _contract: ethers.Contract;
 
   constructor(
-    protected readonly refinable: RefinableBaseClient,
+    protected readonly refinable: Refinable,
+    protected readonly refinableEvmClient: RefinableEvmClient,
     chainId: number,
     protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
@@ -68,7 +69,7 @@ export class MintOffer extends BasicOffer {
       supply,
       name,
       description,
-      payee,
+      payee = this.refinable.accountAddress,
     } = params;
 
     // validate launchpad
@@ -243,9 +244,7 @@ export class MintOffer extends BasicOffer {
     );
 
     // Add allows as much as the price requests
-    await (
-      this.refinable as RefinableEvmClient
-    ).account.approveTokenContractAllowance(
+    await this.refinableEvmClient.account.approveTokenContractAllowance(
       this._chain.getCurrency(this._offer.price.currency),
       priceTimesAmount,
       contract.address
@@ -323,9 +322,7 @@ export class MintOffer extends BasicOffer {
       throw new Error("Offer was not set");
     }
 
-    const contract = await (
-      this.refinable as RefinableEvmClient
-    ).contracts.findContract({
+    const contract = await this.refinableEvmClient.contracts.findContract({
       contractAddress: this.offer.contract.contractAddress,
       chainId: this.chainId,
     });
@@ -339,9 +336,7 @@ export class MintOffer extends BasicOffer {
 
   get nonceContract(): Contract {
     // right now there are no plans for 1155 lazy mint
-    const saleNonceHolder = (
-      this.refinable as RefinableEvmClient
-    ).contracts.getBaseContract(
+    const saleNonceHolder = this.refinableEvmClient.contracts.getBaseContract(
       this.chainId,
       `${TokenType.Erc721}_SALE_NONCE_HOLDER`
     );

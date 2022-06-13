@@ -14,7 +14,7 @@ import {
   WhitelistType,
   WhitelistVoucherParams,
 } from "../nft/interfaces/Voucher";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { Refinable } from "../refinable/Refinable";
 import { Transaction } from "../transaction/Transaction";
 import { isERC1155Item, isEVMNFT } from "../utils/is";
 import { Offer, PartialOffer } from "./Offer";
@@ -25,7 +25,7 @@ interface BuyParams {
 
 export class SaleOffer extends Offer {
   constructor(
-    refinable: RefinableBaseClient,
+    refinable: Refinable,
     offer: PartialOffer,
     nft: AbstractNFT
   ) {

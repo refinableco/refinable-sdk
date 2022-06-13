@@ -25,7 +25,8 @@ import {
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { RefinableSolanaClient } from "../refinable/client/RefinableSolanaClient";
+import { Refinable } from "../refinable/Refinable";
 import {
   AUCTION_HOUSE_PROGRAM_ID,
   getAuctionHouseKey,
@@ -52,12 +53,12 @@ const treasuryMint = NATIVE_MINT;
 export class SPLNFT extends AbstractNFT {
   private connection: Connection;
   private auctionHouseClient: Program<AuctionHouse>;
+  protected readonly refinableSolanaClient: RefinableSolanaClient;
 
-  constructor(
-    protected readonly refinable: RefinableBaseClient,
-    item: PartialNFTItem
-  ) {
+  constructor(protected readonly refinable: Refinable, item: PartialNFTItem) {
     super(TokenType.Spl, refinable, item);
+
+    this.refinableSolanaClient = refinable.solana;
 
     this.connection = getConnectionByChainId(item.chainId);
     this.auctionHouseClient = new Program<AuctionHouse>(
@@ -491,7 +492,7 @@ export class SPLNFT extends AbstractNFT {
       await this.connection.confirmTransaction(txSig, "finalized");
     }
 
-    return this.refinable.createOffer<SaleOffer>(
+    return this.refinable.offer.createOffer<SaleOffer>(
       result.createOfferForItems,
       this
     );

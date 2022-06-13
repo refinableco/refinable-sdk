@@ -7,7 +7,7 @@ dotenv.config({ path: ".env.testnet" });
 async function main() {
   const refinable = await createRefinableClient(Chain.BscTestnet);
 
-  const { contractAddress } = await refinable.contracts.getDefaultTokenContract(
+  const { contractAddress } = await refinable.evm.contracts.getDefaultTokenContract(
     Chain.BscTestnet,
     TokenType.Erc721
   );

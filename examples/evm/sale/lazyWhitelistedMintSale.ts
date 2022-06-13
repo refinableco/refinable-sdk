@@ -1,30 +1,14 @@
-import dotenv from "dotenv";
-import {
-  Chain,
-  Environment,
-  initializeWallet,
-  PriceCurrency,
-  RefinableEvmClient,
-} from "../../../src";
+import { addDays } from "date-fns";
 import fs from "fs";
 import path from "path";
-import { addDays } from "date-fns";
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
-const API_KEY = process.env.API_KEY as string;
+import { Chain, PriceCurrency } from "../../../src";
+import { createRefinableClient } from "../../shared";
 
 async function main() {
   const chainId = Chain.Local;
-  const wallet = initializeWallet(PRIVATE_KEY, chainId);
   try {
     // create wallet
-    const refinable = await RefinableEvmClient.create(API_KEY, {
-      waitConfirmations: 1,
-      environment: Environment.Local,
-    });
-
-    await refinable.connect(wallet);
+    const refinable = await createRefinableClient(chainId);
 
     // create Mint offer
     //
