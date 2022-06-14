@@ -19,7 +19,7 @@ async function main() {
 
   const refinable = await createRefinableClient(chainInfo.chain);
 
-  const nft = await refinable
+  const nft = await refinable.evm
     .nftBuilder()
     .erc1155({
       contractAddress: chainInfo.contractAddress, // bsc testnet

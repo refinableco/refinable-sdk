@@ -1,10 +1,9 @@
 import { BigNumber, ethers } from "ethers";
+import { Refinable } from "../../src";
 import EvmAccount from "../../src/refinable/account/EvmAccount";
 import SolanaAccount from "../../src/refinable/account/SolanaAccount";
-import { RefinableEvmClient } from "../../src/refinable/RefinableEvmClient";
-import { RefinableSolanaClient } from "../../src/refinable/RefinableSolanaClient";
 import {
-  getMockRefinableEvmClient,
+  getMockRefinableClient,
   getMockRefinableSolanaClient,
 } from "../helpers/client";
 
@@ -14,11 +13,11 @@ describe("Account", () => {
   });
 
   describe("EVMAccount", () => {
-    let refinable: RefinableEvmClient;
+    let refinable: Refinable;
     const ETH_ADDRESS = "0x898de23b24C7C2189488079a6871C711Dd125504";
 
     beforeAll(async () => {
-      refinable = getMockRefinableEvmClient(ETH_ADDRESS);
+      refinable = getMockRefinableClient(ETH_ADDRESS);
     });
 
     describe("getBalance", () => {
@@ -27,7 +26,7 @@ describe("Account", () => {
           .spyOn(refinable.provider, "getBalance")
           .mockResolvedValue(BigNumber.from("1000000000000000000"));
 
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getBalance()).toBe("1.0");
       });
@@ -37,7 +36,7 @@ describe("Account", () => {
           .spyOn(refinable.provider, "getBalance")
           .mockResolvedValue(BigNumber.from("0000000000000000000"));
 
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getBalance()).toBe("0.0");
       });
@@ -45,13 +44,13 @@ describe("Account", () => {
 
     describe("getTokenDecimals", () => {
       it("Should use default decimals if no address passed", async () => {
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getTokenDecimals(null)).toBe(18);
       });
 
       it("Should use default decimals if incorrect address", async () => {
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getTokenDecimals("sss")).toBe(18);
       });
@@ -63,7 +62,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getTokenDecimals(ETH_ADDRESS)).toBe(9);
       });
@@ -71,13 +70,13 @@ describe("Account", () => {
 
     describe("getTokenBalance", () => {
       it("Should return null when tokenAddress not set", async () => {
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getTokenBalance(null)).toBe(null);
       });
 
       it("Should return null when fetching balance fails", async () => {
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         expect(await account.getTokenBalance(ETH_ADDRESS)).toBe(null);
       });
@@ -93,7 +92,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
@@ -111,7 +110,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
@@ -129,7 +128,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(ETH_ADDRESS, refinable);
+        const account = new EvmAccount(refinable);
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(9);
 
@@ -138,7 +137,7 @@ describe("Account", () => {
     });
   });
   describe("SolanaAccount", () => {
-    let refinable: RefinableSolanaClient;
+    let refinable: Refinable;
     const ADDRESS = "Db8TkU1xiwGH6kGgF1QtGTfwAG1sCAAgsEicCkmLv3T4";
 
     beforeAll(async () => {
@@ -148,21 +147,22 @@ describe("Account", () => {
     describe("getBalance", () => {
       it("Should return correct balance for SOL", async () => {
         jest
-          .spyOn(refinable.connection, "getBalance")
+          .spyOn(refinable.solana.connection, "getBalance")
           .mockResolvedValue(1000000000);
 
-        const account = new SolanaAccount(ADDRESS, refinable);
+        const account = new SolanaAccount(refinable);
 
         expect(await account.getBalance()).toBe("1");
       });
 
       it("Should return correctly return zero balance", async () => {
-        jest.spyOn(refinable.connection, "getBalance").mockResolvedValue(0);
+        jest.spyOn(refinable.solana.connection, "getBalance").mockResolvedValue(0);
 
-        const account = new SolanaAccount(ADDRESS, refinable);
+        const account = new SolanaAccount(refinable);
 
         expect(await account.getBalance()).toBe("0");
       });
     });
   });
 });
+

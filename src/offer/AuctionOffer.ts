@@ -5,12 +5,12 @@ import {
 } from "../@types/graphql";
 import { PLACE_AUCTION_BID } from "../graphql/auction";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { Refinable } from "../refinable/Refinable";
 import { Offer, PartialOffer } from "./Offer";
 
 export class AuctionOffer extends Offer {
   constructor(
-    refinable: RefinableBaseClient,
+    refinable: Refinable,
     offer: PartialOffer,
     nft: AbstractNFT
   ) {

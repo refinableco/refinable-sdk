@@ -4,12 +4,13 @@ import {
   Chain,
   Environment,
   initializeWallet,
-  RefinableEvmClient,
+  Refinable,
   TokenType,
 } from "../../src";
+import { ClientType } from "../../src/refinable/Refinable";
 
 describe("Refinable Create Contract", () => {
-  let refinable: RefinableEvmClient;
+  let refinable: Refinable;
   const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
   const API_KEY = process.env.API_KEY as string;
   const wallet = initializeWallet(PRIVATE_KEY, Chain.Local);
@@ -17,15 +18,17 @@ describe("Refinable Create Contract", () => {
   wallet.getAddress().then(console.log);
 
   beforeAll(async () => {
-    refinable = await RefinableEvmClient.create(wallet, API_KEY, {
-      waitConfirmations: 1,
+    refinable = await Refinable.create(API_KEY, {
       environment: Environment.Local,
+      evm: {
+        waitConfirmations: 1,
+      },
     });
+
+    await refinable.connect(ClientType.Evm, wallet);
   });
 
   it("should get the current instance", async () => {
-    const apiKey = refinable.apiKey;
-    expect(apiKey).toBeDefined();
     const currentChainId = await refinable.provider.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });
@@ -44,7 +47,7 @@ describe("Refinable Create Contract", () => {
       avatar: fileStream,
     };
 
-    const { tx, contract } = await refinable.contracts.createCollection(
+    const { tx, contract } = await refinable.evm.contracts.createCollection(
       collection
     );
 
@@ -66,7 +69,7 @@ describe("Refinable Create Contract", () => {
       avatar: fileStream,
     };
 
-    const { tx, contract } = await refinable.contracts.createCollection(
+    const { tx, contract } = await refinable.evm.contracts.createCollection(
       collection
     );
 
@@ -89,10 +92,10 @@ describe("Refinable Create Contract", () => {
       avatar: fileStream,
     };
 
-    await refinable.contracts.createCollection(collection);
+    await refinable.evm.contracts.createCollection(collection);
 
     await new Promise((res) => setTimeout(res, 2000));
-    expect(await refinable.contracts.createCollection(collection)).toThrow(
+    expect(await refinable.evm.contracts.createCollection(collection)).toThrow(
       /slug is duplicated/
     );
   });

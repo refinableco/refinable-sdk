@@ -27,11 +27,11 @@ import { Offer, PartialOffer, BasicOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
 import { MintOffer } from "./offer/MintOffer";
 import { ClientType, Refinable } from "./refinable/Refinable";
-import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
-import { RefinableSolanaClient } from "./refinable/RefinableSolanaClient";
+import { RefinableEvmClient } from "./refinable/client/RefinableEvmClient";
 import { Store } from "./store/Store";
 import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
+import { RefinableSolanaClient } from "./refinable/client/RefinableSolanaClient";
 export * from "./providers";
 
 export {
@@ -46,12 +46,12 @@ export {
   AbstractNFT,
   AbstractEvmNFT,
   SPLNFT,
-  ClientType,
   EvmTokenType,
   Refinable,
   RefinableEvmClient,
   RefinableSolanaClient,
   NftMap,
+  ClientType,
   Chain,
   TokenType,
   ERC1155NFT,

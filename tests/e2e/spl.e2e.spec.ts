@@ -47,14 +47,12 @@ describe("SPL", () => {
   const randomWallet = new Wallet(buyerKeypair);
 
   beforeAll(async () => {
-    refinable = await RefinableSolanaClient.create(
-      wallet,
-      API_KEY_SOLANA_SELLER,
-      {
-        commitment: "confirmed",
-        environment: Environment.Local,
-      }
-    );
+    refinable = await RefinableSolanaClient.create(API_KEY_SOLANA_SELLER, {
+      commitment: "confirmed",
+      environment: Environment.Local,
+    });
+
+    await refinable.connect(wallet);
 
     await airdrop(refinable.connection, keypair.publicKey);
     await airdrop(refinable.connection, randomWallet.publicKey);

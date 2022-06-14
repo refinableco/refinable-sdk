@@ -2,17 +2,15 @@ import { NodeWallet } from "@metaplex/js";
 import { Keypair } from "@solana/web3.js";
 import base58 from "bs58";
 import * as dotenv from "dotenv";
-import {
-  Chain, Environment, initializeWallet, RefinableEvmClient,
-  RefinableSolanaClient
-} from "../src";
+import { Chain, Environment, initializeWallet, Refinable } from "../src";
+import { ClientType } from "../src/refinable/Refinable";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
 const API_KEY = process.env.API_KEY as string;
 
-export function createRefinableClient(chainId: Chain) {
+export async function createRefinableClient(chainId: Chain) {
   const wallet = initializeWallet(PRIVATE_KEY, chainId);
 
   let environment = [
@@ -26,13 +24,17 @@ export function createRefinableClient(chainId: Chain) {
     environment = Environment.Local;
   }
 
-  return RefinableEvmClient.create(wallet, API_KEY, {
-    waitConfirmations: 1,
+  const client = await Refinable.create(API_KEY, {
+    evm: {
+      waitConfirmations: 1,
+    },
     environment,
   });
+
+  return client.connect(ClientType.Evm, wallet);
 }
 
-export function createRefinableClientSolana(environment: Environment) {
+export async function createRefinableClientSolana(environment: Environment) {
   const SECRET_KEY_SOL = process.env.SECRET_KEY_SOL as string;
 
   if (!SECRET_KEY_SOL) {
@@ -45,7 +47,9 @@ export function createRefinableClientSolana(environment: Environment) {
 
   const wallet = new NodeWallet(payer);
 
-  return RefinableSolanaClient.create(wallet, API_KEY, {
+  const client = await Refinable.create(API_KEY, {
     environment,
   });
+
+  return client.connect(ClientType.Solana, wallet);
 }

@@ -1,9 +1,7 @@
 import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import {
-  WhitelistVoucherParams
-} from "../nft/interfaces/Voucher";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { WhitelistVoucherParams } from "../nft/interfaces/Voucher";
+import { Refinable } from "../refinable/Refinable";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
 
 export interface PartialOffer
@@ -29,7 +27,7 @@ export interface PartialOffer
 
 export class BasicOffer {
   constructor(
-    protected readonly refinable: RefinableBaseClient<any>,
+    protected readonly refinable: Refinable,
     protected _offer: PartialOffer
   ) {}
 
@@ -87,7 +85,7 @@ export class BasicOffer {
   protected get whitelistVoucher(): WhitelistVoucherParams | null {
     if (!this._offer.whitelistVoucher) return null;
 
-    delete this._offer.whitelistVoucher.__typename;
+    delete (this._offer.whitelistVoucher as any).__typename;
 
     return {
       ...this._offer.whitelistVoucher,
@@ -104,7 +102,7 @@ export class BasicOffer {
 
 export class Offer extends BasicOffer {
   constructor(
-    protected readonly refinable: RefinableBaseClient,
+    protected readonly refinable: Refinable,
     protected _offer: PartialOffer,
     protected readonly nft?: AbstractNFT
   ) {
