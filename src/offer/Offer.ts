@@ -45,7 +45,7 @@ export class BasicOffer {
 
   get price() {
     const amount =
-      this._offer.launchpadDetails?.currentStage.price ??
+      this.currentStage?.price ??
       this._offer.price.amount;
 
     return {
