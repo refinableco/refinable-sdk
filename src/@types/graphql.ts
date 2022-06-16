@@ -89,6 +89,7 @@ export type AuthUser = {
   profileImage?: Maybe<Scalars["String"]>;
   receivedComRewards: Scalars["Float"];
   roles?: Maybe<Array<UserRoles>>;
+  stores: Array<Store>;
   twitter?: Maybe<Scalars["String"]>;
   verified?: Maybe<Scalars["Boolean"]>;
   website?: Maybe<Scalars["String"]>;
@@ -451,8 +452,10 @@ export type FeesInput = {
 };
 
 export type FiatCheckoutWidgetData = {
-  externalTransactionId: Scalars["String"];
-  url: Scalars["String"];
+  canPurchaseBeExecuted: Scalars["Boolean"];
+  externalTransactionId?: Maybe<Scalars["String"]>;
+  gasEstimate?: Maybe<Price>;
+  url?: Maybe<Scalars["String"]>;
 };
 
 export enum FileType {
@@ -886,6 +889,7 @@ export type MintOffer = Offer & {
   blockchainId?: Maybe<Scalars["String"]>;
   chainId: Scalars["Int"];
   contract?: Maybe<ContractOutput>;
+  contractAddress: Scalars["String"];
   createdAt?: Maybe<Scalars["DateTime"]>;
   description?: Maybe<Scalars["String"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
@@ -1105,9 +1109,11 @@ export enum NotificationType {
   BidderWonAuctionNotification = "BIDDER_WON_AUCTION_NOTIFICATION",
   BidOutbidHighestBidderNotification = "BID_OUTBID_HIGHEST_BIDDER_NOTIFICATION",
   BidReceivedNotification = "BID_RECEIVED_NOTIFICATION",
+  ItemMintedNotification = "ITEM_MINTED_NOTIFICATION",
   ItemPurchasedNotification = "ITEM_PURCHASED_NOTIFICATION",
   ItemSoldNotification = "ITEM_SOLD_NOTIFICATION",
   NotifyOwnerOnCloseNotification = "NOTIFY_OWNER_ON_CLOSE_NOTIFICATION",
+  NotifySellerItemMintedNotification = "NOTIFY_SELLER_ITEM_MINTED_NOTIFICATION",
   RemindToCloseAuctionNotification = "REMIND_TO_CLOSE_AUCTION_NOTIFICATION",
 }
 
@@ -1126,6 +1132,7 @@ export type Offer = {
   blockchainId?: Maybe<Scalars["String"]>;
   chainId: Scalars["Int"];
   contract?: Maybe<ContractOutput>;
+  contractAddress: Scalars["String"];
   createdAt?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
@@ -1430,6 +1437,7 @@ export type SaleOffer = Offer & {
   blockchainId?: Maybe<Scalars["String"]>;
   chainId: Scalars["Int"];
   contract?: Maybe<ContractOutput>;
+  contractAddress: Scalars["String"];
   createdAt?: Maybe<Scalars["DateTime"]>;
   endTime?: Maybe<Scalars["DateTime"]>;
   id: Scalars["String"];
@@ -1733,6 +1741,7 @@ export type User = {
   profileImage?: Maybe<Scalars["String"]>;
   receivedComRewards: Scalars["Float"];
   roles?: Maybe<Array<UserRoles>>;
+  stores: Array<Store>;
   twitter?: Maybe<Scalars["String"]>;
   verified?: Maybe<Scalars["Boolean"]>;
   website?: Maybe<Scalars["String"]>;
@@ -2223,6 +2232,7 @@ export type Offer_MintOffer_Fragment = {
   totalSupply: number;
   startTime?: any | null | undefined;
   endTime?: any | null | undefined;
+  contractAddress: string;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
   whitelistStage: LaunchpadCountDownType;
@@ -2307,6 +2317,7 @@ export type Offer_SaleOffer_Fragment = {
   totalSupply: number;
   startTime?: any | null | undefined;
   endTime?: any | null | undefined;
+  contractAddress: string;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
   whitelistStage: LaunchpadCountDownType;
@@ -2393,15 +2404,6 @@ export type MintOfferFragment = {
     | {
         fileUrl?: string | null | undefined;
         imagePreview?: string | null | undefined;
-      }
-    | null
-    | undefined;
-  contract?:
-    | {
-        contractAddress: string;
-        contractABI: string;
-        type: string;
-        chainId: number;
       }
     | null
     | undefined;
@@ -2547,6 +2549,7 @@ export type GetOfferQuery = {
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
+        contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
@@ -2566,15 +2569,6 @@ export type GetOfferQuery = {
           | {
               fileUrl?: string | null | undefined;
               imagePreview?: string | null | undefined;
-            }
-          | null
-          | undefined;
-        contract?:
-          | {
-              contractAddress: string;
-              contractABI: string;
-              type: string;
-              chainId: number;
             }
           | null
           | undefined;
@@ -2659,6 +2653,7 @@ export type GetOfferQuery = {
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
+        contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
@@ -2945,6 +2940,7 @@ export type CreateOfferForEditionsMutation = {
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
+        contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
@@ -3028,6 +3024,7 @@ export type CreateOfferForEditionsMutation = {
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
+        contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
@@ -3120,6 +3117,7 @@ export type CreateMintOfferMutation = {
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
+        contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
@@ -3203,15 +3201,6 @@ export type CreateMintOfferMutation = {
             }
           | null
           | undefined;
-        contract?:
-          | {
-              contractAddress: string;
-              contractABI: string;
-              type: string;
-              chainId: number;
-            }
-          | null
-          | undefined;
       }
     | {
         id: string;
@@ -3222,6 +3211,7 @@ export type CreateMintOfferMutation = {
         totalSupply: number;
         startTime?: any | null | undefined;
         endTime?: any | null | undefined;
+        contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
         whitelistStage: LaunchpadCountDownType;
