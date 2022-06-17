@@ -1,3 +1,4 @@
+import { TransactionResponse } from "@ethersproject/providers";
 import { BigNumber, Contract, ethers } from "ethers";
 import { Stream } from "form-data";
 import { RefinableEvmClient } from "..";
@@ -233,6 +234,45 @@ export class MintOffer extends BasicOffer {
         : this._offer.price.amount;
     const priceTimesAmount = price * amountToClaim;
 
+    // Add allows as much as the price requests
+    await this.refinableEvmClient.account.approveTokenContractAllowance(
+      this._chain.getCurrency(this._offer.price.currency),
+      priceTimesAmount,
+      contract.address
+    );
+
+    const { method, args } = this.getBuyTxParams({
+      recipient: params.recipient,
+      amount: amountToClaim,
+    });
+
+    const claimTx:TransactionResponse = await contract[method](...args);
+
+    return new EvmTransaction(claimTx);
+  }
+
+  public async estimateGasBuy(params: BuyParams = {}) {
+    const contract = await this.getContract();
+
+    const { method, args } = this.getBuyTxParams({
+      recipient: params.recipient,
+      amount: params.amount,
+    });
+
+    return await contract.estimateGas[method](...args);
+  }
+
+  private getBuyTxParams(params: { recipient?: string; amount?: number }) {
+    const mintVoucher = this.getMintVoucher();
+    const amount = params.amount ?? 1;
+    const recipient = params.recipient ?? this.refinable.accountAddress;
+
+    const price =
+      this.whitelistVoucher?.price > 0
+        ? this.whitelistVoucher?.price
+        : this._offer.price.amount;
+    const priceTimesAmount = price * amount;
+
     const parsedPrice = this._chain.parseCurrency(
       this._offer.price.currency,
       priceTimesAmount
@@ -243,29 +283,17 @@ export class MintOffer extends BasicOffer {
       this.whitelistVoucher?.price ?? 0
     );
 
-    // Add allows as much as the price requests
-    await this.refinableEvmClient.account.approveTokenContractAllowance(
-      this._chain.getCurrency(this._offer.price.currency),
-      priceTimesAmount,
-      contract.address
-    );
-
     const isNativeCurrency = this._chain.isNativeCurrency(
       this._offer.price.currency
     );
 
-    const mintVoucher = this.getMintVoucher();
-
-    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
-    const method = this.whitelistVoucher ? "claimWithVoucher" : "claim";
-
-    const claimTx = await contract[method](
+    const args = [
       // LibMintVoucher.MintVoucher calldata mintVoucher
       mintVoucher,
       // address recipient
-      params.recipient ?? this.refinable.accountAddress,
+      recipient,
       // uint256 numberOfTokens
-      amountToClaim,
+      amount,
       // WhitelistVoucherParams memory voucher - optional
       ...optionalParam(this.whitelistVoucher != null, {
         ...this.whitelistVoucher,
@@ -274,10 +302,16 @@ export class MintOffer extends BasicOffer {
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {
         value: parsedPrice,
-      })
-    );
+      }),
+    ];
 
-    return new EvmTransaction(claimTx);
+    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
+    const method = this.whitelistVoucher ? "claimWithVoucher" : "claim";
+
+    return {
+      args,
+      method,
+    };
   }
 
   public async getRemaining(recipient?: string): Promise<number> {
@@ -323,7 +357,7 @@ export class MintOffer extends BasicOffer {
     }
 
     const contract = await this.refinableEvmClient.contracts.findContract({
-      contractAddress: this.offer.contract.contractAddress,
+      contractAddress: this.offer.contractAddress,
       chainId: this.chainId,
     });
 

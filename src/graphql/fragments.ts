@@ -131,6 +131,7 @@ export const OfferFragment = gql`
     totalSupply
     startTime
     endTime
+    contractAddress
     user {
       id
       ethAddress
@@ -180,12 +181,6 @@ export const MintOfferFragment = gql`
     previewFile {
       fileUrl
       imagePreview
-    }
-    contract {
-      contractAddress
-      contractABI
-      type
-      chainId
     }
   }
 `;

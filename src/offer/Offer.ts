@@ -10,6 +10,7 @@ export interface PartialOffer
     | "id"
     | "type"
     | "signature"
+    | "contractAddress"
     | "price"
     | "user"
     | "totalSupply"

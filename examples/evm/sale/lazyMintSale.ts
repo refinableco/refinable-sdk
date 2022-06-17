@@ -17,9 +17,9 @@ async function main() {
 
     const mintOffer = await refinable.offer.createMintOffer();
     const offer = await mintOffer.putForSale({
-      contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
+      contractAddress: "0xE4a3a3A544c28264858d487E6A429AfFE35F7993",
       price: {
-        amount: 0.08,
+        amount: 0.01,
         currency: PriceCurrency.Bnb,
       },
       startTime: new Date(),
