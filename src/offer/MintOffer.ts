@@ -241,7 +241,7 @@ export class MintOffer extends BasicOffer {
       contract.address
     );
 
-    const { method, args } = this.getBuyTxparams({
+    const { method, args } = this.getBuyTxParams({
       recipient: params.recipient,
       amount: amountToClaim,
     });
@@ -254,7 +254,7 @@ export class MintOffer extends BasicOffer {
   public async estimateGasBuy(params: BuyParams = {}) {
     const contract = await this.getContract();
 
-    const { method, args } = this.getBuyTxparams({
+    const { method, args } = this.getBuyTxParams({
       recipient: params.recipient,
       amount: params.amount,
     });
@@ -262,7 +262,7 @@ export class MintOffer extends BasicOffer {
     return await contract.estimateGas[method](...args);
   }
 
-  private getBuyTxparams(params: { recipient?: string; amount?: number }) {
+  private getBuyTxParams(params: { recipient?: string; amount?: number }) {
     const mintVoucher = this.getMintVoucher();
     const amount = params.amount ?? 1;
     const recipient = params.recipient ?? this.refinable.accountAddress;
