@@ -53,7 +53,7 @@ export class RefinableEvmClient {
     options: RefinableOptions,
     private readonly refinableClient: Refinable
   ) {
-    this.options = _.merge(this.options, options);
+    this.options = _.merge(this.options, options.evm);
 
     this.account = new EvmAccount(refinableClient);
     this.contracts = new Contracts(refinableClient);
