@@ -9,7 +9,8 @@ import {
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
-import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
+import { Refinable } from "../refinable/Refinable";
+import { RefinableEvmClient } from "../refinable/client/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
@@ -17,7 +18,10 @@ import { ERCSaleID } from "./ERCSaleId";
 import { SaleVersion } from "./interfaces/SaleInfo";
 
 export class ERC721NFT extends AbstractEvmNFT {
-  constructor(refinable: RefinableEvmClient, item: PartialNFTItem) {
+  constructor(
+    refinable: Refinable,
+    item: PartialNFTItem
+  ) {
     super(TokenType.Erc721, refinable, item);
   }
 
@@ -128,7 +132,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       isV2: true,
     });
 
-    const signedHash = await this.refinable.personalSign(
+    const signedHash = await this.refinable.account.sign(
       saleParamsHash as string
     );
 
@@ -156,7 +160,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       },
     });
 
-    return this.refinable.createOffer<SaleOffer>(
+    return this.refinable.offer.createOffer<SaleOffer>(
       result.createOfferForItems,
       this
     );

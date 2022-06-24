@@ -8,7 +8,7 @@ import {
   initializeWallet,
   NotEnoughSupplyError,
   PriceCurrency,
-  RefinableEvmClient,
+  Refinable,
   SaleOffer,
   StandardRoyaltyStrategy,
 } from "../../src";
@@ -16,12 +16,13 @@ import {
   LaunchpadCountDownType,
   WhitelistType,
 } from "../../src/@types/graphql";
+import { ClientType } from "../../src/refinable/Refinable";
 
-const createNft = async (refinable: RefinableEvmClient) => {
+const createNft = async (refinable: Refinable) => {
   const fileStream = fs.createReadStream(
     path.resolve(__dirname, "../assets/image.jpg")
   );
-  return await refinable
+  return await refinable.evm
     .nftBuilder()
     .erc721({
       nftFile: fileStream,
@@ -34,8 +35,8 @@ const createNft = async (refinable: RefinableEvmClient) => {
 };
 
 describe("ERC721 - E2E", () => {
-  let refinable: RefinableEvmClient;
-  let refinable2: RefinableEvmClient;
+  let refinable: Refinable;
+  let refinable2: Refinable;
   const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
   const API_KEY = process.env.API_KEY as string;
   const PRIVATE_KEY_2 = process.env.PRIVATE_KEY_2 as string;
@@ -44,19 +45,26 @@ describe("ERC721 - E2E", () => {
   const wallet2 = initializeWallet(PRIVATE_KEY_2, Chain.Local);
 
   beforeAll(async () => {
-    refinable = await RefinableEvmClient.create(wallet, API_KEY, {
-      waitConfirmations: 1,
+    refinable = await Refinable.create(API_KEY, {
       environment: Environment.Local,
+      evm: {
+        waitConfirmations: 1,
+      },
     });
-    refinable2 = await RefinableEvmClient.create(wallet2, API_KEY_2, {
-      waitConfirmations: 1,
+
+    await refinable.connect(ClientType.Evm, wallet);
+
+    refinable2 = await Refinable.create(API_KEY_2, {
       environment: Environment.Local,
+      evm: {
+        waitConfirmations: 1,
+      },
     });
+
+    await refinable2.connect(ClientType.Evm, wallet2);
   });
 
   it("should get the current instance", async () => {
-    const apiKey = refinable.apiKey;
-    expect(apiKey).toBeDefined();
     const currentChainId = await refinable.provider.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });
@@ -65,7 +73,7 @@ describe("ERC721 - E2E", () => {
     const fileStream = fs.createReadStream(
       path.resolve(__dirname, "../assets/image.jpg")
     );
-    const nft = await refinable
+    const nft = await refinable.evm
       .nftBuilder()
       .erc721({
         nftFile: fileStream,
@@ -87,7 +95,7 @@ describe("ERC721 - E2E", () => {
     const videoFileStream = fs.createReadStream(
       path.resolve(__dirname, "../assets/video.mp4")
     );
-    const nft = await refinable
+    const nft = await refinable.evm
       .nftBuilder()
       .erc721({
         nftFile: videoFileStream,
@@ -109,7 +117,7 @@ describe("ERC721 - E2E", () => {
         path.resolve(__dirname, "../assets/image.jpg")
       );
       const address = await wallet.getAddress();
-      const nft = await refinable
+      const nft = await refinable.evm
         .nftBuilder()
         .erc721({
           nftFile: fileStream,
@@ -139,7 +147,7 @@ describe("ERC721 - E2E", () => {
           path.resolve(__dirname, "../assets/image.jpg")
         );
         address = await wallet.getAddress();
-        nft = await refinable
+        nft = await refinable.evm
           .nftBuilder()
           .erc721({
             nftFile: fileStream,
@@ -157,7 +165,7 @@ describe("ERC721 - E2E", () => {
         };
         const itemOnSale = await nft.putForSale({ price });
 
-        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer<SaleOffer>(itemOnSale.id);
         const txnResponse = await offer.buy(price);
         expect(txnResponse).toBeDefined();
         const txnReceipt = await txnResponse.wait();
@@ -171,7 +179,7 @@ describe("ERC721 - E2E", () => {
         };
         const itemOnSale = await nft.putForSale({ price });
 
-        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer<SaleOffer>(itemOnSale.id);
         const txnResponse = await offer.buy(price);
         const txnReceipt = await txnResponse.wait();
         expect(txnReceipt.success).toEqual(true);
@@ -205,7 +213,7 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
 
@@ -233,7 +241,7 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer<SaleOffer>(itemOnSale.id);
 
         expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
@@ -264,7 +272,7 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer<SaleOffer>(itemOnSale.id);
 
         expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Live);
 
@@ -296,7 +304,7 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
       });
@@ -323,7 +331,7 @@ describe("ERC721 - E2E", () => {
           },
         });
 
-        const offer = await refinable2.getOffer<SaleOffer>(itemOnSale.id);
+        const offer = await refinable2.offer.getOffer<SaleOffer>(itemOnSale.id);
 
         expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
 
@@ -341,7 +349,7 @@ describe("ERC721 - E2E", () => {
           path.resolve(__dirname, "../assets/image.jpg")
         );
         address = await wallet.getAddress();
-        nft = await refinable
+        nft = await refinable.evm
           .nftBuilder()
           .erc721({
             nftFile: fileStream,
@@ -373,7 +381,7 @@ describe("ERC721 - E2E", () => {
         path.resolve(__dirname, "../assets/image.jpg")
       );
       address = await wallet.getAddress();
-      nft = await refinable
+      nft = await refinable.evm
         .nftBuilder()
         .erc721({
           nftFile: fileStream,

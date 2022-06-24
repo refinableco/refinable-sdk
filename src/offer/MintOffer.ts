@@ -1,3 +1,4 @@
+import { TransactionResponse } from "@ethersproject/providers";
 import { BigNumber, Contract, ethers } from "ethers";
 import { Stream } from "form-data";
 import { RefinableEvmClient } from "..";
@@ -16,7 +17,7 @@ import { ERCSaleID } from "../nft/ERCSaleId";
 import { MintVoucher } from "../nft/interfaces/MintVoucher";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
@@ -27,6 +28,7 @@ interface BuyParams {
   amount?: number;
   recipient?: string;
 }
+
 export interface PutForSaleParams {
   contractAddress: string;
   price: Price;
@@ -37,7 +39,7 @@ export interface PutForSaleParams {
   previewImage?: Stream;
   name?: string;
   description?: string;
-  payee: string;
+  payee?: string;
 }
 
 export class MintOffer extends BasicOffer {
@@ -45,12 +47,17 @@ export class MintOffer extends BasicOffer {
   private _contract: ethers.Contract;
 
   constructor(
-    protected readonly refinable: RefinableBaseClient,
-    protected readonly chainId: number,
+    protected readonly refinable: Refinable,
+    protected readonly refinableEvmClient: RefinableEvmClient,
+    chainId: number,
     protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
     super(refinable, offer);
     this._chain = new Chain(chainId);
+  }
+
+  get chainId() {
+    return this._chain.chainId;
   }
 
   public async putForSale(params: PutForSaleParams): Promise<this> {
@@ -63,7 +70,7 @@ export class MintOffer extends BasicOffer {
       supply,
       name,
       description,
-      payee,
+      payee = this.refinable.accountAddress,
     } = params;
 
     // validate launchpad
@@ -227,6 +234,45 @@ export class MintOffer extends BasicOffer {
         : this._offer.price.amount;
     const priceTimesAmount = price * amountToClaim;
 
+    // Add allows as much as the price requests
+    await this.refinableEvmClient.account.approveTokenContractAllowance(
+      this._chain.getCurrency(this._offer.price.currency),
+      priceTimesAmount,
+      contract.address
+    );
+
+    const { method, args } = this.getBuyTxParams({
+      recipient: params.recipient,
+      amount: amountToClaim,
+    });
+
+    const claimTx:TransactionResponse = await contract[method](...args);
+
+    return new EvmTransaction(claimTx);
+  }
+
+  public async estimateGasBuy(params: BuyParams = {}) {
+    const contract = await this.getContract();
+
+    const { method, args } = this.getBuyTxParams({
+      recipient: params.recipient,
+      amount: params.amount,
+    });
+
+    return await contract.estimateGas[method](...args);
+  }
+
+  private getBuyTxParams(params: { recipient?: string; amount?: number }) {
+    const mintVoucher = this.getMintVoucher();
+    const amount = params.amount ?? 1;
+    const recipient = params.recipient ?? this.refinable.accountAddress;
+
+    const price =
+      this.whitelistVoucher?.price > 0
+        ? this.whitelistVoucher?.price
+        : this._offer.price.amount;
+    const priceTimesAmount = price * amount;
+
     const parsedPrice = this._chain.parseCurrency(
       this._offer.price.currency,
       priceTimesAmount
@@ -237,31 +283,17 @@ export class MintOffer extends BasicOffer {
       this.whitelistVoucher?.price ?? 0
     );
 
-    // Add allows as much as the price requests
-    await (
-      this.refinable as RefinableEvmClient
-    ).account.approveTokenContractAllowance(
-      this._chain.getCurrency(this._offer.price.currency),
-      priceTimesAmount,
-      contract.address
-    );
-
     const isNativeCurrency = this._chain.isNativeCurrency(
       this._offer.price.currency
     );
 
-    const mintVoucher = this.getMintVoucher();
-
-    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
-    const method = this.whitelistVoucher ? "claimWithVoucher" : "claim";
-
-    const claimTx = await contract[method](
+    const args = [
       // LibMintVoucher.MintVoucher calldata mintVoucher
       mintVoucher,
       // address recipient
-      params.recipient ?? this.refinable.accountAddress,
+      recipient,
       // uint256 numberOfTokens
-      amountToClaim,
+      amount,
       // WhitelistVoucherParams memory voucher - optional
       ...optionalParam(this.whitelistVoucher != null, {
         ...this.whitelistVoucher,
@@ -270,10 +302,16 @@ export class MintOffer extends BasicOffer {
       // If currency is Native, send msg.value
       ...optionalParam(isNativeCurrency, {
         value: parsedPrice,
-      })
-    );
+      }),
+    ];
 
-    return new EvmTransaction(claimTx);
+    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
+    const method = this.whitelistVoucher ? "claimWithVoucher" : "claim";
+
+    return {
+      args,
+      method,
+    };
   }
 
   public async getRemaining(recipient?: string): Promise<number> {
@@ -318,10 +356,8 @@ export class MintOffer extends BasicOffer {
       throw new Error("Offer was not set");
     }
 
-    const contract = await (
-      this.refinable as RefinableEvmClient
-    ).contracts.findContract({
-      contractAddress: this.offer.contract.contractAddress,
+    const contract = await this.refinableEvmClient.contracts.findContract({
+      contractAddress: this.offer.contractAddress,
       chainId: this.chainId,
     });
 
@@ -334,9 +370,7 @@ export class MintOffer extends BasicOffer {
 
   get nonceContract(): Contract {
     // right now there are no plans for 1155 lazy mint
-    const saleNonceHolder = (
-      this.refinable as RefinableEvmClient
-    ).contracts.getBaseContract(
+    const saleNonceHolder = this.refinableEvmClient.contracts.getBaseContract(
       this.chainId,
       `${TokenType.Erc721}_SALE_NONCE_HOLDER`
     );

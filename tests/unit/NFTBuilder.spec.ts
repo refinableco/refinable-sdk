@@ -2,7 +2,7 @@ import {
   Chain,
   ERC721NFT,
   NFTBuilder,
-  RefinableEvmClient,
+  Refinable,
   StandardRoyaltyStrategy,
   TokenType,
 } from "../../src";
@@ -12,13 +12,10 @@ import {
   CreateItemMutation,
 } from "../../src/@types/graphql";
 import { Contract, IContract } from "../../src/Contract";
-import { getMockRefinableEvmClient } from "../helpers/client";
+import { getMockRefinableClient } from "../helpers/client";
 import { ETH_TX_RESPONSE } from "./Transactions.spec";
 
-const getContract = (
-  refinable: RefinableEvmClient,
-  override: Partial<IContract> = {}
-) =>
+const getContract = (refinable: Refinable, override: Partial<IContract> = {}) =>
   new Contract(refinable, {
     tags: [ContractTag.TokenV1_0_0],
     chainId: 1,
@@ -52,11 +49,11 @@ const ITEM_CREATE_RESPONSE: CreateItemMutation["createItem"] = {
 };
 
 describe("NFTBuilder", () => {
-  let refinable: RefinableEvmClient;
+  let refinable: Refinable;
   const ETH_ADDRESS = "0x898de23b24C7C2189488079a6871C711Dd125504";
 
   beforeAll(async () => {
-    refinable = getMockRefinableEvmClient(ETH_ADDRESS);
+    refinable = getMockRefinableClient(ETH_ADDRESS);
   });
 
   let erc721Builder: NFTBuilder;
@@ -146,7 +143,7 @@ describe("NFTBuilder", () => {
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -193,7 +190,7 @@ describe("NFTBuilder", () => {
       });
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -229,7 +226,7 @@ describe("NFTBuilder", () => {
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -266,7 +263,7 @@ describe("NFTBuilder", () => {
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -315,7 +312,7 @@ describe("NFTBuilder", () => {
         });
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -358,11 +355,11 @@ describe("NFTBuilder", () => {
         });
 
       jest
-        .spyOn(refinable.contracts, "getDefaultTokenContract")
+        .spyOn(refinable.evm.contracts, "getDefaultTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -397,7 +394,7 @@ describe("NFTBuilder", () => {
         });
 
       jest
-        .spyOn(refinable.contracts, "getMintableTokenContract")
+        .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
       jest
@@ -407,7 +404,7 @@ describe("NFTBuilder", () => {
       const nft = await builder.createAndMint();
 
       expect(
-        refinable.contracts.getDefaultTokenContract
+        refinable.evm.contracts.getDefaultTokenContract
       ).not.toHaveBeenCalled();
       expect(nft).toBeInstanceOf(ERC721NFT);
       expect(nft.getItem().tokenId).toBe(ITEM.tokenId);

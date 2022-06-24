@@ -16,7 +16,8 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { LibPart } from "../interfaces/LibPart";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
-import { RefinableEvmClient } from "../refinable/RefinableEvmClient";
+import { Refinable } from "../refinable/Refinable";
+import { RefinableEvmClient } from "../refinable/client/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getSupportedCurrency, parseBPS } from "../utils/chain";
@@ -47,13 +48,15 @@ const auctionTypes = [
 export abstract class AbstractEvmNFT extends AbstractNFT {
   protected _item: PartialNFTItem;
   private nftTokenContract: Contract | null;
+  protected readonly refinableEvmClient: RefinableEvmClient;
 
   constructor(
     public type: EvmTokenType,
-    protected readonly refinable: RefinableEvmClient,
+    protected readonly refinable: Refinable,
     protected item: PartialNFTItem
   ) {
     super(type, refinable, item);
+    this.refinableEvmClient = refinable.evm;
   }
 
   async getSaleId() {
@@ -74,7 +77,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   get saleContract(): Contract {
-    const sale = this.refinable.contracts.getBaseContract(
+    const sale = this.refinableEvmClient.contracts.getBaseContract(
       this.item.chainId,
       ContractTypes.Sale
     );
@@ -83,7 +86,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   get auctionContract(): Contract {
-    const auction = this.refinable.contracts.getBaseContract(
+    const auction = this.refinableEvmClient.contracts.getBaseContract(
       this.item.chainId,
       ContractTypes.Auction
     );
@@ -92,7 +95,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   get nonceContract(): Contract {
-    const saleNonceHolder = this.refinable.contracts.getBaseContract(
+    const saleNonceHolder = this.refinableEvmClient.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_SALE_NONCE_HOLDER`
     );
@@ -101,7 +104,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   get transferProxyContract(): Contract {
-    const transferProxy = this.refinable.contracts.getBaseContract(
+    const transferProxy = this.refinableEvmClient.contracts.getBaseContract(
       this.item.chainId,
       `TRANSFER_PROXY`
     );
@@ -110,7 +113,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   get airdropContract(): Contract | null {
-    const airdrop = this.refinable.contracts.getBaseContract(
+    const airdrop = this.refinableEvmClient.contracts.getBaseContract(
       this.item.chainId,
       `${this.type}_AIRDROP`
     );
@@ -127,7 +130,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       : [ContractTypes.Erc721Token, ContractTypes.Erc721WhitelistedToken];
 
     const nftTokenContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinableEvmClient.contracts.getRefinableContract(
         this.item.chainId,
         this.item.contractAddress,
         type
@@ -217,7 +220,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     await this.approveIfNeeded(this.auctionContract.address);
 
     const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinableEvmClient.contracts.getRefinableContract(
         this.item.chainId,
         this.auctionContract.address,
         auctionTypes
@@ -264,10 +267,10 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       );
 
     await blockchainAuctionResponse.wait(
-      this.refinable.options.waitConfirmations
+      this.refinableEvmClient.options.waitConfirmations
     );
 
-    const offer = this.refinable.createOffer<AuctionOffer>(
+    const offer = this.refinable.offer.createOffer<AuctionOffer>(
       result.createOfferForItems,
       this
     );
@@ -288,7 +291,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       marketConfig.buyServiceFeeBps.value
     );
 
-    await this.refinable.account.approveTokenContractAllowance(
+    await this.refinableEvmClient.account.approveTokenContractAllowance(
       this.getCurrency(priceWithServiceFee.currency),
       priceWithServiceFee.amount,
       auctionContractAddress
@@ -308,7 +311,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     );
 
     const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinable.evm.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
         auctionTypes
@@ -346,7 +349,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   async getAuctionId(auctionContractAddress: string): Promise<string> {
     const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinable.evm.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
         auctionTypes
@@ -374,7 +377,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     ownerEthAddress?: string
   ): Promise<EvmTransaction> {
     const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinable.evm.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
         auctionTypes
@@ -412,7 +415,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       params;
 
     const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinable.evm.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
         auctionTypes
@@ -489,7 +492,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     marketConfigData: string = "0x",
     marketConfigDataSignature: string = "0x"
   ): Promise<number> {
-    const sale = this.refinable.contracts.getBaseContract(
+    const sale = this.refinable.evm.contracts.getBaseContract(
       this.item.chainId,
       ContractTypes.ServiceFeeV2
     );
@@ -498,7 +501,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       .toEthersContract()
       .getServiceFees(
         FeeType.BUY,
-        this.refinable.account,
+        this.refinable.accountAddress,
         contractAddress,
         marketConfigData,
         marketConfigDataSignature
@@ -514,7 +517,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   async getMinBidIncrement(auctionContractAddress: string): Promise<number> {
     const currentAuctionContract =
-      await this.refinable.contracts.getRefinableContract(
+      await this.refinable.evm.contracts.getRefinableContract(
         this.item.chainId,
         auctionContractAddress,
         auctionTypes
@@ -535,7 +538,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     operatorAddress: string
   ): Promise<Transaction | null> {
     const isContractDeployed =
-      await this.refinable.contracts.isContractDeployed(operatorAddress);
+      await this.refinable.evm.contracts.isContractDeployed(operatorAddress);
 
     if (!isContractDeployed) {
       throw new Error(
@@ -549,7 +552,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       const approvalResult = await this.approve(operatorAddress);
 
       // Wait for confirmations
-      await approvalResult.wait(this.refinable.options.waitConfirmations);
+      await approvalResult.wait(
+        this.refinableEvmClient.options.waitConfirmations
+      );
 
       return approvalResult;
     }
@@ -598,7 +603,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         amount
       );
 
-    await this.refinable.account.approveTokenContractAllowance(
+    await this.refinableEvmClient.account.approveTokenContractAllowance(
       this.getCurrency(priceWithServiceFee.currency),
       priceWithServiceFee.amount,
       this.saleContract.address

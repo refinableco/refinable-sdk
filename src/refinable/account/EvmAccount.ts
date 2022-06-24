@@ -3,19 +3,23 @@ import { Contract, ethers } from "ethers";
 import { Account } from "../../interfaces/Account";
 import { NativeCurrency } from "../../interfaces/Config";
 import EvmTransaction from "../../transaction/EvmTransaction";
-import { RefinableEvmClient } from "../RefinableEvmClient";
+import { Refinable } from "../Refinable";
 
 export default class EvmAccount implements Account {
-  constructor(
-    private readonly ethAddress: string,
-    private readonly refinable: RefinableEvmClient
-  ) {}
+  constructor(protected readonly refinable: Refinable) {}
+
+  async getAddress(): Promise<string> {
+    return this.refinable.provider.getAddress();
+  }
 
   /**
    * Balance of Any Token (converted from wei).
    * @return {Promise<string>}
    */
-  public async getTokenBalance(tokenAddress: string): Promise<string> {
+  public async getTokenBalance(
+    tokenAddress: string,
+    userEthAddress?: string
+  ): Promise<string> {
     if (tokenAddress == null) return null;
 
     let result = null;
@@ -47,7 +51,9 @@ export default class EvmAccount implements Account {
         ],
         this.refinable.provider
       );
-      const balance = await token.balanceOf(this.ethAddress);
+      const balance = await token.balanceOf(
+        userEthAddress ?? this.refinable.accountAddress
+      );
       result = ethers.utils.formatUnits(balance, decimals);
     } catch (e) {
       console.error(`ERROR: Failed to get the balance: ${e.message}`);
@@ -88,9 +94,14 @@ export default class EvmAccount implements Account {
    * Balance of Native currency.(converted from wei).
    * @return {Promise<string>}
    */
-  public async getBalance(chainId?: number): Promise<string> {
+  public async getBalance(
+    chainId?: number,
+    userEthAddress?: string
+  ): Promise<string> {
     const getBalancePromise = chainId
-      ? this.refinable.getProviderByChainId(chainId).getBalance(this.ethAddress)
+      ? this.refinable.evm
+          .getProviderByChainId(chainId)
+          .getBalance(userEthAddress ?? this.refinable.accountAddress)
       : this.refinable.provider.getBalance();
 
     const result = await getBalancePromise;
@@ -128,7 +139,7 @@ export default class EvmAccount implements Account {
     );
 
     // Wait for 1 confirmation
-    await approvalResult.wait(this.refinable.options.waitConfirmations);
+    await approvalResult.wait(this.refinable.evm.options.waitConfirmations);
 
     return new EvmTransaction(approvalResult);
   }

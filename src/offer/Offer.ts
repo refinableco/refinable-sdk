@@ -1,10 +1,7 @@
 import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
-import {
-  WhitelistType,
-  WhitelistVoucherParams,
-} from "../nft/interfaces/Voucher";
-import { RefinableBaseClient } from "../refinable/RefinableBaseClient";
+import { WhitelistVoucherParams } from "../nft/interfaces/Voucher";
+import { Refinable } from "../refinable/Refinable";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
 
 export interface PartialOffer
@@ -13,6 +10,7 @@ export interface PartialOffer
     | "id"
     | "type"
     | "signature"
+    | "contractAddress"
     | "price"
     | "user"
     | "totalSupply"
@@ -22,13 +20,15 @@ export interface PartialOffer
     | "endTime"
     | "whitelistStage"
     | "whitelistVoucher"
+    | "launchpadDetails"
     | "marketConfig"
     | "supply"
+    | "chainId"
   > {}
 
 export class BasicOffer {
   constructor(
-    protected readonly refinable: RefinableBaseClient<any>,
+    protected readonly refinable: Refinable,
     protected _offer: PartialOffer
   ) {}
 
@@ -40,8 +40,19 @@ export class BasicOffer {
     return this._offer.type;
   }
 
+  get chainId() {
+    return this._offer.chainId;
+  }
+
   get price() {
-    return this._offer.price;
+    const amount =
+      this.currentStage?.price ??
+      this._offer.price.amount;
+
+    return {
+      currency: this._offer.price.currency,
+      amount,
+    };
   }
 
   get supply() {
@@ -68,10 +79,14 @@ export class BasicOffer {
     return this._offer.whitelistStage;
   }
 
+  get currentStage() {
+    return this._offer.launchpadDetails?.currentStage;
+  }
+
   protected get whitelistVoucher(): WhitelistVoucherParams | null {
     if (!this._offer.whitelistVoucher) return null;
 
-    delete this._offer.whitelistVoucher.__typename;
+    delete (this._offer.whitelistVoucher as any).__typename;
 
     return {
       ...this._offer.whitelistVoucher,
@@ -88,7 +103,7 @@ export class BasicOffer {
 
 export class Offer extends BasicOffer {
   constructor(
-    protected readonly refinable: RefinableBaseClient,
+    protected readonly refinable: Refinable,
     protected _offer: PartialOffer,
     protected readonly nft?: AbstractNFT
   ) {

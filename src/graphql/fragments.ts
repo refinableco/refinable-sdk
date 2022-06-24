@@ -4,6 +4,7 @@ const saleInfoFragment = gql`
   fragment itemSaleInfo on Offer {
     id
     createdAt
+    chainId
     type
     supply
     price {
@@ -126,9 +127,11 @@ export const OfferFragment = gql`
     type
     active
     supply
+    chainId
     totalSupply
     startTime
     endTime
+    contractAddress
     user {
       id
       ethAddress
@@ -143,6 +146,14 @@ export const OfferFragment = gql`
       ...Auction
     }
     whitelistStage
+    launchpadDetails {
+      currentStage {
+        startTime
+        stage
+        price
+        isWhitelisted
+      }
+    }
     marketConfig(storeId: $storeId) {
       data
       signature
@@ -170,12 +181,6 @@ export const MintOfferFragment = gql`
     previewFile {
       fileUrl
       imagePreview
-    }
-    contract {
-      contractAddress
-      contractABI
-      type
-      chainId
     }
   }
 `;

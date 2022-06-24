@@ -12,6 +12,7 @@ generates:
       - "typescript"
       - "typescript-operations"
     config:
+      skipTypename: true
       exportFragmentSpreadSubTypes: true
       scalars:
         Long: number

@@ -1,7 +1,7 @@
-import { Contract as EthersContract, Signer, providers } from "ethers";
+import { Contract as EthersContract, providers, Signer } from "ethers";
 import semver from "semver";
-import { RefinableEvmClient } from "./refinable/RefinableEvmClient";
 import { ContractOutput, ContractTag, TokenType } from "./@types/graphql";
+import { Refinable } from "./refinable/Refinable";
 export interface IContract extends Omit<ContractOutput, "__typename"> {
   default?: boolean;
 }
@@ -14,7 +14,10 @@ export class Contract implements IContract {
   tags: ContractTag[];
   default: boolean = false;
 
-  constructor(private readonly refinable: RefinableEvmClient, params: IContract) {
+  constructor(
+    private readonly refinable: Refinable,
+    params: IContract
+  ) {
     Object.assign(this, params);
   }
 

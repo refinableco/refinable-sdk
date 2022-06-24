@@ -1,20 +1,21 @@
-import { RefinableEvmClient, TokenType } from "..";
+import { ContractFactory } from "ethers";
+import { TokenType } from "..";
 import {
+  CollectionInput,
   ContractTypes,
+  CreateContractMutation,
+  CreateContractMutationVariables,
+  GetCollectionBySlugQuery,
+  GetCollectionBySlugQueryVariables,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
+  GetTokenContractQuery,
+  GetTokenContractQueryVariables,
   RefinableContractQuery,
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  CreateContractMutation,
-  CreateContractMutationVariables,
   Token,
-  CollectionInput,
-  GetCollectionBySlugQuery,
-  GetCollectionBySlugQueryVariables,
-  GetTokenContractQuery,
-  GetTokenContractQueryVariables,
 } from "../@types/graphql";
 import {
   contractMetadata,
@@ -32,10 +33,10 @@ import {
   GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
-import { ContractFactory } from "ethers";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { optionalParam } from "../utils/utils";
 import { SdkCollectionInput } from "./interfaces/Contracts";
+import { Refinable } from "./Refinable";
 
 export class Contracts {
   private cachedContracts: {
@@ -52,7 +53,7 @@ export class Contracts {
 
   private initializing = false;
 
-  constructor(private readonly refinable: RefinableEvmClient) {}
+  constructor(private readonly refinable: Refinable) {}
 
   async initialize() {
     if (this.initializing) return;
@@ -65,11 +66,7 @@ export class Contracts {
     if (this.baseContracts?.[chainId]) {
       return this.baseContracts[chainId];
     }
-    const networkId = await this.refinable.provider.getChainId();
-    const tags = getContractsTags(
-      this.refinable.options.environment,
-      networkId
-    );
+    const tags = getContractsTags(this.refinable.options.environment);
 
     const { refinableContracts } = await this.refinable.apiClient.request<
       RefinableContractsQuery,

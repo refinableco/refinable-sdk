@@ -10,6 +10,9 @@ export type Options<T extends object> = RefinableOptions & T;
 
 export interface RefinableOptions {
   environment?: Environment;
+  headers?: Record<string, string>;
+  evm?: RefinableEvmOptions;
+  solana?: RefinableSolanaOptions;
 }
 
 export interface RefinableEvmOptions {

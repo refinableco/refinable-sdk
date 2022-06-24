@@ -1,5 +1,5 @@
 import { TransactionResponse } from "@ethersproject/providers";
-import { AbstractNFT, RefinableEvmClient, TokenType } from "../..";
+import { AbstractNFT, Refinable, RefinableEvmClient, TokenType } from "../..";
 import {
   CreateItemMutation,
   CreateItemMutationVariables,
@@ -26,7 +26,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
   public mintTransaction: TransactionResponse;
 
   constructor(
-    private readonly refinable: RefinableEvmClient,
+    private readonly refinable: Refinable,
     private buildData?: NftBuilderParams
   ) {}
 
@@ -130,7 +130,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       throw new Error("Item not created, please create first");
 
     const tokenContract =
-      await this.refinable.contracts.getMintableTokenContract(
+      await this.refinable.evm.contracts.getMintableTokenContract(
         this.item.chainId,
         this.item.contractAddress
       );
@@ -172,7 +172,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       ...mintArgs
     );
 
-    await result.wait(this.refinable.options.waitConfirmations);
+    await result.wait(this.refinable.evm.options.waitConfirmations);
 
     this.mintTransaction = result;
 
@@ -229,7 +229,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
   private async useDefaultMintContractIfUndefined() {
     if (!this.buildData.contractAddress) {
       const defaultContract =
-        await this.refinable.contracts.getDefaultTokenContract(
+        await this.refinable.evm.contracts.getDefaultTokenContract(
           this.buildData.chainId,
           this.buildData.type as TokenType
         );

@@ -14,7 +14,7 @@ async function main() {
 
   // SDK: mint nft
   const nft = await refinable
-    .nftBuilder()
+    .evm.nftBuilder()
     .erc1155({
       nftFile: fileStream,
       description: "some test description",

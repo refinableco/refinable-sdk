@@ -1,27 +1,13 @@
-import dotenv from "dotenv";
-import {
-  Chain,
-  Environment,
-  initializeWallet,
-  PriceCurrency,
-  RefinableEvmClient,
-} from "../../../src";
 import fs from "fs";
 import path from "path";
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-const PRIVATE_KEY = process.env.PRIVATE_KEY as string;
-const API_KEY = process.env.API_KEY as string;
+import { Chain, PriceCurrency } from "../../../src";
+import { createRefinableClient } from "../../shared";
 
 async function main() {
   const chainId = Chain.Local;
-  const wallet = initializeWallet(PRIVATE_KEY, chainId);
   try {
     // create wallet
-    const refinable = await RefinableEvmClient.create(wallet, API_KEY, {
-      waitConfirmations: 1,
-      environment: Environment.Local,
-    });
+    const refinable = await createRefinableClient(chainId);
 
     // create Mint offer
     //
@@ -31,13 +17,13 @@ async function main() {
 
     const mintOffer = await refinable.offer.createMintOffer();
     const offer = await mintOffer.putForSale({
-      contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
+      contractAddress: "0xE4a3a3A544c28264858d487E6A429AfFE35F7993",
       price: {
-        amount: 0.08,
+        amount: 0.01,
         currency: PriceCurrency.Bnb,
       },
       startTime: new Date(),
-      supply: 3,
+      supply: 100,
       previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",
