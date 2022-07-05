@@ -232,6 +232,9 @@ export const chainMap: Record<Chain, IChainConfig> = {
       },
     ],
   },
+  /**
+   * @deprecated
+   */
   [Chain.EthereumRinkeby]: {
     ...chainConfigBase,
     name: "Ethereum Rinkeby",
@@ -268,6 +271,28 @@ export const chainMap: Record<Chain, IChainConfig> = {
         symbol: "USDC",
         decimals: 18,
         address: "0xeb8f08a975ab53e34d8a0330e0d34de942c95926",
+      },
+    ],
+  },
+
+  [Chain.EthereumGoerli]:  {
+    ...chainConfigBase,
+    name: 'Ethereum Goerli',
+    displayName: 'Goerli',
+    shortName: 'Ethereum Goerli',
+    networkId: Chain.EthereumGoerli,
+    networkName: 'goerli',
+    networkType: NetworkType.TESTNET,
+    chainType: ChainType.ETH,
+    nodeUri: ['https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+    explorerUri: 'https://goerli.etherscan.io/',
+    supportedCurrencies: [
+      {
+        name: 'ETH',
+        symbol: 'ETH',
+        decimals: 18,
+        native: true,
+        address: '0x0000000000000000000000000000000000000000',
       },
     ],
   },

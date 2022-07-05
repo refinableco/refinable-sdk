@@ -23,6 +23,7 @@ export enum Chain {
   // Ethereum
   Ethereum = 1,
   EthereumRinkeby = 4,
+  EthereumGoerli = 5,
   // Solana
   SolanaMainnetBeta = 101,
   SolanaTestnet = 102,
