@@ -144,6 +144,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {
       input: {
+        chainId: this.item.chainId,
         tokenId: this.item.tokenId,
         signature: signedHash,
         type: OfferType.Sale,

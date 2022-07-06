@@ -473,6 +473,7 @@ export class SPLNFT extends AbstractNFT {
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {
       input: {
+        chainId: this.item.chainId,
         transactionHash: txSig,
         tokenId: this.item.tokenId,
         blockchainId: sellerTradeState.toBase58(),
