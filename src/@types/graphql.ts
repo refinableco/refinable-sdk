@@ -141,19 +141,21 @@ export type Collection = {
   bannerUrl?: Maybe<Scalars["String"]>;
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
+  creator: User;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
-  iconUrl: Scalars["String"];
+  iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   isAddedToWatchList: Scalars["Boolean"];
+  isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
   name: Scalars["String"];
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
-  tokens?: Maybe<Array<Token>>;
+  tokens: Array<Token>;
   twitter?: Maybe<Scalars["String"]>;
   verified: Scalars["Boolean"];
   website?: Maybe<Scalars["String"]>;
@@ -225,6 +227,8 @@ export type CollectionStatistics = {
 
 export type CollectionsFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["Float"]>>;
+  collectionIds?: InputMaybe<Array<Scalars["String"]>>;
+  creator?: InputMaybe<Scalars["String"]>;
 };
 
 export type CollectionsResponse = {
@@ -357,6 +361,7 @@ export type CreateMintOfferInput = {
 
 export type CreateOfferInput = {
   blockchainId?: InputMaybe<Scalars["String"]>;
+  chainId?: InputMaybe<Scalars["Int"]>;
   contractAddress: Scalars["String"];
   endTime?: InputMaybe<Scalars["DateTime"]>;
   launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
@@ -393,22 +398,31 @@ export type CreatePurchaseSessionInput = {
 
 export type CreateStoreInput = {
   backgroundColor: Scalars["String"];
-  banner: Scalars["String"];
+  banner?: InputMaybe<Scalars["String"]>;
   contracts: Array<ContractInput>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
   domain: Scalars["String"];
   email: Scalars["String"];
-  favicon: Scalars["String"];
+  favicon?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
-  logo: Scalars["String"];
+  logo?: InputMaybe<Scalars["String"]>;
   logoHeight?: InputMaybe<Scalars["Float"]>;
   name: Scalars["String"];
   primaryColor: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
   twitter?: InputMaybe<Scalars["String"]>;
   website?: InputMaybe<Scalars["String"]>;
+};
+
+export type CreatorSuiteImportCollectionInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+};
+
+export type CreatorSuiteImportCollectionOutput = {
+  id: Scalars["String"];
 };
 
 export type CreatorSuiteProfileInput = {
@@ -454,7 +468,6 @@ export type FeesInput = {
 export type FiatCheckoutWidgetData = {
   canPurchaseBeExecuted: Scalars["Boolean"];
   externalTransactionId?: Maybe<Scalars["String"]>;
-  gasEstimate?: Maybe<Price>;
   url?: Maybe<Scalars["String"]>;
 };
 
@@ -479,6 +492,7 @@ export type FineHolderBenefits = {
 };
 
 export type FinishMintInput = {
+  chainId?: InputMaybe<Scalars["Int"]>;
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
   transactionHash: Scalars["String"];
@@ -785,8 +799,7 @@ export type ItemReportResponse = {
 };
 
 export type ItemWithOffer = {
-  /** @deprecated Not used */
-  availableSupply?: Maybe<Scalars["Int"]>;
+  /** @deprecated editionsForSale are now used */
   cheapestEditionForSale?: Maybe<Offer>;
   editionsForSale: Array<Offer>;
   id: Scalars["String"];
@@ -934,6 +947,7 @@ export type Mutation = {
   createPurchase: Purchase;
   createPurchaseSession: PurchaseSession;
   createStore: Store;
+  creatorSuiteImportCollection: CreatorSuiteImportCollectionOutput;
   dismissReport: ItemReport;
   finishMint: FinishMintOutput;
   generateVerificationToken: Scalars["Int"];
@@ -949,6 +963,7 @@ export type Mutation = {
   reportItem: ItemReport;
   toggleAddToWatchList?: Maybe<Collection>;
   toggleLike?: Maybe<Item>;
+  updateCollection: UpdateCollectionOutput;
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
   updateStoreCollections?: Maybe<UpdateStore>;
@@ -987,6 +1002,10 @@ export type MutationCreatePurchaseSessionArgs = {
 
 export type MutationCreateStoreArgs = {
   data: CreateStoreInput;
+};
+
+export type MutationCreatorSuiteImportCollectionArgs = {
+  input: CreatorSuiteImportCollectionInput;
 };
 
 export type MutationDismissReportArgs = {
@@ -1043,6 +1062,11 @@ export type MutationToggleAddToWatchListArgs = {
 
 export type MutationToggleLikeArgs = {
   itemId: Scalars["String"];
+};
+
+export type MutationUpdateCollectionArgs = {
+  data: UpdateCollectionInput;
+  id: Scalars["ID"];
 };
 
 export type MutationUpdateNotificationSeenStatusArgs = {
@@ -1257,6 +1281,7 @@ export type Query = {
   hotItems: HotItemsResponse;
   hottestTags: Array<Tag>;
   importPreview: ImportItemPreview;
+  isCollectionImported: Scalars["Boolean"];
   isDomainTaken: Scalars["Boolean"];
   item?: Maybe<Item>;
   itemsOnOffer: ItemsWithOffersResponse;
@@ -1272,10 +1297,12 @@ export type Query = {
   search: SearchResponse;
   store?: Maybe<Store>;
   storeWithFallback?: Maybe<Store>;
+  stores?: Maybe<Array<Store>>;
   /** @deprecated tag creation limit is not supported anymore */
   tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
+  userSortedCollections: UserSortedCollectionsResponse;
 };
 
 export type QueryAuctionArgs = {
@@ -1335,11 +1362,16 @@ export type QueryImportPreviewArgs = {
   input: ImportItemPreviewInput;
 };
 
+export type QueryIsCollectionImportedArgs = {
+  input: CheckCollectionInput;
+};
+
 export type QueryIsDomainTakenArgs = {
   domain: Scalars["String"];
 };
 
 export type QueryItemArgs = {
+  chainId?: InputMaybe<Scalars["Int"]>;
   contractAddress: Scalars["String"];
   tokenId: Scalars["String"];
 };
@@ -1400,6 +1432,10 @@ export type QueryTopUsersArgs = {
 
 export type QueryUserArgs = {
   ethAddress: Scalars["String"];
+};
+
+export type QueryUserSortedCollectionsArgs = {
+  paging: PagingInput;
 };
 
 export type RefinableContractInput = {
@@ -1525,7 +1561,7 @@ export type Store = {
   instagram?: Maybe<Scalars["String"]>;
   isCreator: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
-  logo: Scalars["String"];
+  logo?: Maybe<Scalars["String"]>;
   logoHeight?: Maybe<Scalars["Float"]>;
   name: Scalars["String"];
   primaryColor: Scalars["String"];
@@ -1676,6 +1712,21 @@ export type Transcoding = {
   url: Scalars["String"];
 };
 
+export type UpdateCollectionInput = {
+  bannerUrl?: InputMaybe<Scalars["String"]>;
+  discord?: InputMaybe<Scalars["String"]>;
+  iconUrl?: InputMaybe<Scalars["String"]>;
+  instagram?: InputMaybe<Scalars["String"]>;
+  telegram?: InputMaybe<Scalars["String"]>;
+  twitter?: InputMaybe<Scalars["String"]>;
+  website?: InputMaybe<Scalars["String"]>;
+};
+
+export type UpdateCollectionOutput = {
+  collection?: Maybe<Collection>;
+  success: Scalars["Boolean"];
+};
+
 export type UpdateStore = {
   store: Store;
   success: Scalars["Boolean"];
@@ -1807,6 +1858,54 @@ export enum UserRoles {
   User = "USER",
 }
 
+export type UserSortedCollection = {
+  bannerUrl?: Maybe<Scalars["String"]>;
+  chainIds: Array<Scalars["Float"]>;
+  collectionIds: Array<Scalars["String"]>;
+  creator: User;
+  default: Scalars["Boolean"];
+  description?: Maybe<Scalars["String"]>;
+  discord?: Maybe<Scalars["String"]>;
+  iconUrl?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
+  instagram?: Maybe<Scalars["String"]>;
+  isAddedToWatchList: Scalars["Boolean"];
+  isRefinableCollection: Scalars["Boolean"];
+  items: ItemsWithOffersResponse;
+  name: Scalars["String"];
+  slug: Scalars["String"];
+  statistics: CollectionStatistics;
+  telegram?: Maybe<Scalars["String"]>;
+  tokens: Array<Token>;
+  twitter?: Maybe<Scalars["String"]>;
+  verified: Scalars["Boolean"];
+  website?: Maybe<Scalars["String"]>;
+};
+
+export type UserSortedCollectionItemsArgs = {
+  filter?: InputMaybe<CollectionMetadataFilterInput>;
+  paging: PagingInput;
+  sort?: InputMaybe<SortInput>;
+};
+
+export type UserSortedCollectionEdge = {
+  cursor: Scalars["String"];
+  node: UserSortedCollection;
+};
+
+export type UserSortedCollectionPageInfo = {
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type UserSortedCollectionsResponse = {
+  edges?: Maybe<Array<UserSortedCollectionEdge>>;
+  pageInfo?: Maybe<UserSortedCollectionPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
+};
+
 export enum UserType {
   Evm = "Evm",
   Solana = "Solana",
@@ -1896,16 +1995,13 @@ export type GetMintableCollectionsQueryVariables = Exact<{
 export type GetMintableCollectionsQuery = {
   mintableCollections: Array<{
     default: boolean;
-    tokens?:
-      | Array<{
-          contractAddress: string;
-          contractABI: string;
-          type: TokenType;
-          chainId: number;
-          tags: Array<ContractTag>;
-        }>
-      | null
-      | undefined;
+    tokens: Array<{
+      contractAddress: string;
+      contractABI: string;
+      type: TokenType;
+      chainId: number;
+      tags: Array<ContractTag>;
+    }>;
   }>;
 };
 
@@ -2013,7 +2109,12 @@ export type ItemInfoFragment = {
     verified?: boolean | null | undefined;
   };
   collection?:
-    | { slug: string; name: string; iconUrl: string; verified: boolean }
+    | {
+        slug: string;
+        name: string;
+        iconUrl?: string | null | undefined;
+        verified: boolean;
+      }
     | null
     | undefined;
   properties: {
@@ -2046,7 +2147,12 @@ export type GetItemsWithOfferFragment = {
       verified?: boolean | null | undefined;
     };
     collection?:
-      | { slug: string; name: string; iconUrl: string; verified: boolean }
+      | {
+          slug: string;
+          name: string;
+          iconUrl?: string | null | undefined;
+          verified: boolean;
+        }
       | null
       | undefined;
     properties: {
@@ -2169,7 +2275,12 @@ export type UserItemsFragment = {
     verified?: boolean | null | undefined;
   };
   collection?:
-    | { slug: string; name: string; iconUrl: string; verified: boolean }
+    | {
+        slug: string;
+        name: string;
+        iconUrl?: string | null | undefined;
+        verified: boolean;
+      }
     | null
     | undefined;
   properties: {
@@ -2447,7 +2558,7 @@ export type GetUserOfferItemsQuery = {
                       | {
                           slug: string;
                           name: string;
-                          iconUrl: string;
+                          iconUrl?: string | null | undefined;
                           verified: boolean;
                         }
                       | null
@@ -2825,7 +2936,7 @@ export type GetUserItemsQuery = {
                     | {
                         slug: string;
                         name: string;
-                        iconUrl: string;
+                        iconUrl?: string | null | undefined;
                         verified: boolean;
                       }
                     | null

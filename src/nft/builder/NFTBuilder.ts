@@ -186,13 +186,14 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
     if (!this.mintTransaction)
       throw new Error("Item not minted, please mint first");
 
-    const { tokenId, contractAddress } = this.item;
+    const { tokenId, contractAddress, chainId } = this.item;
 
     const finishMint = await this.refinable.apiClient.request<
       FinishMintMutation,
       FinishMintMutationVariables
     >(FINISH_MINT, {
       input: {
+        chainId,
         tokenId,
         contractAddress,
         transactionHash: this.mintTransaction.hash,
