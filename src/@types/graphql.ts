@@ -271,6 +271,7 @@ export enum ContractTag {
   AuctionV4_0_0 = "AUCTION_v4_0_0",
   AuctionV5_0_0 = "AUCTION_v5_0_0",
   LazyMintTokenV1_0_0 = "LAZY_MINT_TOKEN_v1_0_0",
+  RoyaltyRegistryV1_0_0 = "ROYALTY_REGISTRY_v1_0_0",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
   SaleV1_0_0 = "SALE_v1_0_0",
   SaleV2_0_0 = "SALE_v2_0_0",
@@ -305,6 +306,7 @@ export enum ContractTypes {
   Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
   Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
+  RoyaltyRegistry = "ROYALTY_REGISTRY",
   Sale = "SALE",
   ServiceFeeProxy = "SERVICE_FEE_PROXY",
   ServiceFeeV2 = "SERVICE_FEE_V2",
@@ -524,7 +526,7 @@ export type GetPurchaseSessionInput = {
 
 export type GetRefinableContractInput = {
   chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
+  contractAddress?: InputMaybe<Scalars["String"]>;
   types?: InputMaybe<Array<ContractTypes>>;
 };
 

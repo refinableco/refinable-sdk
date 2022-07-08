@@ -32,10 +32,13 @@ import { Store } from "./store/Store";
 import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
 import { RefinableSolanaClient } from "./refinable/client/RefinableSolanaClient";
+import { RoyaltyRegistry, RoyaltyType } from "./refinable/RoyaltyRegistry";
 export * from "./providers";
 
 export {
   BasicOffer,
+  RoyaltyRegistry,
+  RoyaltyType,
   Store,
   ContractTypes,
   SaleOffer,

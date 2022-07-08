@@ -1,0 +1,9 @@
+export enum RoyaltyType {
+  UNSET = "UNSET", //0,
+  MANUALLY_SET = "MANUALLY_SET", //1,
+  RARIBLE_V2 = "RARIBLE_V2", //2,
+  RARIBLE_V1 = "RARIBLE_V1", //3,
+  REFINABLE_v1 = "REFINABLE_v1", //4,
+  EIP2981 = "EIP2981", //5,
+  UNSUPPORTED = "UNSUPPORTED", //6,
+}
