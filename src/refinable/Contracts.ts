@@ -120,6 +120,17 @@ export class Contracts {
     return this.cacheContract(refinableContract);
   }
 
+  async getRefinableContractByType(chainId: Chain, types: ContractTypes[]) {
+    const { refinableContract } = await this.refinable.apiClient.request<
+      RefinableContractQuery,
+      RefinableContractQueryVariables
+    >(GET_REFINABLE_CONTRACT, {
+      input: { chainId, types },
+    });
+
+    return this.cacheContract(refinableContract);
+  }
+
   async getMintableContracts() {
     if (this.mintableContracts) {
       return this.mintableContracts;
