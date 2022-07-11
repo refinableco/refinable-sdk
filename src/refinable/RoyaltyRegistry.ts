@@ -32,12 +32,12 @@ export class RoyaltyRegistry {
     return contract;
   }
 
-  async getRoyaltyInfo(contractAddress: string) {
+  async getRoyaltyInfo(contractAddress: string, tokenId = "1") {
     const contract = await this._lazyGetContract();
 
     const royaltyInfo = await contract
       .toEthersContract(this.provider)
-      .getRoyaltyInfoForToken(contractAddress, "1");
+      .getRoyaltyInfoForToken(contractAddress, tokenId);
 
     const [royaltyType, royalties] = royaltyInfo;
 
@@ -52,8 +52,6 @@ export class RoyaltyRegistry {
 
   async setRoyaltiesByToken(contractAddress: string, royalties: LibPart[]) {
     const contract = await this._lazyGetContract();
-
-    console.log({ contractAddress, royalties });
 
     return await contract
       .toEthersContract()
