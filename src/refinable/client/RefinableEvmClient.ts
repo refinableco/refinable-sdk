@@ -10,6 +10,7 @@ import {
 import EvmAccount from "../account/EvmAccount";
 import { Contracts } from "../Contracts";
 import { Refinable } from "../Refinable";
+import { RoyaltyRegistry } from "../RoyaltyRegistry";
 
 export type ContractType =
   | "ERC721_TOKEN"
@@ -61,6 +62,10 @@ export class RefinableEvmClient {
 
   nftBuilder(params?: NftBuilderParams) {
     return new NFTBuilder(this.refinableClient, params);
+  }
+
+  royaltyRegistry(chainId: Chain) {
+    return new RoyaltyRegistry(this.refinableClient, chainId);
   }
 
   getProviderByChainId(chainId: Chain) {
