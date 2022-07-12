@@ -23,8 +23,8 @@ export const ipfsUrl = {
 
 export const signer = {
   [Environment.Mainnet]: "0xD2E49cfd5c03a72a838a2fC6bB5f6b46927e731A",
-  [Environment.Testnet]: "0xd4039eB67CBB36429Ad9DD30187B94f6A5122215",
-  [Environment.Local]: "0xd4039eB67CBB36429Ad9DD30187B94f6A5122215",
+  [Environment.Testnet]: "0x9d2b8DFd7B8F33Cf84499Ac2df74896174AAb98C",
+  [Environment.Local]: "0x9d2b8DFd7B8F33Cf84499Ac2df74896174AAb98C",
 };
 
 export const getContractsTags = (environment: Environment): ContractTag[] => {
