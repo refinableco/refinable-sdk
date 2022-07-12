@@ -253,6 +253,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         CREATE_OFFER,
         {
           input: {
+            chainId: this.item.chainId,
             tokenId: this.item.tokenId,
             contractAddress: this.item.contractAddress,
             type: OfferType.Auction,
