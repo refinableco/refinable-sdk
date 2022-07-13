@@ -212,9 +212,7 @@ export class Contracts {
 
   getBaseContract(chainId: Chain, type: string) {
     if (!this.baseContracts[chainId])
-      throw new Error(
-        `No contract of type ${{ type }} for this chain ${chainId}`
-      );
+      throw new Error(`No contract of type ${type} for this chain ${chainId}`);
 
     const contract = this.baseContracts[chainId][type];
     if (!contract)
