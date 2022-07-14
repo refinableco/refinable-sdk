@@ -10,7 +10,6 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../refinable/Refinable";
-import { RefinableEvmClient } from "../refinable/client/RefinableEvmClient";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
@@ -18,10 +17,7 @@ import { ERCSaleID } from "./ERCSaleId";
 import { SaleVersion } from "./interfaces/SaleInfo";
 
 export class ERC721NFT extends AbstractEvmNFT {
-  constructor(
-    refinable: Refinable,
-    item: PartialNFTItem
-  ) {
+  constructor(refinable: Refinable, item: PartialNFTItem) {
     super(TokenType.Erc721, refinable, item);
   }
 
@@ -30,10 +26,33 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     // TODO: we should actually use this but our contracts do not support it
     // return this.nftTokenContract.approve(operatorAddress, this.item.tokenId);
-    const setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
-      operatorAddress,
-      true
-    );
+    let setApprovalForAllTx;
+
+    // for some custom contracts it fails to estimate the gas correctly
+    try {
+      setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+        operatorAddress,
+        true
+      );
+    } catch (ex) {
+      if (ex.code === "UNPREDICTABLE_GAS_LIMIT") {
+        const gasLimit = await nftTokenContract.estimateGas.setApprovalForAll(
+          operatorAddress,
+          true
+        );
+
+        const fee = await this.refinable.provider.getFeeData();
+
+        setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+          operatorAddress,
+          true,
+          {
+            gasLimit: gasLimit,
+            gasPrice: fee.gasPrice,
+          }
+        );
+      }
+    }
 
     return new EvmTransaction(setApprovalForAllTx);
   }
