@@ -143,8 +143,9 @@ export const chainMap: Record<Chain, IChainConfig> = {
     networkName: "polygon",
     networkType: NetworkType.MAINNET,
     chainType: ChainType.POLYGON,
+    // https://docs.polygon.technology/docs/develop/network-details/network/
     nodeUri: [
-      "https://matic-mainnet.chainstacklabs.com",
+      "https://polygon-rpc.com/",
       "https://rpc-mainnet.matic.quiknode.pro",
     ],
     explorerUri: "https://polygonscan.com/",
@@ -275,24 +276,24 @@ export const chainMap: Record<Chain, IChainConfig> = {
     ],
   },
 
-  [Chain.EthereumGoerli]:  {
+  [Chain.EthereumGoerli]: {
     ...chainConfigBase,
-    name: 'Ethereum Goerli',
-    displayName: 'Goerli',
-    shortName: 'Ethereum Goerli',
+    name: "Ethereum Goerli",
+    displayName: "Goerli",
+    shortName: "Ethereum Goerli",
     networkId: Chain.EthereumGoerli,
-    networkName: 'goerli',
+    networkName: "goerli",
     networkType: NetworkType.TESTNET,
     chainType: ChainType.ETH,
-    nodeUri: ['https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
-    explorerUri: 'https://goerli.etherscan.io/',
+    nodeUri: ["https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"],
+    explorerUri: "https://goerli.etherscan.io/",
     supportedCurrencies: [
       {
-        name: 'ETH',
-        symbol: 'ETH',
+        name: "ETH",
+        symbol: "ETH",
         decimals: 18,
         native: true,
-        address: '0x0000000000000000000000000000000000000000',
+        address: "0x0000000000000000000000000000000000000000",
       },
     ],
   },
@@ -315,7 +316,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
     explorerUri: "https://explorer.solana.com/",
     supportedCurrencies: [
       {
-        name: 'Wrapped SOL',
+        name: "Wrapped SOL",
         symbol: "SOL",
         decimals: 9,
         native: true,
@@ -336,7 +337,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
     explorerUri: "https://explorer.solana.com/?cluster=testnet",
     supportedCurrencies: [
       {
-        name: 'Wrapped SOL',
+        name: "Wrapped SOL",
         symbol: "SOL",
         decimals: 9,
         native: true,
@@ -357,7 +358,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
     explorerUri: "https://explorer.solana.com/?cluster=devnet",
     supportedCurrencies: [
       {
-        name: 'Wrapped SOL',
+        name: "Wrapped SOL",
         symbol: "SOL",
         decimals: 9,
         native: true,
@@ -365,24 +366,25 @@ export const chainMap: Record<Chain, IChainConfig> = {
       },
     ],
   },
-  [Chain.SolanaLocalnet]:{
+  [Chain.SolanaLocalnet]: {
     ...chainConfigBase,
-    name: 'Solana Localnet',
-    displayName: 'Solana Localnet',
-    shortName: 'Solana Localnet',
+    name: "Solana Localnet",
+    displayName: "Solana Localnet",
+    shortName: "Solana Localnet",
     networkId: Chain.SolanaLocalnet,
-    networkName: 'solana-devnet',
+    networkName: "solana-devnet",
     networkType: NetworkType.TESTNET,
     chainType: ChainType.SOLANA,
-    nodeUri: ['http://localhost:8899'],
-    explorerUri: 'https://explorer.solana.com/?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899',
+    nodeUri: ["http://localhost:8899"],
+    explorerUri:
+      "https://explorer.solana.com/?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899",
     supportedCurrencies: [
       {
-        name: 'Wrapped SOL',
-        symbol: 'SOL',
+        name: "Wrapped SOL",
+        symbol: "SOL",
         decimals: 9,
         native: true,
-        address: 'So11111111111111111111111111111111111111112',
+        address: "So11111111111111111111111111111111111111112",
       },
     ],
   },
