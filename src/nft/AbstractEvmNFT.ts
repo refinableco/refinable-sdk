@@ -233,20 +233,29 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
 
-    const blockchainAuctionResponse = await ethersContracts.createAuction(
-      // address _token
-      this.item.contractAddress,
-      // uint256 _tokenId
-      this.item.tokenId,
-      // address _payToken
-      paymentToken,
-      // uint256 _startPrice
-      startPrice,
-      // uint256 _startTimestamp
-      getUnixEpochTimeStampFromDate(auctionStartDate),
-      //uint256 _endTimestamp
-      getUnixEpochTimeStampFromDate(auctionEndDate)
-    );
+    const blockchainAuctionResponse: TransactionResponse =
+      await ethersContracts.createAuction(
+        // address _token
+        this.item.contractAddress,
+        // uint256 _tokenId
+        this.item.tokenId,
+        // address _payToken
+        paymentToken,
+        // uint256 _startPrice
+        startPrice,
+        // uint256 _startTimestamp
+        getUnixEpochTimeStampFromDate(auctionStartDate),
+        //uint256 _endTimestamp
+        getUnixEpochTimeStampFromDate(auctionEndDate)
+      );
+
+    const txValidationResponse = await blockchainAuctionResponse.wait(1);
+
+    if (txValidationResponse.status === 0) {
+      throw new Error(
+        `Transaction ${txValidationResponse.transactionHash} failed, please try again`
+      );
+    }
 
     const result =
       await this.refinable.apiClient.request<CreateOfferForEditionsMutation>(

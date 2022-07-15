@@ -43,8 +43,12 @@ import { toPublicKey } from "../solana/utils";
 import SolanaTransaction from "../transaction/SolanaTransaction";
 import { getConnectionByChainId } from "../utils/connection";
 import { getOrCreateAssociatedAccountInfo } from "../utils/sol";
-import { AbstractNFT, NFTEndAuctionParams, NFTPlaceBidParams, PartialNFTItem } from "./AbstractNFT";
-
+import {
+  AbstractNFT,
+  NFTEndAuctionParams,
+  NFTPlaceBidParams,
+  PartialNFTItem,
+} from "./AbstractNFT";
 
 const treasuryMint = NATIVE_MINT;
 
@@ -522,6 +526,7 @@ export class SPLNFT extends AbstractNFT {
     auctionStartDate: Date;
     auctionEndDate: Date;
   }): Promise<{ txResponse: SolanaTransaction; offer: AuctionOffer }> {
+    // TODO when impelementing: Call CREATE_OFFER mutation only after tx successfully commited
     throw new Error("Method not implemented.");
   }
 }
