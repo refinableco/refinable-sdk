@@ -1,6 +1,6 @@
 {
   "name": "@refinableco/refinable-sdk",
-  "version": "3.0.3",
+  "version": "3.0.4-next.1",
   "description": "The Refinable SDK allows you to easily interact with the Refinable Marketplace to mint, sell and buy NFTs",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
