@@ -61,6 +61,7 @@ export const FIND_TOKEN_CONTRACT = gql`
 export const CREATE_CONTRACT = gql`
   mutation createContract($data: CreateContractInput!) {
     createContract(data: $data) {
+      id
       contractAddress
       contractABI
       type

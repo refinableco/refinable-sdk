@@ -1,6 +1,8 @@
 import { ReadStream } from "fs";
-import { CollectionInput } from "../../@types/graphql";
+import { CreateCollectionInput } from "../../@types/graphql";
 
-export interface SdkCollectionInput extends Omit<CollectionInput, "avatar"> {
+export interface SdkCollectionInput
+  extends Omit<CreateCollectionInput, "avatar" | "banner"> {
   avatar: string | ReadStream;
+  banner?: string | ReadStream;
 }

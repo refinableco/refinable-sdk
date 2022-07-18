@@ -145,6 +145,7 @@ export type Collection = {
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
@@ -152,6 +153,7 @@ export type Collection = {
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
   name: Scalars["String"];
+  ownerEthAddress?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
@@ -170,15 +172,6 @@ export type CollectionItemsArgs = {
 export type CollectionEdge = {
   cursor: Scalars["String"];
   node: Collection;
-};
-
-export type CollectionInput = {
-  avatar: Scalars["String"];
-  description: Scalars["String"];
-  slug: Scalars["String"];
-  symbol: Scalars["String"];
-  title: Scalars["String"];
-  tokenType: Scalars["String"];
 };
 
 export type CollectionMetadataFilterInput = {
@@ -257,6 +250,7 @@ export type ContractOutput = {
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
+  id: Scalars["String"];
   tags: Array<ContractTag>;
   type: Scalars["String"];
 };
@@ -313,8 +307,24 @@ export enum ContractTypes {
   TransferProxy = "TRANSFER_PROXY",
 }
 
+export type CreateCollectionInput = {
+  avatar: Scalars["String"];
+  banner?: InputMaybe<Scalars["String"]>;
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  contractId: Scalars["String"];
+  description: Scalars["String"];
+  discord?: InputMaybe<Scalars["String"]>;
+  instagram?: InputMaybe<Scalars["String"]>;
+  symbol: Scalars["String"];
+  telegram?: InputMaybe<Scalars["String"]>;
+  title: Scalars["String"];
+  tokenType: Scalars["String"];
+  twitter?: InputMaybe<Scalars["String"]>;
+  website?: InputMaybe<Scalars["String"]>;
+};
+
 export type CreateContractInput = {
-  collection: CollectionInput;
   contract: RefinableContractInput;
 };
 
@@ -416,15 +426,6 @@ export type CreateStoreInput = {
   telegram?: InputMaybe<Scalars["String"]>;
   twitter?: InputMaybe<Scalars["String"]>;
   website?: InputMaybe<Scalars["String"]>;
-};
-
-export type CreatorSuiteImportCollectionInput = {
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
-};
-
-export type CreatorSuiteImportCollectionOutput = {
-  id: Scalars["String"];
 };
 
 export type CreatorSuiteProfileInput = {
@@ -561,11 +562,9 @@ export type HottestTagsFilterInput = {
 export type ImportCollectionInput = {
   bannerUrl?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Float"];
-  contractABI?: InputMaybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
   description: Scalars["String"];
   iconUrl: Scalars["String"];
-  metadataUrlTemplate?: InputMaybe<Scalars["String"]>;
   name: Scalars["String"];
   slug: Scalars["String"];
   type?: InputMaybe<TokenType>;
@@ -573,32 +572,8 @@ export type ImportCollectionInput = {
 
 export type ImportCollectionOutput = {
   isValid?: Maybe<Scalars["Boolean"]>;
-  metadataUrlTemplate?: Maybe<Scalars["String"]>;
   randomTokenUrl?: Maybe<Scalars["String"]>;
-  tokenABI?: Maybe<Scalars["String"]>;
   tokenType?: Maybe<TokenType>;
-};
-
-export type ImportItemInput = {
-  apiUrl: Scalars["String"];
-  chainId: Scalars["Int"];
-  contractAddress: Scalars["String"];
-  tags?: InputMaybe<Array<TagInput>>;
-  tokenId: Scalars["String"];
-};
-
-export type ImportItemPreview = {
-  apiUrl?: Maybe<Scalars["String"]>;
-  apiUrlFound?: Maybe<Scalars["Boolean"]>;
-  description: Scalars["String"];
-  file: Scalars["String"];
-  name: Scalars["String"];
-};
-
-export type ImportItemPreviewInput = {
-  apiUrl: Scalars["String"];
-  contractAddress: Scalars["String"];
-  tokenId: Scalars["String"];
 };
 
 export type ImportSolanaCollectionInput = {
@@ -706,6 +681,10 @@ export type ItemHistoryEdge = {
   node: ItemHistory;
 };
 
+export type ItemHistoryFilterInput = {
+  itemId?: InputMaybe<Scalars["ID"]>;
+};
+
 export type ItemHistoryPageInfo = {
   endCursor?: Maybe<Scalars["String"]>;
   hasNextPage: Scalars["Boolean"];
@@ -801,8 +780,6 @@ export type ItemReportResponse = {
 };
 
 export type ItemWithOffer = {
-  /** @deprecated editionsForSale are now used */
-  cheapestEditionForSale?: Maybe<Offer>;
   editionsForSale: Array<Offer>;
   id: Scalars["String"];
   item: Item;
@@ -941,6 +918,7 @@ export type MoonpayFiatCheckoutWidgetDataArgs = {
 };
 
 export type Mutation = {
+  createCollection: Collection;
   createContract: ContractOutput;
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
@@ -949,13 +927,11 @@ export type Mutation = {
   createPurchase: Purchase;
   createPurchaseSession: PurchaseSession;
   createStore: Store;
-  creatorSuiteImportCollection: CreatorSuiteImportCollectionOutput;
   dismissReport: ItemReport;
   finishMint: FinishMintOutput;
   generateVerificationToken: Scalars["Int"];
   hideItem: Item;
   importCollection: ImportCollectionOutput;
-  importItem: CreateItemOutput;
   importSolanaCollection: Scalars["Boolean"];
   indexCollection: Scalars["Boolean"];
   login: Auth;
@@ -971,7 +947,11 @@ export type Mutation = {
   updateStoreCollections?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
-  userImportCollection: UserImportCollectionOutput;
+  userImportCollection: Collection;
+};
+
+export type MutationCreateCollectionArgs = {
+  data: CreateCollectionInput;
 };
 
 export type MutationCreateContractArgs = {
@@ -1006,10 +986,6 @@ export type MutationCreateStoreArgs = {
   data: CreateStoreInput;
 };
 
-export type MutationCreatorSuiteImportCollectionArgs = {
-  input: CreatorSuiteImportCollectionInput;
-};
-
 export type MutationDismissReportArgs = {
   input: Scalars["String"];
 };
@@ -1028,10 +1004,6 @@ export type MutationHideItemArgs = {
 
 export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
-};
-
-export type MutationImportItemArgs = {
-  input: ImportItemInput;
 };
 
 export type MutationImportSolanaCollectionArgs = {
@@ -1279,10 +1251,10 @@ export type Query = {
   contractCount: ContractCount;
   getMetadata?: Maybe<GetMetadataOutput>;
   getUploadUrl: GetUploadUrlOutput;
+  history: ItemHistoryResponse;
   hotCollections: CollectionsResponse;
   hotItems: HotItemsResponse;
   hottestTags: Array<Tag>;
-  importPreview: ImportItemPreview;
   isCollectionImported: Scalars["Boolean"];
   isDomainTaken: Scalars["Boolean"];
   item?: Maybe<Item>;
@@ -1300,8 +1272,6 @@ export type Query = {
   store?: Maybe<Store>;
   storeWithFallback?: Maybe<Store>;
   stores?: Maybe<Array<Store>>;
-  /** @deprecated tag creation limit is not supported anymore */
-  tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
   userSortedCollections: UserSortedCollectionsResponse;
@@ -1351,6 +1321,11 @@ export type QueryGetUploadUrlArgs = {
   type: UploadType;
 };
 
+export type QueryHistoryArgs = {
+  filter: ItemHistoryFilterInput;
+  paging: PagingInput;
+};
+
 export type QueryHotItemsArgs = {
   limit?: InputMaybe<Scalars["Int"]>;
   type: AssetType;
@@ -1358,10 +1333,6 @@ export type QueryHotItemsArgs = {
 
 export type QueryHottestTagsArgs = {
   filter: HottestTagsFilterInput;
-};
-
-export type QueryImportPreviewArgs = {
-  input: ImportItemPreviewInput;
 };
 
 export type QueryIsCollectionImportedArgs = {
@@ -1675,13 +1646,6 @@ export type TagInput = {
   name: Scalars["String"];
 };
 
-export type TagSuspensionOutput = {
-  /** @deprecated We will use total number of allowances instead of boolean suspended */
-  isSuspended?: Maybe<Scalars["Boolean"]>;
-  /** @deprecated No more creation limit is needed */
-  tagCreationAllowance?: Maybe<Scalars["Int"]>;
-};
-
 export type Token = {
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
@@ -1717,6 +1681,7 @@ export type Transcoding = {
 export type UpdateCollectionInput = {
   bannerUrl?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
+  hidden?: InputMaybe<Scalars["Boolean"]>;
   iconUrl?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
   telegram?: InputMaybe<Scalars["String"]>;
@@ -1821,21 +1786,12 @@ export type UserItemsOnOfferArgs = {
 };
 
 export type UserImportCollectionInput = {
-  bannerUrl: Scalars["String"];
+  bannerUrl?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
-  description: Scalars["String"];
-  discord?: InputMaybe<Scalars["String"]>;
-  iconUrl: Scalars["String"];
-  instagram?: InputMaybe<Scalars["String"]>;
-  name: Scalars["String"];
-  telegram?: InputMaybe<Scalars["String"]>;
-  twitter?: InputMaybe<Scalars["String"]>;
-  website?: InputMaybe<Scalars["String"]>;
-};
-
-export type UserImportCollectionOutput = {
-  slug: Scalars["String"];
+  description?: InputMaybe<Scalars["String"]>;
+  iconUrl?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
 };
 
 export type UserItemFilterInput = {
@@ -1868,13 +1824,15 @@ export type UserSortedCollection = {
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
-  name: Scalars["String"];
+  name?: Maybe<Scalars["String"]>;
+  ownerEthAddress?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
@@ -1959,6 +1917,14 @@ export type CreatePurchaseSessionMutation = {
   createPurchaseSession: { url: string };
 };
 
+export type CreateCollectionMutationVariables = Exact<{
+  data: CreateCollectionInput;
+}>;
+
+export type CreateCollectionMutation = {
+  createCollection: { id: string; slug: string };
+};
+
 export type RefinableContractQueryVariables = Exact<{
   input: GetRefinableContractInput;
 }>;
@@ -2038,6 +2004,7 @@ export type CreateContractMutationVariables = Exact<{
 
 export type CreateContractMutation = {
   createContract: {
+    id: string;
     contractAddress: string;
     contractABI: string;
     type: string;
