@@ -7,6 +7,7 @@ export interface IContract extends Omit<ContractOutput, "__typename"> {
 }
 
 export class Contract implements IContract {
+  id: string;
   type: TokenType;
   contractAddress: string;
   chainId: number;
@@ -16,7 +17,7 @@ export class Contract implements IContract {
 
   constructor(
     private readonly refinable: Refinable,
-    params: IContract
+    params: Omit<IContract, "id">
   ) {
     Object.assign(this, params);
   }
