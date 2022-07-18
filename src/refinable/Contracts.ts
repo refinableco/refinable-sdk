@@ -1,12 +1,12 @@
 import { ContractFactory } from "ethers";
 import { TokenType } from "..";
 import {
-  CollectionInput,
   ContractTypes,
+  CreateCollectionInput,
+  CreateCollectionMutation,
+  CreateCollectionMutationVariables,
   CreateContractMutation,
   CreateContractMutationVariables,
-  GetCollectionBySlugQuery,
-  GetCollectionBySlugQueryVariables,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
   GetTokenContractQuery,
@@ -24,10 +24,10 @@ import {
   signer,
 } from "../config/sdk";
 import { Contract, IContract } from "../Contract";
+import { CREATE_COLLECTION } from "../graphql/collections";
 import {
   CREATE_CONTRACT,
   FIND_TOKEN_CONTRACT,
-  GET_COLLECTION,
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
   GET_REFINABLE_CONTRACTS,
@@ -228,7 +228,7 @@ export class Contracts {
     return this.cachedContracts?.[chainId]?.[contractAddress.toLowerCase()];
   }
 
-  private cacheContract(contractOutput: IContract) {
+  private cacheContract(contractOutput: Omit<IContract, "id">) {
     const contract = new Contract(this.refinable, contractOutput);
 
     this.cachedContracts[contract.chainId] = {
@@ -240,17 +240,6 @@ export class Contracts {
   }
 
   async createCollection(collection: SdkCollectionInput) {
-    const collRes = await this.refinable.apiClient.request<
-      GetCollectionBySlugQuery,
-      GetCollectionBySlugQueryVariables
-    >(GET_COLLECTION, {
-      slug: collection.slug,
-    });
-
-    if (!!collRes?.collection?.slug) {
-      throw new Error("Collection slug is duplicated");
-    }
-
     const is1155 = collection.tokenType === TokenType.Erc1155;
     const { abi }: { abi: any } = is1155
       ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
@@ -289,6 +278,9 @@ export class Contracts {
     if (!(typeof collection.avatar === "string")) {
       collection.avatar = await this.refinable.uploadFile(collection.avatar);
     }
+    if (!(typeof collection.banner === "string")) {
+      collection.banner = await this.refinable.uploadFile(collection.banner);
+    }
 
     const { createContract: dbContractResponse } =
       await this.refinable.apiClient.request<
@@ -303,15 +295,27 @@ export class Contracts {
               ? ContractTypes.Erc1155WhitelistedToken
               : ContractTypes.Erc721WhitelistedToken,
           },
-          collection: collection as CollectionInput,
         },
       });
 
     const cachedContract = this.cacheContract(dbContractResponse);
 
+    const { createCollection } = await this.refinable.apiClient.request<
+      CreateCollectionMutation,
+      CreateCollectionMutationVariables
+    >(CREATE_COLLECTION, {
+      data: {
+        ...(collection as CreateCollectionInput),
+        contractId: dbContractResponse.id,
+        chainId: dbContractResponse.chainId,
+        contractAddress: dbContractResponse.contractAddress,
+      },
+    });
+
     return {
       tx,
       contract: cachedContract,
+      collection: createCollection,
     };
   }
 }
