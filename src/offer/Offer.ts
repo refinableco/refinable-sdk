@@ -45,9 +45,7 @@ export class BasicOffer {
   }
 
   get price() {
-    const amount =
-      this.currentStage?.price ??
-      this._offer.price.amount;
+    const amount = this.currentStage?.price ?? this._offer.price.amount;
 
     return {
       currency: this._offer.price.currency,
@@ -69,6 +67,10 @@ export class BasicOffer {
 
   get sellerAddress() {
     return this._offer.user.ethAddress;
+  }
+
+  get sellerId() {
+    return this._offer.user.id;
   }
 
   get totalSupply() {
