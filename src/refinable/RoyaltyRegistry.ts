@@ -3,6 +3,7 @@ import { Contract } from "../Contract";
 import { RoyaltyType } from "../enums/royalty-type.enum";
 import { LibPart } from "../interfaces/LibPart";
 import { Chain } from "../interfaces/Network";
+import EvmTransaction from "../transaction/EvmTransaction";
 import { Refinable } from "./Refinable";
 
 export { RoyaltyType };
@@ -53,14 +54,20 @@ export class RoyaltyRegistry {
   async setRoyaltiesByToken(contractAddress: string, royalties: LibPart[]) {
     const contract = await this._lazyGetContract();
 
-    return await contract
+    const tx = await contract
       .toEthersContract()
       .setRoyaltiesByToken(contractAddress, royalties);
+
+    return new EvmTransaction(tx);
   }
 
   async clearRoyaltiesType(contractAddress: string) {
     const contract = await this._lazyGetContract();
 
-    await contract.toEthersContract().clearRoyaltiesType(contractAddress);
+    const tx = await contract
+      .toEthersContract()
+      .clearRoyaltiesType(contractAddress);
+
+    return new EvmTransaction(tx);
   }
 }
