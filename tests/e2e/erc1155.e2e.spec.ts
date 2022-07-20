@@ -141,7 +141,7 @@ describe("ERC1155 - E2E", () => {
         supply: 4,
       });
       expect(itemOnSale.totalSupply).toEqual(4);
-      expect(itemOnSale.sellerAddress.toLowerCase()).toEqual(
+      expect(itemOnSale.seller?.ethAddress?.toLowerCase()).toEqual(
         address.toLowerCase()
       );
       expect(itemOnSale.type).toEqual("SALE");
@@ -428,7 +428,7 @@ describe("ERC1155 - E2E", () => {
       });
       expect(offer).toBeDefined();
       expect(offer.type).toBe("AUCTION");
-      expect(offer.sellerAddress.toLowerCase()).toBe(
+      expect(offer.seller?.ethAddress?.toLowerCase()).toBe(
         wallet.address.toLowerCase()
       );
       expect(offer.totalSupply).toBe(1);
