@@ -65,12 +65,8 @@ export class BasicOffer {
     return this._offer.auction;
   }
 
-  get sellerAddress() {
-    return this._offer.user.ethAddress;
-  }
-
-  get sellerId() {
-    return this._offer.user.id;
+  get seller() {
+    return this._offer.user;
   }
 
   get totalSupply() {
