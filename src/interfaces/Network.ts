@@ -30,3 +30,12 @@ export enum Chain {
   SolanaDevnet = 103,
   SolanaLocalnet = 104,
 }
+
+export type EVM_CHAIN_IDS =
+  Chain.Local |
+  Chain.BscMainnet |
+  Chain.BscTestnet |
+  Chain.PolygonMainnet |
+  Chain.PolygonTestnet |
+  Chain.Ethereum |
+  Chain.EthereumGoerli;

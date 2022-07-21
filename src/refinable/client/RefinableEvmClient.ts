@@ -8,6 +8,7 @@ import {
   RefinableOptions,
 } from "../../types/RefinableOptions";
 import EvmAccount from "../account/EvmAccount";
+import { ContractFactory } from "../ContractFactory";
 import { Contracts } from "../Contracts";
 import { Refinable } from "../Refinable";
 import { RoyaltyRegistry } from "../RoyaltyRegistry";
@@ -45,6 +46,7 @@ export class RefinableEvmClient {
   public account: EvmAccount;
   public options: RefinableEvmOptions = { waitConfirmations: 3 };
   public contracts: Contracts;
+  public contractFactory: ContractFactory;
 
   async init() {
     await this.contracts.initialize();
@@ -58,6 +60,7 @@ export class RefinableEvmClient {
 
     this.account = new EvmAccount(refinableClient);
     this.contracts = new Contracts(refinableClient);
+    this.contractFactory = new ContractFactory(refinableClient);
   }
 
   nftBuilder(params?: NftBuilderParams) {

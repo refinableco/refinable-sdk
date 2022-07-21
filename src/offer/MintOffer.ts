@@ -246,7 +246,7 @@ export class MintOffer extends BasicOffer {
       amount: amountToClaim,
     });
 
-    const claimTx:TransactionResponse = await contract[method](...args);
+    const claimTx: TransactionResponse = await contract[method](...args);
 
     return new EvmTransaction(claimTx);
   }
@@ -361,7 +361,7 @@ export class MintOffer extends BasicOffer {
       chainId: this.chainId,
     });
 
-    return contract.toEthersContract();
+    return contract.toEthersContract(this.refinable.provider);
   }
 
   public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {
@@ -375,6 +375,6 @@ export class MintOffer extends BasicOffer {
       `${TokenType.Erc721}_SALE_NONCE_HOLDER`
     );
 
-    return saleNonceHolder.toEthersContract();
+    return saleNonceHolder.toEthersContract(this.refinable.provider);
   }
 }

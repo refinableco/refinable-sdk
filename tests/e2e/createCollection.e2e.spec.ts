@@ -2,11 +2,13 @@ import fs from "fs";
 import path from "path";
 import {
   Chain,
+  ContractTypes,
   Environment,
   initializeWallet,
   Refinable,
   TokenType,
 } from "../../src";
+import { Erc721WhitelistContract } from "../../src/refinable/contract/Erc721WhitelistContract";
 import { ClientType } from "../../src/refinable/Refinable";
 
 describe("Refinable Create Contract", () => {
@@ -38,18 +40,17 @@ describe("Refinable Create Contract", () => {
       path.resolve(__dirname, "../assets/image.jpg")
     );
 
-    const collection = {
-      title: "Sweet collection",
-      symbol: "CONTRACT_SYMBOL",
-      description: "Sweet collection description",
-      tokenType: TokenType.Erc1155,
-      slug: `sweet-collection${new Date().toISOString()}`,
-      avatar: fileStream,
-    };
-
-    const { tx, contract } = await refinable.evm.contracts.createCollection(
-      collection
-    );
+    const { tx, contract } =
+      await refinable.evm.contractFactory.createWhitelistContract(
+        TokenType.Erc1155,
+        {
+          name: "Sweet collection",
+          symbol: "CONTRACT_SYMBOL",
+          description: "Sweet collection description",
+          avatar: fileStream,
+          contractArguments: {},
+        }
+      );
 
     expect(tx).toBeDefined();
     expect(contract).toBeDefined();
@@ -60,43 +61,44 @@ describe("Refinable Create Contract", () => {
       path.resolve(__dirname, "../assets/image.jpg")
     );
 
-    const collection = {
-      title: "Sweet collection",
-      symbol: "CONTRACT_SYMBOL",
-      description: "Sweet collection description",
-      tokenType: TokenType.Erc721,
-      slug: `sweet-collection${new Date().toISOString()}`,
-      avatar: fileStream,
-    };
-
-    const { tx, contract } = await refinable.evm.contracts.createCollection(
-      collection
-    );
+    const { tx, contract } =
+      await refinable.evm.contractFactory.createWhitelistContract(
+        TokenType.Erc721,
+        {
+          name: "Sweet collection",
+          symbol: "CONTRACT_SYMBOL",
+          description: "Sweet collection description",
+          avatar: fileStream,
+          contractArguments: {},
+        }
+      );
 
     expect(tx).toBeDefined();
     expect(contract).toBeDefined();
   });
 
-  it("should throw for duplicated coll slug", async () => {
+  it("should create a new 721LazyMintToken", async () => {
     const fileStream = fs.createReadStream(
       path.resolve(__dirname, "../assets/image.jpg")
     );
 
-    const slug = `sweet-collection${new Date().toISOString()}`;
-    const collection = {
-      title: "Sweet collection",
-      symbol: "CONTRACT_SYMBOL",
-      description: "Sweet collection description",
-      tokenType: TokenType.Erc721,
-      slug,
-      avatar: fileStream,
-    };
+    const { tx, contract } =
+      await refinable.evm.contractFactory.createLazyTokenContract(
+        TokenType.Erc721,
+        {
+          name: "Sweet collection",
+          symbol: "CONTRACT_SYMBOL",
+          description: "Sweet collection description",
+          avatar: fileStream,
+          contractArguments: {
+            placeholderTokenURI:
+              "ipfs://QmcEjuCpy2wRTYvAWuZvkGEUzku2cjyMJJo94rYveceFUK",
+            tokenMintLimit: 1000,
+          },
+        }
+      );
 
-    await refinable.evm.contracts.createCollection(collection);
-
-    await new Promise((res) => setTimeout(res, 2000));
-    expect(await refinable.evm.contracts.createCollection(collection)).toThrow(
-      /slug is duplicated/
-    );
+    expect(tx).toBeDefined();
+    expect(contract).toBeDefined();
   });
 });
