@@ -145,6 +145,8 @@ export const OfferFragment = gql`
     auction {
       ...Auction
     }
+    orderParams
+    platform
     whitelistStage
     launchpadDetails {
       currentStage {

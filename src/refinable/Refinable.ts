@@ -5,6 +5,7 @@ import { AbstractEvmNFT, RefinableEvmClient, SPLNFT } from "..";
 import {
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
+  Platform,
   UserItemFilterType,
 } from "../@types/graphql";
 import { apiUrl } from "../config/sdk";
@@ -12,7 +13,9 @@ import { GET_USER_ITEMS } from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
 import { Signer } from "../interfaces/Signer";
-import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
+import { PartialNFTItem } from "../nft/AbstractNFT";
+import { platforms } from "../platform";
+import { AbstractPlatform } from "../platform/AbstractPlatform";
 import {
   Environment,
   Options,
@@ -99,7 +102,7 @@ export class Refinable {
 
     this._apiKey = apiToken;
     this.apiClient = new GraphQLClient(graphqlUrl, {
-      headers:  { "X-API-KEY": apiToken, ...(this._options.headers ?? {}) },
+      headers: { "X-API-KEY": apiToken, ...(this._options.headers ?? {}) },
     });
 
     this.evm = new RefinableEvmClient(options, this);
@@ -198,5 +201,12 @@ export class Refinable {
 
   get offer(): OfferClient {
     return new OfferClient(this);
+  }
+
+  platform(platform: Platform): AbstractPlatform {
+    if (!platforms[platform]) {
+      throw new Error("Platform is not supported");
+    }
+    return new platforms[platform](this);
   }
 }

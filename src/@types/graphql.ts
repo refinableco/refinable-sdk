@@ -897,6 +897,7 @@ export type MintOffer = Offer & {
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
   name?: Maybe<Scalars["String"]>;
+  orderParams?: Maybe<Scalars["JSONObject"]>;
   payee: Scalars["String"];
   platform?: Maybe<Platform>;
   previewFile?: Maybe<PreviewFileProperties>;
@@ -1149,6 +1150,7 @@ export type Offer = {
   item?: Maybe<Item>;
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
+  orderParams?: Maybe<Scalars["JSONObject"]>;
   platform?: Maybe<Platform>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
@@ -1467,6 +1469,7 @@ export type SaleOffer = Offer & {
   item?: Maybe<Item>;
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
+  orderParams?: Maybe<Scalars["JSONObject"]>;
   platform?: Maybe<Platform>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
@@ -2331,6 +2334,8 @@ export type Offer_MintOffer_Fragment = {
   contractAddress: string;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
+  orderParams?: any | null | undefined;
+  platform?: Platform | null | undefined;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null | undefined };
   price: { amount: number; currency: PriceCurrency };
@@ -2416,6 +2421,8 @@ export type Offer_SaleOffer_Fragment = {
   contractAddress: string;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
+  orderParams?: any | null | undefined;
+  platform?: Platform | null | undefined;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null | undefined };
   price: { amount: number; currency: PriceCurrency };
@@ -2648,6 +2655,8 @@ export type GetOfferQuery = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         item?:
           | {
@@ -2752,6 +2761,8 @@ export type GetOfferQuery = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         item?:
           | {
@@ -3039,6 +3050,8 @@ export type CreateOfferForEditionsMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null | undefined };
         price: { amount: number; currency: PriceCurrency };
@@ -3123,6 +3136,8 @@ export type CreateOfferForEditionsMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null | undefined };
         price: { amount: number; currency: PriceCurrency };
@@ -3216,6 +3231,8 @@ export type CreateMintOfferMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         name?: string | null | undefined;
         description?: string | null | undefined;
@@ -3310,6 +3327,8 @@ export type CreateMintOfferMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null | undefined };
         price: { amount: number; currency: PriceCurrency };

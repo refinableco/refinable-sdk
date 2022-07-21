@@ -1,6 +1,8 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
+import { splitSignature } from "ethers/lib/utils";
 import {
+  Platform,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
   PurchaseMetadata,
@@ -24,15 +26,23 @@ interface BuyParams {
 }
 
 export class SaleOffer extends Offer {
-  constructor(
-    refinable: Refinable,
-    offer: PartialOffer,
-    nft: AbstractNFT
-  ) {
+  constructor(refinable: Refinable, offer: PartialOffer, nft: AbstractNFT) {
     super(refinable, offer, nft);
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
+    const isExternal = this._offer.platform !== Platform.Refinable;
+
+    if (isExternal) {
+      return this.refinable
+        .platform(this._offer.platform)
+        .buy(
+          this._offer,
+          this.nft.getItem().contractAddress,
+          this.nft.getItem().tokenId
+        );
+    }
+
     let supply = await this.getSupplyOnSale();
 
     const amount = params?.amount ?? 1;
