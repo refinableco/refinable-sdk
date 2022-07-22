@@ -24,6 +24,8 @@ export interface PartialOffer
     | "marketConfig"
     | "supply"
     | "chainId"
+    | "platform"
+    | "orderParams"
   > {}
 
 export class BasicOffer {
@@ -79,6 +81,14 @@ export class BasicOffer {
 
   get currentStage() {
     return this._offer.launchpadDetails?.currentStage;
+  }
+
+  get platform() {
+    return this._offer.platform;
+  }
+
+  get orderParams() {
+    return this._offer.orderParams;
   }
 
   protected get whitelistVoucher(): WhitelistVoucherParams | null {

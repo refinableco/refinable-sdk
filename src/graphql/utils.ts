@@ -7,10 +7,10 @@ import {
 } from "../@types/graphql";
 
 export const uploadFile = async (
-  apiClient: GraphQLClient,
+  graphqlClient: GraphQLClient,
   fileStream: Stream
 ) => {
-  const response = await apiClient.request<
+  const response = await graphqlClient.request<
     UploadFileMutation,
     UploadFileMutationVariables
   >(UPLOAD, {

@@ -20,7 +20,7 @@ export const getMockRefinableClient = (address: string) => {
 
   mockProperty(refinable, "accountAddress", address);
   mockProperty(refinable, "provider", PROVIDER as any);
-  mockProperty(refinable, "apiClient", API_CLIENT as any);
+  mockProperty(refinable, "graphqlClient", API_CLIENT as any);
   mockProperty(refinable, "evm", {
     contracts: CONTRACTS,
     options: { waitConfirmations: 5 },
@@ -35,7 +35,7 @@ export const getMockRefinableSolanaClient = (address: string) => {
 
   mockProperty(refinable, "accountAddress", address);
   mockProperty(refinable, "provider", PROVIDER as any);
-  mockProperty(refinable, "apiClient", API_CLIENT as any);
+  mockProperty(refinable, "graphqlClient", API_CLIENT as any);
   mockProperty(refinable, "solana", { connection: CONNECTION } as any);
 
   return refinable;

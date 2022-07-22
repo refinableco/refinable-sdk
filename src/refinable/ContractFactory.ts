@@ -5,13 +5,16 @@ import {
   ContractTypes,
   CreateCollectionMutation,
   CreateCollectionMutationVariables,
-  TokenType
+  TokenType,
 } from "../@types/graphql";
 import { getContractAddress } from "../config/contracts";
 import { ipfsUrl, SIGNERS } from "../config/sdk";
 import { CREATE_COLLECTION } from "../graphql/collections";
 import EvmTransaction from "../transaction/EvmTransaction";
-import { CONTRACTS_MAP, DeployableContracts as DeployableContractsClasses } from "./contract";
+import {
+  CONTRACTS_MAP,
+  DeployableContracts as DeployableContractsClasses,
+} from "./contract";
 import { Contract, IContract } from "./contract/Contract";
 import { Erc1155WhitelistContract } from "./contract/Erc1155WhitelistContract";
 import { Erc721LazyMintContract } from "./contract/Erc721LazyMintContract";
@@ -98,7 +101,7 @@ export class ContractFactory {
 
     // 4. Create collection
     const { createCollection: createdCollection } =
-      await this.refinable.apiClient.request<
+      await this.refinable.graphqlClient.request<
         CreateCollectionMutation,
         CreateCollectionMutationVariables
       >(CREATE_COLLECTION, {

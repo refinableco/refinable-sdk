@@ -472,7 +472,7 @@ export class SPLNFT extends AbstractNFT {
       }
     );
 
-    const result = await this.refinable.apiClient.request<
+    const result = await this.refinable.graphqlClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {
