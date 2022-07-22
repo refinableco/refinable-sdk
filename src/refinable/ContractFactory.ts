@@ -1,5 +1,5 @@
 import { ContractFactory as EthersContractFactory } from "ethers";
-import _ from "lodash";
+import omit from "lodash/omit";
 import { z } from "zod";
 import {
   ContractTypes,
@@ -103,7 +103,7 @@ export class ContractFactory {
         CreateCollectionMutationVariables
       >(CREATE_COLLECTION, {
         data: {
-          ..._.omit(params, "contractArguments"),
+          ...omit(params, "contractArguments"),
           avatar: params.avatar as string,
           banner: params.banner as string,
           tokenType: registeredContract.getTokenType(),
