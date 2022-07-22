@@ -82,7 +82,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ContractTypes.Sale
     );
 
-    return sale.toEthersContract();
+    return sale.toEthersContract(this.refinable.provider);
   }
 
   get auctionContract(): Contract {
@@ -91,7 +91,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ContractTypes.Auction
     );
 
-    return auction.toEthersContract();
+    return auction.toEthersContract(this.refinable.provider);
   }
 
   get nonceContract(): Contract {
@@ -100,7 +100,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       `${this.type}_SALE_NONCE_HOLDER`
     );
 
-    return saleNonceHolder.toEthersContract();
+    return saleNonceHolder.toEthersContract(this.refinable.provider);
   }
 
   get transferProxyContract(): Contract {
@@ -109,7 +109,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       `TRANSFER_PROXY`
     );
 
-    return transferProxy.toEthersContract();
+    return transferProxy.toEthersContract(this.refinable.provider);
   }
 
   get airdropContract(): Contract | null {
@@ -118,7 +118,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       `${this.type}_AIRDROP`
     );
 
-    return airdrop?.toEthersContract();
+    return airdrop?.toEthersContract(this.refinable.provider);
   }
 
   public async getTokenContract() {
@@ -136,7 +136,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         type
       );
 
-    this.nftTokenContract = nftTokenContract.toEthersContract();
+    this.nftTokenContract = nftTokenContract.toEthersContract(this.refinable.provider);
 
     return this.nftTokenContract;
   }
@@ -229,7 +229,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const addressToApprove = this.auctionContract.address;
     await this.approveIfNeeded(addressToApprove);
 
-    const ethersContracts = currentAuctionContract.toEthersContract();
+    const ethersContracts = currentAuctionContract.toEthersContract(this.refinable.provider);
     const startPrice = this.parseCurrency(price.currency, price.amount);
     const paymentToken = this.getPaymentToken(price.currency);
 
@@ -326,7 +326,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         auctionContractAddress,
         auctionTypes
       );
-    const ethersContracts = currentAuctionContract.toEthersContract();
+    const ethersContracts = currentAuctionContract.toEthersContract(this.refinable.provider);
 
     let placeBidTx: TransactionResponse;
 
@@ -366,7 +366,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       );
 
     return currentAuctionContract
-      .toEthersContract()
+      
+    .toEthersContract(this.refinable.provider)
       .getAuctionId(
         this.item.contractAddress,
         this.item.tokenId,
@@ -393,7 +394,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         auctionTypes
       );
 
-    const ethersContract = currentAuctionContract.toEthersContract();
+    const ethersContract = currentAuctionContract.toEthersContract(
+      this.refinable.provider
+    );
     let cancelAuctionTx: TransactionResponse;
 
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
@@ -431,7 +434,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         auctionTypes
       );
 
-    const ethersContract = currentAuctionContract.toEthersContract();
+    const ethersContract = currentAuctionContract.toEthersContract(
+      this.refinable.provider
+    );
     let endAuctionTx: TransactionResponse;
 
     if (currentAuctionContract.hasTag(ContractTag.AuctionV1_0_0)) {
@@ -508,7 +513,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     );
 
     const fees: LibPart[] = await sale
-      .toEthersContract()
+      .toEthersContract(this.refinable.provider)
       .getServiceFees(
         FeeType.BUY,
         this.refinable.accountAddress,
@@ -533,7 +538,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         auctionTypes
       );
 
-    const ethersContract = currentAuctionContract.toEthersContract();
+    const ethersContract = currentAuctionContract.toEthersContract(
+      this.refinable.provider
+    );
 
     if (currentAuctionContract.hasTagSemver("AUCTION", "<3.1.0")) {
       return 0;
