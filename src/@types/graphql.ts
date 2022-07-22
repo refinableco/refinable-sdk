@@ -318,7 +318,7 @@ export type CreateCollectionInput = {
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
-  name: Scalars["String"];
+  name?: InputMaybe<Scalars["String"]>;
   symbol: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
   title?: InputMaybe<Scalars["String"]>;
