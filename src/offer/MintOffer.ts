@@ -116,7 +116,7 @@ export class MintOffer extends BasicOffer {
       },
     });
 
-    const response = await this.refinable.apiClient.request<
+    const response = await this.refinable.graphqlClient.request<
       CreateMintOfferMutation,
       CreateMintOfferMutationVariables
     >(CREATE_MINT_OFFER, {

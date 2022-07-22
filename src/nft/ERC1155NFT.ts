@@ -136,7 +136,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
     const saleId = await this.getSaleId();
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
 
-    const result = await this.refinable.apiClient.request<
+    const result = await this.refinable.graphqlClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {

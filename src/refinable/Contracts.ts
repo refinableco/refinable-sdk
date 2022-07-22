@@ -56,7 +56,7 @@ export class Contracts {
     }
     const tags = getContractsTags(this.refinable.options.environment);
 
-    const { refinableContracts } = await this.refinable.apiClient.request<
+    const { refinableContracts } = await this.refinable.graphqlClient.request<
       RefinableContractsQuery,
       RefinableContractsQueryVariables
     >(GET_REFINABLE_CONTRACTS, {
@@ -79,7 +79,7 @@ export class Contracts {
   }
 
   async getRefinableContracts(chainId: Chain, types: ContractTypes[]) {
-    const { refinableContracts } = await this.refinable.apiClient.request<
+    const { refinableContracts } = await this.refinable.graphqlClient.request<
       RefinableContractsQuery,
       RefinableContractsQueryVariables
     >(GET_REFINABLE_CONTRACTS, {
@@ -98,7 +98,7 @@ export class Contracts {
 
     if (hasContract) return hasContract;
 
-    const { refinableContract } = await this.refinable.apiClient.request<
+    const { refinableContract } = await this.refinable.graphqlClient.request<
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
@@ -109,7 +109,7 @@ export class Contracts {
   }
 
   async getRefinableContractByType(chainId: Chain, types: ContractTypes[]) {
-    const { refinableContract } = await this.refinable.apiClient.request<
+    const { refinableContract } = await this.refinable.graphqlClient.request<
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
@@ -124,7 +124,7 @@ export class Contracts {
       return this.mintableContracts;
     }
 
-    const { mintableCollections } = await this.refinable.apiClient.request<
+    const { mintableCollections } = await this.refinable.graphqlClient.request<
       GetMintableCollectionsQuery,
       GetMintableCollectionsQueryVariables
     >(GET_MINTABLE_COLLECTIONS_QUERY);
@@ -188,7 +188,7 @@ export class Contracts {
 
     if (hasContract) return hasContract;
 
-    const response = await this.refinable.apiClient.request<
+    const response = await this.refinable.graphqlClient.request<
       GetTokenContractQuery,
       GetTokenContractQueryVariables
     >(FIND_TOKEN_CONTRACT, {
@@ -233,19 +233,20 @@ export class Contracts {
     contractAddress: string,
     contractAbi: string
   ) {
-    const { createContract: response } = await this.refinable.apiClient.request<
-      CreateContractMutation,
-      CreateContractMutationVariables
-    >(CREATE_CONTRACT, {
-      data: {
-        contract: {
-          contractAddress,
-          chainId,
-          contractType,
-          contractAbi,
+    const { createContract: response } =
+      await this.refinable.graphqlClient.request<
+        CreateContractMutation,
+        CreateContractMutationVariables
+      >(CREATE_CONTRACT, {
+        data: {
+          contract: {
+            contractAddress,
+            chainId,
+            contractType,
+            contractAbi,
+          },
         },
-      },
-    });
+      });
 
     const contract = this.cacheContract(response);
 

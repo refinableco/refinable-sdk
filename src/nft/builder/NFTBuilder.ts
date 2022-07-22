@@ -94,7 +94,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       thumbnail,
     } = this.buildData;
 
-    const { createItem } = await this.refinable.apiClient.request<
+    const { createItem } = await this.refinable.graphqlClient.request<
       CreateItemMutation,
       CreateItemMutationVariables
     >(CREATE_ITEM, {
@@ -188,7 +188,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
 
     const { tokenId, contractAddress, chainId } = this.item;
 
-    const finishMint = await this.refinable.apiClient.request<
+    const finishMint = await this.refinable.graphqlClient.request<
       FinishMintMutation,
       FinishMintMutationVariables
     >(FINISH_MINT, {

@@ -34,6 +34,7 @@ import * as is from "./utils/is";
 import { RefinableSolanaClient } from "./refinable/client/RefinableSolanaClient";
 import { RoyaltyRegistry, RoyaltyType } from "./refinable/RoyaltyRegistry";
 export * from "./providers";
+export * from "./errors";
 
 export {
   BasicOffer,
