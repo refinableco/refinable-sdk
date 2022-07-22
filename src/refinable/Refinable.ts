@@ -8,7 +8,7 @@ import {
   Platform,
   UserItemFilterType,
 } from "../@types/graphql";
-import { apiUrl } from "../config/sdk";
+import { apiUrl, graphqlUrl } from "../config/sdk";
 import { GET_USER_ITEMS } from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
@@ -27,6 +27,7 @@ import { RefinableSolanaClient } from "./client/RefinableSolanaClient";
 import { OfferClient } from "./offer/OfferClient";
 import EvmSigner from "./signer/EvmSigner";
 import SolanaSigner from "./signer/SolanaSigner";
+import axios, { AxiosInstance } from "axios";
 
 export enum ClientType {
   Solana = "Solana",
@@ -34,7 +35,8 @@ export enum ClientType {
 }
 
 export class Refinable {
-  protected _apiClient?: GraphQLClient;
+  protected _graphqlClient?: GraphQLClient;
+  protected _apiClient?: AxiosInstance;
   protected _options: Options<RefinableOptions> = {
     environment: Environment.Mainnet,
   };
@@ -49,6 +51,17 @@ export class Refinable {
 
   get options() {
     return this._options;
+  }
+
+  get graphqlClient() {
+    if (!this._graphqlClient) {
+      throw new Error("GraphQL Client was not initialized");
+    }
+    return this._graphqlClient;
+  }
+
+  set graphqlClient(graphqlClient) {
+    this._graphqlClient = graphqlClient;
   }
 
   get apiClient() {
@@ -98,11 +111,20 @@ export class Refinable {
       options
     );
 
-    const graphqlUrl = apiUrl[this._options.environment];
+    const _graphqlUrl = graphqlUrl[this._options.environment];
+    const _apiUrl = apiUrl[this._options.environment];
 
     this._apiKey = apiToken;
-    this.apiClient = new GraphQLClient(graphqlUrl, {
+    this.graphqlClient = new GraphQLClient(_graphqlUrl, {
       headers: { "X-API-KEY": apiToken, ...(this._options.headers ?? {}) },
+    });
+    this.apiClient = axios.create({
+      baseURL: _apiUrl,
+      headers: {
+        "X-API-KEY": apiToken,
+        ...(this._options.headers ?? {}),
+        "content-type": "application/JSON",
+      },
     });
 
     this.evm = new RefinableEvmClient(options, this);
@@ -151,7 +173,7 @@ export class Refinable {
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const itemsPerPage = limit(paging);
-    const queryResponse = await this.apiClient.request<
+    const queryResponse = await this.graphqlClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
     >(GET_USER_ITEMS, {
@@ -184,7 +206,7 @@ export class Refinable {
   // Upload image / video
   public async uploadFile(file: Stream): Promise<string> {
     const { uploadFile: uploadedFileName } = await uploadFile(
-      this.apiClient,
+      this.graphqlClient,
       file
     );
 

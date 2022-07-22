@@ -1,6 +1,12 @@
 import { Environment } from "../types/RefinableOptions";
 
 export const apiUrl = {
+  [Environment.Mainnet]: "https://api.refinable.com",
+  [Environment.Testnet]: "https://api-testnet.refinable.com",
+  [Environment.Local]: "http://localhost:8001",
+};
+
+export const graphqlUrl = {
   [Environment.Mainnet]: "https://api.refinable.com/graphql",
   [Environment.Testnet]: "https://api-testnet.refinable.com/graphql",
   [Environment.Local]: "http://localhost:8001/graphql",
@@ -17,5 +23,3 @@ export const SIGNERS = {
   [Environment.Testnet]: "0x9d2b8DFd7B8F33Cf84499Ac2df74896174AAb98C",
   [Environment.Local]: "0x9d2b8DFd7B8F33Cf84499Ac2df74896174AAb98C",
 };
-
-

@@ -18,10 +18,7 @@ import { ERCSaleID } from "./ERCSaleId";
 import { SaleVersion } from "./interfaces/SaleInfo";
 
 export class ERC721NFT extends AbstractEvmNFT {
-  constructor(
-    refinable: Refinable,
-    item: PartialNFTItem
-  ) {
+  constructor(refinable: Refinable, item: PartialNFTItem) {
     super(TokenType.Erc721, refinable, item);
   }
 
@@ -139,7 +136,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     const saleId = await this.getSaleId();
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
 
-    const result = await this.refinable.apiClient.request<
+    const result = await this.refinable.graphqlClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {

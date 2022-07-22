@@ -19,14 +19,19 @@ export class LooksrarePlatform extends AbstractPlatform {
       kind: "single-token",
       params: BytesEmpty,
     });
+    const unsignedTx = exchange.fillOrderTx(
+      this.refinable.accountAddress,
+      order,
+      {
+        isOrderAsk: false,
+        taker: this.refinable.accountAddress,
+        price: offer.orderParams.price,
+        tokenId: tokenId,
+        minPercentageToAsk: offer.orderParams.minPercentageToAsk,
+        params: BytesEmpty,
+      }
+    );
 
-    return exchange.fillOrder(this.refinable.provider, order, {
-      isOrderAsk: false,
-      taker: this.refinable.accountAddress,
-      price: offer.orderParams.price,
-      tokenId: tokenId,
-      minPercentageToAsk: offer.orderParams.minPercentageToAsk,
-      params: BytesEmpty,
-    });
+    return unsignedTx;
   }
 }

@@ -101,7 +101,7 @@ describe("NFTBuilder", () => {
 
     it("Should throw error when create api request fails", async () => {
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockRejectedValueOnce(new Error("API Error"));
 
       expect(() => erc721Builder.tokenId).toThrow(
@@ -109,12 +109,12 @@ describe("NFTBuilder", () => {
       );
 
       expect(erc721Builder.create()).rejects.toThrow("API Error");
-      expect(refinable.apiClient.request).toBeCalled();
+      expect(refinable.graphqlClient.request).toBeCalled();
     });
 
     it("Should be able to create NFT", async () => {
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       expect(() => erc721Builder.tokenId).toThrow(
@@ -123,7 +123,7 @@ describe("NFTBuilder", () => {
 
       await erc721Builder.create();
 
-      expect(refinable.apiClient.request).toBeCalled();
+      expect(refinable.graphqlClient.request).toBeCalled();
       expect(erc721Builder.tokenId).toBe(ITEM_CREATE_RESPONSE.item.tokenId);
     });
   });
@@ -139,7 +139,7 @@ describe("NFTBuilder", () => {
       const tokenContract = getContract(refinable);
 
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       jest
@@ -178,7 +178,7 @@ describe("NFTBuilder", () => {
         type: ContractTypes.Erc1155Token,
       });
 
-      jest.spyOn(refinable.apiClient, "request").mockResolvedValueOnce({
+      jest.spyOn(refinable.graphqlClient, "request").mockResolvedValueOnce({
         createItem: {
           ...ITEM_CREATE_RESPONSE,
           item: {
@@ -222,7 +222,7 @@ describe("NFTBuilder", () => {
       });
 
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       jest
@@ -259,7 +259,7 @@ describe("NFTBuilder", () => {
       });
 
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE });
 
       jest
@@ -305,7 +305,7 @@ describe("NFTBuilder", () => {
       const tokenContract = getContract();
 
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE })
         .mockResolvedValueOnce({
           finishMint: { item: ITEM_CREATE_RESPONSE["item"] },
@@ -348,7 +348,7 @@ describe("NFTBuilder", () => {
       const tokenContract = getContract();
 
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE })
         .mockResolvedValueOnce({
           finishMint: { item: ITEM_CREATE_RESPONSE["item"] },
@@ -382,7 +382,7 @@ describe("NFTBuilder", () => {
       const tokenContract = getContract();
 
       jest
-        .spyOn(refinable.apiClient, "request")
+        .spyOn(refinable.graphqlClient, "request")
         .mockResolvedValueOnce({ createItem: ITEM_CREATE_RESPONSE })
         .mockResolvedValueOnce({
           finishMint: {

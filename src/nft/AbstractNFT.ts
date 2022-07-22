@@ -123,7 +123,7 @@ export abstract class AbstractNFT {
     this.verifyItem();
 
     const response =
-      await this.refinable.apiClient.request<RefreshMetadataMutation>(
+      await this.refinable.graphqlClient.request<RefreshMetadataMutation>(
         REFRESH_METADATA,
         {
           input: {

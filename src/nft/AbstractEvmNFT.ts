@@ -258,7 +258,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
 
     const result =
-      await this.refinable.apiClient.request<CreateOfferForEditionsMutation>(
+      await this.refinable.graphqlClient.request<CreateOfferForEditionsMutation>(
         CREATE_OFFER,
         {
           input: {
