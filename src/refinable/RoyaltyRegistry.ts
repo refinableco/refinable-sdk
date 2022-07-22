@@ -1,5 +1,5 @@
 import { ContractTypes } from "../@types/graphql";
-import { Contract } from "../Contract";
+import { Contract } from "./contract/Contract";
 import { RoyaltyType } from "../enums/royalty-type.enum";
 import { LibPart } from "../interfaces/LibPart";
 import { Chain } from "../interfaces/Network";
@@ -55,7 +55,7 @@ export class RoyaltyRegistry {
     const contract = await this._lazyGetContract();
 
     const tx = await contract
-      .toEthersContract()
+      .toEthersContract(this.refinable.provider)
       .setRoyaltiesByToken(contractAddress, royalties);
 
     return new EvmTransaction(tx);
@@ -65,7 +65,7 @@ export class RoyaltyRegistry {
     const contract = await this._lazyGetContract();
 
     const tx = await contract
-      .toEthersContract()
+      .toEthersContract(this.refinable.provider)
       .clearRoyaltiesType(contractAddress);
 
     return new EvmTransaction(tx);

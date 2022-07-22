@@ -141,7 +141,7 @@ export type Collection = {
   bannerUrl?: Maybe<Scalars["String"]>;
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
-  creator: User;
+  creator?: Maybe<User>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
@@ -183,6 +183,7 @@ export type CollectionMetadataFilterInput = {
   currencies?: InputMaybe<Array<PriceCurrency>>;
   metadata: Scalars["JSON"];
   offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
   tagName?: InputMaybe<Scalars["String"]>;
   titleQuery?: InputMaybe<Scalars["String"]>;
 };
@@ -222,6 +223,7 @@ export type CollectionsFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["Float"]>>;
   collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   creator?: InputMaybe<Scalars["String"]>;
+  userAddress?: InputMaybe<Scalars["String"]>;
 };
 
 export type CollectionsResponse = {
@@ -316,9 +318,10 @@ export type CreateCollectionInput = {
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
+  name: Scalars["String"];
   symbol: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
-  title: Scalars["String"];
+  title?: InputMaybe<Scalars["String"]>;
   tokenType: Scalars["String"];
   twitter?: InputMaybe<Scalars["String"]>;
   website?: InputMaybe<Scalars["String"]>;
@@ -449,12 +452,14 @@ export type CustomLinkInput = {
 };
 
 export type EventInput = {
-  assetId: Scalars["ID"];
+  assetId?: InputMaybe<Scalars["ID"]>;
   assetType: AssetType;
+  trackData?: InputMaybe<Scalars["JSONObject"]>;
   type: EventType;
 };
 
 export enum EventType {
+  Track = "TRACK",
   View = "VIEW",
 }
 
@@ -487,6 +492,7 @@ export type FindContractInput = {
 export type FineHolderBenefits = {
   auctionAllowance?: Maybe<Scalars["Float"]>;
   avgFineTokenBalance?: Maybe<Scalars["Float"]>;
+  /** @deprecated We are removing mintAllowance for all user tiers */
   mintAllowance?: Maybe<Scalars["Float"]>;
   rarityLimit?: Maybe<Scalars["Float"]>;
   royaltyLimit?: Maybe<Scalars["Float"]>;
@@ -516,7 +522,7 @@ export type GetMetadataOutput = {
   description?: Maybe<Scalars["String"]>;
   external_url?: Maybe<Scalars["String"]>;
   image?: Maybe<Scalars["String"]>;
-  name: Scalars["String"];
+  name?: Maybe<Scalars["String"]>;
   originalMetadata: Scalars["JSONObject"];
   video?: Maybe<Scalars["String"]>;
 };
@@ -806,6 +812,7 @@ export type ItemsFilterInput = {
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
   offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
   tagName?: InputMaybe<Scalars["String"]>;
   titleQuery?: InputMaybe<Scalars["String"]>;
 };
@@ -940,6 +947,7 @@ export type Mutation = {
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
   toggleAddToWatchList?: Maybe<Collection>;
+  toggleHideCollection: UpdateCollectionOutput;
   toggleLike?: Maybe<Item>;
   updateCollection: UpdateCollectionOutput;
   updateNotificationSeenStatus: Notification;
@@ -1032,6 +1040,10 @@ export type MutationReportItemArgs = {
 
 export type MutationToggleAddToWatchListArgs = {
   collectionId: Scalars["String"];
+};
+
+export type MutationToggleHideCollectionArgs = {
+  id: Scalars["ID"];
 };
 
 export type MutationToggleLikeArgs = {
@@ -1173,6 +1185,7 @@ export type PagingInput = {
 
 export enum Platform {
   Looksrare = "LOOKSRARE",
+  Opensea = "OPENSEA",
   Refinable = "REFINABLE",
 }
 
@@ -1413,6 +1426,7 @@ export type QueryUserSortedCollectionsArgs = {
 
 export type RefinableContractInput = {
   chainId: Scalars["Float"];
+  contractAbi: Scalars["String"];
   contractAddress: Scalars["String"];
   contractType: ContractTypes;
 };
@@ -1478,6 +1492,7 @@ export type SearchFilterInput = {
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
   offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
   query?: InputMaybe<Scalars["String"]>;
   tagName?: InputMaybe<Scalars["String"]>;
   titleQuery?: InputMaybe<Scalars["String"]>;
@@ -1647,6 +1662,7 @@ export type TagInput = {
 };
 
 export type Token = {
+  canMint: Scalars["Boolean"];
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
@@ -1691,7 +1707,6 @@ export type UpdateCollectionInput = {
 
 export type UpdateCollectionOutput = {
   collection?: Maybe<Collection>;
-  success: Scalars["Boolean"];
 };
 
 export type UpdateStore = {
@@ -1806,6 +1821,7 @@ export enum UserItemFilterType {
 export type UserItemOnOfferFilterInput = {
   chainId?: InputMaybe<Scalars["Int"]>;
   contractAddresses?: InputMaybe<Array<Scalars["String"]>>;
+  platforms?: InputMaybe<Array<Platform>>;
   tokenId?: InputMaybe<Scalars["String"]>;
   type?: InputMaybe<OfferType>;
 };
@@ -1820,7 +1836,7 @@ export type UserSortedCollection = {
   bannerUrl?: Maybe<Scalars["String"]>;
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
-  creator: User;
+  creator?: Maybe<User>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;

@@ -1,3 +1,4 @@
+import { Contract, IContract } from "../../src/refinable/contract/Contract";
 import {
   Chain,
   ERC721NFT,
@@ -11,12 +12,11 @@ import {
   ContractTypes,
   CreateItemMutation,
 } from "../../src/@types/graphql";
-import { Contract, IContract } from "../../src/Contract";
 import { getMockRefinableClient } from "../helpers/client";
 import { ETH_TX_RESPONSE } from "./Transactions.spec";
 
-const getContract = (refinable: Refinable, override: Partial<IContract> = {}) =>
-  new Contract(refinable, {
+const getContract = (override: Partial<IContract> = {}) =>
+  new Contract({
     tags: [ContractTag.TokenV1_0_0],
     chainId: 1,
     contractABI: "[]",
@@ -174,7 +174,7 @@ describe("NFTBuilder", () => {
         supply: 9,
       });
 
-      const tokenContract = getContract(refinable, {
+      const tokenContract = getContract({
         type: ContractTypes.Erc1155Token,
       });
 
@@ -217,7 +217,7 @@ describe("NFTBuilder", () => {
     });
 
     it("Should be able to mint V2 ERC721 TOKEN", async () => {
-      const tokenContract = getContract(refinable, {
+      const tokenContract = getContract({
         tags: [ContractTag.TokenV2_0_0],
       });
 
@@ -254,7 +254,7 @@ describe("NFTBuilder", () => {
     });
 
     it("Should be able to mint V3 ERC721 TOKEN", async () => {
-      const tokenContract = getContract(refinable, {
+      const tokenContract = getContract({
         tags: [ContractTag.TokenV3_0_0],
       });
 
@@ -302,7 +302,7 @@ describe("NFTBuilder", () => {
     });
 
     it("Should be able to finish minting an NFT", async () => {
-      const tokenContract = getContract(refinable);
+      const tokenContract = getContract();
 
       jest
         .spyOn(refinable.apiClient, "request")
@@ -345,7 +345,7 @@ describe("NFTBuilder", () => {
         ...BUILD_DATA,
         contractAddress: undefined,
       });
-      const tokenContract = getContract(refinable);
+      const tokenContract = getContract();
 
       jest
         .spyOn(refinable.apiClient, "request")
@@ -379,7 +379,7 @@ describe("NFTBuilder", () => {
         ...BUILD_DATA,
         contractAddress: "0x4fabb145d64652a948d72533023f6e7a623c7c53",
       });
-      const tokenContract = getContract(refinable);
+      const tokenContract = getContract();
 
       jest
         .spyOn(refinable.apiClient, "request")
