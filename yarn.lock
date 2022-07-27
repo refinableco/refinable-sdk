@@ -1685,10 +1685,10 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@reservoir0x/sdk@^0.0.126":
+"@refinableco/reservoir-sdk@^0.0.126":
   version "0.0.126"
-  resolved "https://registry.npmjs.org/@reservoir0x/sdk/-/sdk-0.0.126.tgz#ea4e8405cad1c0b64ebbd2bb2e75705b9774ed54"
-  integrity sha512-c6wqU8Vicak7I3R/YaEMGcIggVPeHVjJ4j1L00eLnqbgeARSxRK6kXLDtcY9LLEslwijFiuIqUBfplZ9tHTS/A==
+  resolved "https://registry.npmjs.org/@refinableco/reservoir-sdk/-/reservoir-sdk-0.0.126.tgz#a9c19f03523cc8f051f3b4509f913458141d0c24"
+  integrity sha512-1k8zpi+WcGGvpxLl3sOIPDWR3yUVrOTM7PL2ApIY3CKE4/inJWj4tCR2412AmmEWkPbUVe7Cr+wdGd+wg4s+hg==
   dependencies:
     ethers "^5.6.8"
     merkletreejs "0.2.31"

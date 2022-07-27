@@ -1,8 +1,8 @@
 import { splitSignature } from "ethers/lib/utils";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
-import * as reservoirSdk from "@reservoir0x/sdk";
-import { BytesEmpty } from "@reservoir0x/sdk/dist/utils";
+import * as reservoirSdk from "@refinableco/reservoir-sdk";
+import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
 
 export class LooksrarePlatform extends AbstractPlatform {
   buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
