@@ -1,6 +1,7 @@
 import { constants } from "ethers";
 import { z } from "zod";
 import { ContractTypes } from "../../@types/graphql";
+import { RefinableEvmOptions } from "../../types/RefinableOptions";
 import { Contract, IContract } from "./Contract";
 
 export class Erc721LazyMintContract extends Contract {
@@ -30,7 +31,7 @@ export class Erc721LazyMintContract extends Contract {
       .optional()
       .default({ account: constants.AddressZero, value: 0 }),
   });
-  constructor(contract: IContract) {
-    super(contract);
+  constructor(contract: IContract, evmOptions: RefinableEvmOptions) {
+    super(contract, evmOptions);
   }
 }

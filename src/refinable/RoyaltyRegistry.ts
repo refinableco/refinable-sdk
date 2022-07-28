@@ -1,15 +1,14 @@
 import { ContractTypes } from "../@types/graphql";
-import { Contract } from "./contract/Contract";
 import { RoyaltyType } from "../enums/royalty-type.enum";
 import { LibPart } from "../interfaces/LibPart";
 import { Chain } from "../interfaces/Network";
-import EvmTransaction from "../transaction/EvmTransaction";
+import { ContractWrapper } from "./contract/ContractWrapper";
 import { Refinable } from "./Refinable";
 
 export { RoyaltyType };
 
 export class RoyaltyRegistry {
-  private contract: Contract;
+  private contract: ContractWrapper;
   private provider: any;
   constructor(
     private readonly refinable: Refinable,
@@ -29,16 +28,17 @@ export class RoyaltyRegistry {
         [ContractTypes.RoyaltyRegistry]
       );
 
-    this.contract = contract;
-    return contract;
+    this.contract = contract.connect(this.refinable.provider ?? this.provider);
+    return this.contract;
   }
 
   async getRoyaltyInfo(contractAddress: string, tokenId = "1") {
-    const contract = await this._lazyGetContract();
+    const lazyContract = await this._lazyGetContract();
 
-    const royaltyInfo = await contract
-      .toEthersContract(this.provider)
-      .getRoyaltyInfoForToken(contractAddress, tokenId);
+    const royaltyInfo = await lazyContract.contract.getRoyaltyInfoForToken(
+      contractAddress,
+      tokenId
+    );
 
     const [royaltyType, royalties] = royaltyInfo;
 
@@ -52,22 +52,23 @@ export class RoyaltyRegistry {
   }
 
   async setRoyaltiesByToken(contractAddress: string, royalties: LibPart[]) {
-    const contract = await this._lazyGetContract();
+    const lazyContract = await this._lazyGetContract();
 
-    const tx = await contract
-      .toEthersContract(this.refinable.provider)
-      .setRoyaltiesByToken(contractAddress, royalties);
+    const response = await lazyContract.sendTransaction("setRoyaltiesByToken", [
+      contractAddress,
+      royalties,
+    ]);
 
-    return new EvmTransaction(tx);
+    return response;
   }
 
   async clearRoyaltiesType(contractAddress: string) {
-    const contract = await this._lazyGetContract();
+    const lazyContract = await this._lazyGetContract();
 
-    const tx = await contract
-      .toEthersContract(this.refinable.provider)
-      .clearRoyaltiesType(contractAddress);
+    const response = await lazyContract.sendTransaction("clearRoyaltiesType", [
+      contractAddress,
+    ]);
 
-    return new EvmTransaction(tx);
+    return response;
   }
 }

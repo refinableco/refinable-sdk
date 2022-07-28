@@ -22,16 +22,13 @@ describe("Refinable Create Contract", () => {
   beforeAll(async () => {
     refinable = await Refinable.create(API_KEY, {
       environment: Environment.Local,
-      evm: {
-        waitConfirmations: 1,
-      },
     });
 
     await refinable.connect(ClientType.Evm, wallet);
   });
 
   it("should get the current instance", async () => {
-    const currentChainId = await refinable.provider.getChainId();
+    const currentChainId = await refinable.evm.signer.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });
 

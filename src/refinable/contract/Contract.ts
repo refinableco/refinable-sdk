@@ -1,4 +1,3 @@
-import { Contract as EthersContract, providers, Signer } from "ethers";
 import semver from "semver";
 import {
   ContractOutput,
@@ -6,10 +5,13 @@ import {
   ContractTypes,
   TokenType,
 } from "../../@types/graphql";
-import { CONTRACTS_MAP } from "./";
+import { ProviderSignerWallet } from "../../interfaces/Signer";
+import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { ContractWrapper } from "./ContractWrapper";
 
 export interface IContract extends Omit<ContractOutput, "__typename" | "id"> {
   default?: boolean;
+  tokenType?: TokenType;
 }
 
 export class Contract implements IContract {
@@ -19,8 +21,12 @@ export class Contract implements IContract {
   contractABI: string;
   tags: ContractTag[];
   default?: boolean = false;
+  tokenType?: TokenType;
 
-  constructor(contract: IContract) {
+  constructor(
+    contract: IContract,
+    private readonly evmOptions: RefinableEvmOptions
+  ) {
     Object.assign(this, contract);
   }
 
@@ -42,15 +48,20 @@ export class Contract implements IContract {
     });
   }
 
-  toEthersContract(signerOrProvider: Signer | providers.Provider) {
-    return new EthersContract(
-      this.contractAddress,
-      this.contractABI,
-      signerOrProvider
+  connect(signerOrProvider: ProviderSignerWallet) {
+    return new ContractWrapper(
+      {
+        abi: this.contractABI,
+        address: this.contractAddress,
+      },
+      signerOrProvider,
+      this.evmOptions
     );
   }
 
   getTokenType() {
+    if (this.tokenType) return this.tokenType;
+
     switch (this.type) {
       case ContractTypes.Erc1155Token:
       case ContractTypes.Erc1155WhitelistedToken:

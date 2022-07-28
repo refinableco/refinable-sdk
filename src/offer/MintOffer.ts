@@ -1,5 +1,4 @@
-import { TransactionResponse } from "@ethersproject/providers";
-import { BigNumber, Contract, ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { Stream } from "form-data";
 import { RefinableEvmClient } from "..";
 import {
@@ -18,7 +17,6 @@ import { MintVoucher } from "../nft/interfaces/MintVoucher";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
 import { Refinable } from "../refinable/Refinable";
-import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
 import { optionalParam } from "../utils/utils";
@@ -91,7 +89,7 @@ export class MintOffer extends BasicOffer {
       previewImage = await this.refinable.uploadFile(params.previewImage);
     }
 
-    const nonceResult: BigNumber = await this.nonceContract.getNonce(
+    const nonceResult: BigNumber = await this.nonceContract.contract.getNonce(
       contractAddress,
       0,
       this.refinable.accountAddress
@@ -225,7 +223,7 @@ export class MintOffer extends BasicOffer {
   }
 
   public async buy(params: BuyParams = {}): Promise<Transaction> {
-    const contract = await this.getContract();
+    const contract = await this._getContract();
     const amountToClaim = params.amount ?? 1;
 
     const price =
@@ -241,25 +239,34 @@ export class MintOffer extends BasicOffer {
       contract.address
     );
 
-    const { method, args } = this.getBuyTxParams({
+    const { method, args, callOverrides } = this.getBuyTxParams({
       recipient: params.recipient,
       amount: amountToClaim,
     });
 
-    const claimTx: TransactionResponse = await contract[method](...args);
+    const response = await contract.sendTransaction(
+      method,
+      args,
+      callOverrides
+    );
 
-    return new EvmTransaction(claimTx);
+    return response;
   }
 
   public async estimateGasBuy(params: BuyParams = {}) {
-    const contract = await this.getContract();
+    const contract = await this._getContract();
 
-    const { method, args } = this.getBuyTxParams({
+    const { method, args, callOverrides } = this.getBuyTxParams({
       recipient: params.recipient,
       amount: params.amount,
     });
 
-    return await contract.estimateGas[method](...args);
+    // If callOverrides set, append to args
+    if (callOverrides) {
+      args.push(callOverrides);
+    }
+
+    return await contract.contract.estimateGas[method](...args);
   }
 
   private getBuyTxParams(params: { recipient?: string; amount?: number }) {
@@ -287,7 +294,7 @@ export class MintOffer extends BasicOffer {
       this._offer.price.currency
     );
 
-    const args = [
+    const args: unknown[] = [
       // LibMintVoucher.MintVoucher calldata mintVoucher
       mintVoucher,
       // address recipient
@@ -299,10 +306,6 @@ export class MintOffer extends BasicOffer {
         ...this.whitelistVoucher,
         price: voucherPrice,
       }),
-      // If currency is Native, send msg.value
-      ...optionalParam(isNativeCurrency, {
-        value: parsedPrice,
-      }),
     ];
 
     // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
@@ -311,12 +314,17 @@ export class MintOffer extends BasicOffer {
     return {
       args,
       method,
+      callOverrides: isNativeCurrency
+        ? {
+            value: parsedPrice,
+          }
+        : undefined,
     };
   }
 
   public async getRemaining(recipient?: string): Promise<number> {
-    const contract = await this.getContract();
-    const remaining = await contract.getRemaining(
+    const claimContract = await this._getContract();
+    const remaining = await claimContract.contract.getRemaining(
       recipient && recipient != "" ? recipient : this.refinable.accountAddress
     );
 
@@ -351,7 +359,7 @@ export class MintOffer extends BasicOffer {
    * Singleton to get the corresponding lazy mint contract
    * @returns ethers.Contract
    */
-  async getContract(): Promise<ethers.Contract> {
+  private async _getContract() {
     if (!this.offer) {
       throw new Error("Offer was not set");
     }
@@ -361,20 +369,20 @@ export class MintOffer extends BasicOffer {
       chainId: this.chainId,
     });
 
-    return contract.toEthersContract(this.refinable.provider);
+    return contract.connect(this.refinable.provider);
   }
 
   public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {
     throw new Error("Not Implemented");
   }
 
-  get nonceContract(): Contract {
+  get nonceContract() {
     // right now there are no plans for 1155 lazy mint
     const saleNonceHolder = this.refinableEvmClient.contracts.getBaseContract(
       this.chainId,
       `${TokenType.Erc721}_SALE_NONCE_HOLDER`
     );
 
-    return saleNonceHolder.toEthersContract(this.refinable.provider);
+    return saleNonceHolder.connect(this.refinable.provider);
   }
 }

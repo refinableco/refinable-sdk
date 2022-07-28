@@ -9,7 +9,7 @@ export class SimulationFailedError extends Error {
   }
 }
 
-export const isSimulationFailedError = (error: SimulationFailedError) => {
+export const isSimulationFailedError = (error: Error) => {
   return (
     error instanceof SimulationFailedError ||
     Boolean((error as SimulationFailedError)._isSimulationFailedError) === true

@@ -1,6 +1,3 @@
-import { NodeWallet } from "@metaplex/js";
-import { Keypair } from "@solana/web3.js";
-import base58 from "bs58";
 import * as dotenv from "dotenv";
 import { Chain, Environment, initializeWallet, Refinable } from "../src";
 import { ClientType } from "../src/refinable/Refinable";
@@ -25,31 +22,8 @@ export async function createRefinableClient(chainId: Chain) {
   }
 
   const client = await Refinable.create(API_KEY, {
-    evm: {
-      waitConfirmations: 1,
-    },
     environment,
   });
 
   return client.connect(ClientType.Evm, wallet);
-}
-
-export async function createRefinableClientSolana(environment: Environment) {
-  const SECRET_KEY_SOL = process.env.SECRET_KEY_SOL as string;
-
-  if (!SECRET_KEY_SOL) {
-    throw new Error("No secret key found!");
-  }
-
-  const byte_array = base58.decode(SECRET_KEY_SOL);
-
-  const payer = Keypair.fromSecretKey(byte_array);
-
-  const wallet = new NodeWallet(payer);
-
-  const client = await Refinable.create(API_KEY, {
-    environment,
-  });
-
-  return client.connect(ClientType.Solana, wallet);
 }

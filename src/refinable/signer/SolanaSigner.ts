@@ -1,8 +1,8 @@
 import { Refinable } from "../..";
-import { Signer } from "../../interfaces/Signer";
+import { AccountSigner } from "../../interfaces/Signer";
 import SolanaAccount from "../account/SolanaAccount";
 
-export default class SolanaSigner extends SolanaAccount implements Signer {
+export default class SolanaSigner extends SolanaAccount implements AccountSigner {
   constructor(refinable: Refinable) {
     super(refinable);
   }
