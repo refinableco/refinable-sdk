@@ -2,10 +2,7 @@ import { BigNumber, ethers } from "ethers";
 import { Refinable } from "../../src";
 import EvmAccount from "../../src/refinable/account/EvmAccount";
 import SolanaAccount from "../../src/refinable/account/SolanaAccount";
-import {
-  getMockRefinableClient,
-  getMockRefinableSolanaClient,
-} from "../helpers/client";
+import { getMockRefinableClient } from "../helpers/client";
 
 describe("Account", () => {
   beforeEach(() => {
@@ -23,7 +20,7 @@ describe("Account", () => {
     describe("getBalance", () => {
       it("Should return correct balance for ETH", async () => {
         jest
-          .spyOn(refinable.provider, "getBalance")
+          .spyOn(refinable.evm.signer as ethers.Signer, "getBalance")
           .mockResolvedValue(BigNumber.from("1000000000000000000"));
 
         const account = new EvmAccount(refinable);
@@ -33,7 +30,7 @@ describe("Account", () => {
 
       it("Should return correctly return zero balance", async () => {
         jest
-          .spyOn(refinable.provider, "getBalance")
+          .spyOn(refinable.evm.signer as ethers.Signer, "getBalance")
           .mockResolvedValue(BigNumber.from("0000000000000000000"));
 
         const account = new EvmAccount(refinable);
@@ -136,33 +133,4 @@ describe("Account", () => {
       });
     });
   });
-  describe("SolanaAccount", () => {
-    let refinable: Refinable;
-    const ADDRESS = "Db8TkU1xiwGH6kGgF1QtGTfwAG1sCAAgsEicCkmLv3T4";
-
-    beforeAll(async () => {
-      refinable = getMockRefinableSolanaClient(ADDRESS);
-    });
-
-    describe("getBalance", () => {
-      it("Should return correct balance for SOL", async () => {
-        jest
-          .spyOn(refinable.solana.connection, "getBalance")
-          .mockResolvedValue(1000000000);
-
-        const account = new SolanaAccount(refinable);
-
-        expect(await account.getBalance()).toBe("1");
-      });
-
-      it("Should return correctly return zero balance", async () => {
-        jest.spyOn(refinable.solana.connection, "getBalance").mockResolvedValue(0);
-
-        const account = new SolanaAccount(refinable);
-
-        expect(await account.getBalance()).toBe("0");
-      });
-    });
-  });
 });
-

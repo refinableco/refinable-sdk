@@ -11,7 +11,6 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  Token,
 } from "../@types/graphql";
 import { getContractsTags } from "../config/contracts";
 import {
@@ -32,7 +31,7 @@ export class Contracts {
   } = {};
 
   private mintableContracts: {
-    [chainId: string]: { [address: string]: Token & { default: boolean } };
+    [chainId: string]: { [address: string]: Contract };
   };
 
   private baseContracts: {
@@ -137,6 +136,7 @@ export class Contracts {
           contractsForChainId[token.contractAddress.toLowerCase()] =
             this.cacheContract({
               ...token,
+              type: token.contractType,
               default: collection.default,
             });
 
@@ -153,8 +153,9 @@ export class Contracts {
 
   async getDefaultTokenContract(chainId: Chain, tokenType: TokenType) {
     const mintableContracts = await this.getMintableContracts();
+
     return Object.values(mintableContracts[chainId.toString()]).find(
-      (token) => token.type === tokenType && token.default
+      (token) => token.tokenType === tokenType && token.default
     );
   }
 
@@ -166,13 +167,11 @@ export class Contracts {
     if (!contract)
       throw new Error("This contract cannot be minted through Refinable");
 
-    return ContractFactory.getContract(contract);
+    return ContractFactory.getContract(contract, this.refinable.evm.options);
   }
 
   async isContractDeployed(contractAddress: string) {
-    const code = await this.refinable.provider.provider.getCode(
-      contractAddress
-    );
+    const code = await this.refinable.evm.provider.getCode(contractAddress);
 
     return code !== "0x0";
   }
@@ -217,7 +216,10 @@ export class Contracts {
   }
 
   private cacheContract(contractOutput: IContract) {
-    const contract = ContractFactory.getContract(contractOutput);
+    const contract = ContractFactory.getContract(
+      contractOutput,
+      this.refinable.evm.options
+    );
 
     this.cachedContracts[contract.chainId] = {
       ...(this.cachedContracts[contract.chainId] ?? {}),

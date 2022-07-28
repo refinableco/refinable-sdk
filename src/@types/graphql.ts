@@ -152,6 +152,7 @@ export type Collection = {
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
+  mintingType: MintingType;
   name: Scalars["String"];
   ownerEthAddress?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
@@ -492,7 +493,6 @@ export type FindContractInput = {
 export type FineHolderBenefits = {
   auctionAllowance?: Maybe<Scalars["Float"]>;
   avgFineTokenBalance?: Maybe<Scalars["Float"]>;
-  /** @deprecated We are removing mintAllowance for all user tiers */
   mintAllowance?: Maybe<Scalars["Float"]>;
   rarityLimit?: Maybe<Scalars["Float"]>;
   royaltyLimit?: Maybe<Scalars["Float"]>;
@@ -916,6 +916,11 @@ export type MintOffer = Offer & {
 export type MintOfferMarketConfigArgs = {
   storeId?: InputMaybe<Scalars["ID"]>;
 };
+
+export enum MintingType {
+  LazyBatch = "LAZY_BATCH",
+  Normal = "NORMAL",
+}
 
 export type Moonpay = {
   fiatCheckoutWidgetData: FiatCheckoutWidgetData;
@@ -1669,7 +1674,9 @@ export type Token = {
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
+  contractType: ContractTypes;
   tags: Array<ContractTag>;
+  tokenType: TokenType;
   type: TokenType;
 };
 
@@ -1850,6 +1857,7 @@ export type UserSortedCollection = {
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
+  mintingType: MintingType;
   name?: Maybe<Scalars["String"]>;
   ownerEthAddress?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
@@ -1985,7 +1993,8 @@ export type GetMintableCollectionsQuery = {
     tokens: Array<{
       contractAddress: string;
       contractABI: string;
-      type: TokenType;
+      contractType: ContractTypes;
+      tokenType: TokenType;
       chainId: number;
       tags: Array<ContractTag>;
     }>;

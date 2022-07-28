@@ -30,7 +30,8 @@ export const GET_MINTABLE_COLLECTIONS_QUERY = gql`
       tokens {
         contractAddress
         contractABI
-        type
+        contractType
+        tokenType
         chainId
         tags
       }

@@ -1,7 +1,9 @@
+import axios, { AxiosInstance } from "axios";
+import { ethers, providers } from "ethers";
 import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
-import { AbstractEvmNFT, RefinableEvmClient, SPLNFT } from "..";
+import { AbstractEvmNFT, RefinableEvmClient } from "..";
 import {
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
@@ -12,7 +14,7 @@ import { apiUrl, graphqlUrl } from "../config/sdk";
 import { GET_USER_ITEMS } from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
-import { Signer } from "../interfaces/Signer";
+import { AccountSigner, ProviderSignerWallet } from "../interfaces/Signer";
 import { PartialNFTItem } from "../nft/AbstractNFT";
 import { platforms } from "../platform";
 import { AbstractPlatform } from "../platform/AbstractPlatform";
@@ -22,15 +24,14 @@ import {
   RefinableOptions,
 } from "../types/RefinableOptions";
 import { limit } from "../utils/limitItems";
+import { getSignerAndProvider } from "../utils/singer";
 import { CheckoutClient } from "./checkout/CheckoutClient";
 import { RefinableSolanaClient } from "./client/RefinableSolanaClient";
 import { OfferClient } from "./offer/OfferClient";
 import EvmSigner from "./signer/EvmSigner";
 import SolanaSigner from "./signer/SolanaSigner";
-import axios, { AxiosInstance } from "axios";
 
 export enum ClientType {
-  Solana = "Solana",
   Evm = "Evm",
 }
 
@@ -42,7 +43,7 @@ export class Refinable {
   };
   protected _apiKey: string;
   protected _accountAddress: string;
-  protected _account?: Signer;
+  protected _account?: AccountSigner;
   protected _provider: any;
 
   // Clients
@@ -136,11 +137,12 @@ export class Refinable {
     await this.solana.init();
   }
 
-  async connect(type: ClientType, provider: unknown) {
-    this._provider = provider;
+  async connect(type: ClientType, providerOrSigner: ProviderSignerWallet) {
+    this._provider = providerOrSigner;
 
     if (type === ClientType.Evm) {
       this._account = new EvmSigner(this);
+      this.evm.connect(providerOrSigner);
     } else {
       this._account = new SolanaSigner(this);
     }
@@ -153,11 +155,13 @@ export class Refinable {
   disconnect() {
     this._provider = null;
     this._accountAddress = null;
+
+    this.evm.disconnect();
   }
 
   createNft<K extends NftMapTypes>(
     item: PartialNFTItem & { type: SingleKeys<K> }
-  ): ClassType<K, SPLNFT | AbstractEvmNFT> {
+  ): ClassType<K, AbstractEvmNFT> {
     if (!item) return null;
 
     const Class = nftMap[item.type as NftMapTypes];

@@ -11,8 +11,9 @@ import { getContractAddress } from "../config/contracts";
 import { ipfsUrl, SIGNERS } from "../config/sdk";
 import { CREATE_COLLECTION } from "../graphql/collections";
 import EvmTransaction from "../transaction/EvmTransaction";
+import { RefinableEvmOptions } from "../types/RefinableOptions";
 import {
-  CONTRACTS_MAP,
+  CONTRACTS_MAP as CONTRACTS_CLASSES_MAP,
   DeployableContracts as DeployableContractsClasses,
 } from "./contract";
 import { Contract, IContract } from "./contract/Contract";
@@ -22,13 +23,37 @@ import { Erc721WhitelistContract } from "./contract/Erc721WhitelistContract";
 import { CreateCollectionParams } from "./interfaces/Contracts";
 import { Refinable } from "./Refinable";
 
+export type ContractClassMap = typeof CONTRACTS_CLASSES_MAP;
+export type ContractClassMapTypes = keyof typeof CONTRACTS_CLASSES_MAP;
+
+type Tuples<T, F> = T extends ContractClassMapTypes
+  ? [T, InstanceType<ContractClassMap[T]>]
+  : F;
+export type SingleKeys<K> = [K] extends (
+  K extends ContractClassMapTypes ? [K] : string
+)
+  ? K
+  : string;
+
+export type ClassType<K, F extends Contract> = [K] extends (
+  K extends ContractClassMapTypes ? [K] : string
+)
+  ? Extract<Tuples<ContractClassMapTypes, F>, [K, any]>[1]
+  : F;
+
 export class ContractFactory {
   constructor(private readonly refinable: Refinable) {}
 
-  static getContract(contract: IContract) {
-    const ContractClass = CONTRACTS_MAP[contract.type] ?? Contract;
+  static getContract<K extends ContractClassMapTypes>(
+    contract: IContract & { type: SingleKeys<K> | string },
+    evmOptions: RefinableEvmOptions
+  ): ClassType<K, Contract> {
+    const ContractClass =
+      contract.type in CONTRACTS_CLASSES_MAP
+        ? (CONTRACTS_CLASSES_MAP as any)[contract.type]
+        : Contract;
 
-    return new ContractClass(contract);
+    return new ContractClass(contract, evmOptions);
   }
 
   /**
@@ -64,7 +89,7 @@ export class ContractFactory {
     type: C["type"],
     params: CreateCollectionParams<z.input<C["deployArgsSchema"]>>
   ) {
-    const chainId = await this.refinable.provider.getChainId();
+    const chainId = await this.refinable.evm.signer.getChainId();
 
     // 1. Deploy contract
     const { contract, contractAbi } = await this.deploy<C>(chainId, type, {
@@ -72,9 +97,10 @@ export class ContractFactory {
       symbol: params.symbol,
       name: params.name,
     });
-    const deployTx = new EvmTransaction(contract.deployTransaction);
 
-    await deployTx.wait();
+    const receipt = await contract.deployTransaction.wait();
+
+    const deployTx = new EvmTransaction(receipt, this.refinable.evm.provider);
 
     // 2. Register contract
     const { id: contractId, contract: registeredContract } =
@@ -133,7 +159,7 @@ export class ContractFactory {
     const factory = new EthersContractFactory(
       artifacts.abi,
       artifacts.bytecode,
-      this.refinable.provider
+      this.refinable.evm.signer
     );
 
     const deployArgs = this.getDeployArgs(type, contractArguments, chainId);

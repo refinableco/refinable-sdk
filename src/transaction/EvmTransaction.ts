@@ -1,29 +1,27 @@
-import type {
-  TransactionReceipt,
-  TransactionResponse,
-} from "@ethersproject/abstract-provider";
+import { ethers } from "ethers";
 import { Transaction } from "./Transaction";
 
 export default class EvmTransaction implements Transaction {
-  public txReceipt: TransactionReceipt;
-  constructor(private readonly tx: TransactionResponse) {}
+  constructor(
+    public txReceipt: ethers.ContractReceipt,
+    private readonly provider?: ethers.providers.Provider
+  ) {}
 
   get txId() {
-    return this.tx.hash;
-  }
-
-  get timestamp() {
-    return this.tx.timestamp;
+    return this.txReceipt.transactionHash;
   }
 
   get success() {
-    if (!this.txReceipt) throw new Error("Must await tx first");
-
     return this.txReceipt.status === 1;
   }
 
   async wait(confirmations?: number) {
-    this.txReceipt = await this.tx.wait(confirmations);
+    if (this.provider) {
+      this.txReceipt = await this.provider.waitForTransaction(
+        this.txReceipt.transactionHash,
+        confirmations
+      );
+    }
 
     return this;
   }

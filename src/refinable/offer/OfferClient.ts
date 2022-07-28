@@ -1,4 +1,4 @@
-import { MintOffer, RefinableEvmClient } from "../..";
+import { MintOffer } from "../..";
 import {
   GetOfferQuery,
   GetOfferQueryVariables,
@@ -23,7 +23,7 @@ export class OfferClient {
     const chainId =
       offer?.chainId != null
         ? offer.chainId
-        : await this.refinable.provider.getChainId();
+        : await this.refinable.evm.signer.getChainId();
     return new MintOffer(this.refinable, this.refinable.evm, chainId, offer);
   }
 
