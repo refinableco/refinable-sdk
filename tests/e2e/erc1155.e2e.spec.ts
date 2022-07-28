@@ -47,9 +47,6 @@ describe("ERC1155 - E2E", () => {
 
   beforeAll(async () => {
     refinable = await Refinable.create(API_KEY, {
-      evm: {
-        waitConfirmations: 1,
-      },
       environment: Environment.Local,
     });
 
@@ -57,16 +54,13 @@ describe("ERC1155 - E2E", () => {
 
     refinable2 = await Refinable.create(API_KEY_2, {
       environment: Environment.Local,
-      evm: {
-        waitConfirmations: 1,
-      },
     });
 
     await refinable2.connect(ClientType.Evm, wallet2);
   });
 
   it("should get the current instance", async () => {
-    const currentChainId = await refinable.provider.getChainId();
+    const currentChainId = await refinable.evm.signer.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });
 
@@ -265,7 +259,7 @@ describe("ERC1155 - E2E", () => {
         expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
         expect(offer.buy()).rejects.toThrowError(
-          "reverted with reason string 'Whitelist: You are not whitelisted or public sale has not started"
+          "You are not whitelisted or public sale has not started"
         );
       });
 
@@ -459,7 +453,7 @@ describe("ERC1155 - E2E", () => {
       });
 
       await expect(offer.endAuction()).rejects.toThrow(
-        "Auction: Auction has not ended"
+        "Auction has not ended"
       );
     });
   });

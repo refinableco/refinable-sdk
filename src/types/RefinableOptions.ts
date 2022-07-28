@@ -16,7 +16,10 @@ export interface RefinableOptions {
 }
 
 export interface RefinableEvmOptions {
-  waitConfirmations?: number;
+  gasSettings?: {
+    maxPriceInGwei?: number; // Maximum gas price for transactions (default 300 gwei)
+    speed?: "standard" | "fast" | "fastest"; // the tx speed setting: 'standard'|'fast|'fastest' (default: 'fastest')
+  };
 }
 export interface RefinableSolanaOptions {
   commitment?: Commitment;

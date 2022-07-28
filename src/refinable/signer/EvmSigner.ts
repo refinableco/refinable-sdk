@@ -1,9 +1,9 @@
 import { utils } from "ethers";
 import { Refinable } from "../..";
-import { Signer } from "../../interfaces/Signer";
+import { AccountSigner } from "../../interfaces/Signer";
 import EvmAccount from "../account/EvmAccount";
 
-export default class EvmSigner extends EvmAccount implements Signer {
+export default class EvmSigner extends EvmAccount implements AccountSigner {
   constructor(refinable: Refinable) {
     super(refinable);
   }

@@ -1,15 +1,15 @@
-import type { TransactionResponse } from "@ethersproject/abstract-provider";
-import { Contract, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Account } from "../../interfaces/Account";
 import { NativeCurrency } from "../../interfaces/Config";
 import EvmTransaction from "../../transaction/EvmTransaction";
+import { ContractWrapper } from "../contract/ContractWrapper";
 import { Refinable } from "../Refinable";
 
 export default class EvmAccount implements Account {
   constructor(protected readonly refinable: Refinable) {}
 
   async getAddress(): Promise<string> {
-    return this.refinable.provider.getAddress();
+    return this.refinable.evm.signer.getAddress();
   }
 
   /**
@@ -49,7 +49,7 @@ export default class EvmAccount implements Account {
             type: "function",
           },
         ],
-        this.refinable.provider
+        this.refinable.evm.provider
       );
       const balance = await token.balanceOf(
         userEthAddress ?? this.refinable.accountAddress
@@ -81,7 +81,7 @@ export default class EvmAccount implements Account {
             type: "function",
           },
         ],
-        this.refinable.provider
+        this.refinable.evm.provider
       );
       decimals = await token.decimals();
     } catch (e) {
@@ -102,7 +102,7 @@ export default class EvmAccount implements Account {
       ? this.refinable.evm
           .getProviderByChainId(chainId)
           .getBalance(userEthAddress ?? this.refinable.accountAddress)
-      : this.refinable.provider.getBalance();
+      : this.refinable.evm.signer.getBalance();
 
     const result = await getBalancePromise;
     return ethers.utils.formatEther(result).toString();
@@ -123,24 +123,24 @@ export default class EvmAccount implements Account {
     // Native currency does not need to be approved
     if (token.native === true) return;
 
-    const erc20Contract = new Contract(
-      token.address,
-      [`function approve(address _spender, uint256 _value)`],
-      this.refinable.provider
+    const erc20Contract = new ContractWrapper(
+      {
+        address: token.address,
+        abi: [`function approve(address _spender, uint256 _value)`],
+      },
+      this.refinable.evm.provider,
+      this.refinable.evm.options
     );
 
     const formattedAmount = ethers.utils
       .parseUnits(amount.toString(), token.decimals)
       .toString();
 
-    const approvalResult: TransactionResponse = await erc20Contract.approve(
+    const response = await erc20Contract.sendTransaction("approve", [
       spenderAddress,
-      formattedAmount
-    );
+      formattedAmount,
+    ]);
 
-    // Wait for 1 confirmation
-    await approvalResult.wait(this.refinable.evm.options.waitConfirmations);
-
-    return new EvmTransaction(approvalResult);
+    return response;
   }
 }

@@ -17,6 +17,8 @@ import { isERC1155Item, isEVMNFT } from "../utils/is";
 import { Offer, PartialOffer } from "./Offer";
 import { SimulationFailedError } from "../errors";
 import { simulateUnsignedTx } from "../transaction/simulate";
+import EvmTransaction from "../transaction/EvmTransaction";
+import { TransactionError } from "../errors/TransactionError";
 
 interface BuyParams {
   amount?: number;
@@ -31,26 +33,7 @@ export class SaleOffer extends Offer {
     const isExternal = this._offer.platform !== Platform.Refinable;
 
     if (isExternal) {
-      const unsignedTx = this.refinable
-        .platform(this._offer.platform)
-        .buy(
-          this._offer,
-          this.nft.getItem().contractAddress,
-          this.nft.getItem().tokenId
-        );
-
-      const resp = await simulateUnsignedTx({
-        refinable: this.refinable,
-        data: unsignedTx.data,
-        to: unsignedTx.to,
-        value: unsignedTx.value,
-      });
-
-      if (resp.data.simulation.status === false) {
-        throw new SimulationFailedError();
-      }
-
-      return this.refinable.provider.sendTransaction(unsignedTx);
+      return this.externalBuy();
     }
 
     let supply = await this.getSupplyOnSale();
@@ -100,6 +83,38 @@ export class SaleOffer extends Offer {
     }
 
     return result;
+  }
+
+  private async externalBuy() {
+    const unsignedTx = this.refinable
+      .platform(this._offer.platform)
+      .buy(
+        this._offer,
+        this.nft.getItem().contractAddress,
+        this.nft.getItem().tokenId
+      );
+
+    const resp = await simulateUnsignedTx({
+      refinable: this.refinable,
+      data: unsignedTx.data,
+      to: unsignedTx.to,
+      value: unsignedTx.value,
+    });
+
+    if (resp.data.simulation.status === false) {
+      throw new SimulationFailedError();
+    }
+
+    try {
+      const response = await this.refinable.evm.provider.sendTransaction(
+        unsignedTx
+      );
+
+      const receipt = await response.wait();
+      return new EvmTransaction(receipt);
+    } catch (e) {
+      throw new TransactionError(e);
+    }
   }
 
   public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {

@@ -5,7 +5,7 @@ import type {
 import EvmTransaction from "../../src/transaction/EvmTransaction";
 import SolanaTransaction from "../../src/transaction/SolanaTransaction";
 
-const getEvmTxReceipt = (
+export const getEvmTxReceipt = (
   override?: Partial<TransactionReceipt>
 ): TransactionReceipt => ({
   to: "0xffA18fb5a09A6107A66daf71BBaa743B4FCf2168",
@@ -50,31 +50,15 @@ export const ETH_TX_RESPONSE: TransactionResponse = {
 
 describe("Transaction", () => {
   describe("EvmTransaction", () => {
-
-    it("Should throw error when requesting success but not waited", async () => {
-      expect.assertions(1);
-
-      const tx = new EvmTransaction(ETH_TX_RESPONSE);
-
-      expect(() => {
-        tx.success;
-      }).toThrow("Must await tx first");
-    });
     it("Should return success false when tx did not pass", async () => {
-      const tx = new EvmTransaction({
-        ...ETH_TX_RESPONSE,
-        wait: jest.fn().mockResolvedValue(getEvmTxReceipt({ status: 0 })),
-      });
+      const tx = new EvmTransaction(getEvmTxReceipt({ status: 0 }));
 
       await tx.wait(1);
 
       expect(tx.success).toBe(false);
     });
     it("Should return success when tx passed", async () => {
-      const tx = new EvmTransaction({
-        ...ETH_TX_RESPONSE,
-        wait: jest.fn().mockResolvedValue(getEvmTxReceipt({ status: 1 })),
-      });
+      const tx = new EvmTransaction(getEvmTxReceipt({ status: 1 }));
 
       await tx.wait(1);
 

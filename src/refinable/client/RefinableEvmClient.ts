@@ -1,12 +1,15 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { ethers, providers, Signer } from "ethers";
 import _ from "lodash";
 import { Chain, NFTBuilder } from "../..";
 import { getChainByNetworkId } from "../../config/chains";
+import { ProviderSignerWallet } from "../../interfaces/Signer";
 import { NftBuilderParams } from "../../nft/builder/IBuilder";
 import {
   RefinableEvmOptions,
   RefinableOptions,
 } from "../../types/RefinableOptions";
+import { getSignerAndProvider } from "../../utils/singer";
 import EvmAccount from "../account/EvmAccount";
 import { ContractFactory } from "../ContractFactory";
 import { Contracts } from "../Contracts";
@@ -44,12 +47,32 @@ export enum UserItemFilterType {
 
 export class RefinableEvmClient {
   public account: EvmAccount;
-  public options: RefinableEvmOptions = { waitConfirmations: 3 };
+  public options: RefinableEvmOptions = {
+    gasSettings: {
+      maxPriceInGwei: 300, // Maximum gas price for transactions (default 300 gwei)
+      speed: "fastest", // the tx speed setting: 'standard'|'fast|'fastest' (default: 'fastest')
+    },
+  };
   public contracts: Contracts;
   public contractFactory: ContractFactory;
+  public providerOrSigner?: ProviderSignerWallet;
+  public _provider?: providers.Provider;
+  public _signer?: ethers.Signer;
 
   async init() {
     await this.contracts.initialize();
+  }
+
+  get provider() {
+    if (!this._provider)
+      throw new Error("Provider not set, please connect() provider first");
+    return this._provider;
+  }
+
+  get signer() {
+    if (!this._signer)
+      throw new Error("Signer not set, please connect() provider first");
+    return this._signer;
   }
 
   constructor(
@@ -61,6 +84,20 @@ export class RefinableEvmClient {
     this.account = new EvmAccount(refinableClient);
     this.contracts = new Contracts(refinableClient);
     this.contractFactory = new ContractFactory(refinableClient);
+  }
+
+  connect(providerOrSigner: ProviderSignerWallet) {
+    const [signer, provider] = getSignerAndProvider(providerOrSigner);
+
+    this.providerOrSigner = providerOrSigner;
+    this._provider = provider;
+    this._signer = signer;
+  }
+
+  disconnect() {
+    this.providerOrSigner = null;
+    this._provider = null;
+    this._signer = null;
   }
 
   nftBuilder(params?: NftBuilderParams) {

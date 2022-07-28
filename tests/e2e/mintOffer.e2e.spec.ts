@@ -34,7 +34,6 @@ describe("MintOffer - E2E", () => {
   beforeAll(async () => {
     // init seller
     refinableSeller = await Refinable.create(API_KEY, {
-      evm: { waitConfirmations: 1 },
       environment: Environment.Local,
     });
 
@@ -42,7 +41,6 @@ describe("MintOffer - E2E", () => {
 
     // init buyer
     refinableBuyer = await Refinable.create(API_KEY_2, {
-      evm: { waitConfirmations: 1 },
       environment: Environment.Local,
     });
 
