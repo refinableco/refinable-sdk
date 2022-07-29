@@ -24,12 +24,9 @@ import {
   RefinableOptions,
 } from "../types/RefinableOptions";
 import { limit } from "../utils/limitItems";
-import { getSignerAndProvider } from "../utils/singer";
 import { CheckoutClient } from "./checkout/CheckoutClient";
-import { RefinableSolanaClient } from "./client/RefinableSolanaClient";
 import { OfferClient } from "./offer/OfferClient";
 import EvmSigner from "./signer/EvmSigner";
-import SolanaSigner from "./signer/SolanaSigner";
 
 export enum ClientType {
   Evm = "Evm",
@@ -48,7 +45,6 @@ export class Refinable {
 
   // Clients
   public evm: RefinableEvmClient;
-  public solana: RefinableSolanaClient;
 
   get options() {
     return this._options;
@@ -129,23 +125,17 @@ export class Refinable {
     });
 
     this.evm = new RefinableEvmClient(options, this);
-    this.solana = new RefinableSolanaClient(options, this);
   }
 
   async init() {
     await this.evm.init();
-    await this.solana.init();
   }
 
   async connect(type: ClientType, providerOrSigner: ProviderSignerWallet) {
     this._provider = providerOrSigner;
 
-    if (type === ClientType.Evm) {
-      this._account = new EvmSigner(this);
-      this.evm.connect(providerOrSigner);
-    } else {
-      this._account = new SolanaSigner(this);
-    }
+    this._account = new EvmSigner(this);
+    this.evm.connect(providerOrSigner);
 
     this._accountAddress = await this.account.getAddress();
 

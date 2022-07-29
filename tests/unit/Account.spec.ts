@@ -1,7 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 import { Refinable } from "../../src";
 import EvmAccount from "../../src/refinable/account/EvmAccount";
-import SolanaAccount from "../../src/refinable/account/SolanaAccount";
 import { getMockRefinableClient } from "../helpers/client";
 
 describe("Account", () => {

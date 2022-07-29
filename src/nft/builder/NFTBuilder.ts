@@ -77,9 +77,6 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       );
     }
 
-    if (this.buildData.type === TokenType.Spl)
-      throw new Error("Not supported yet");
-
     const {
       type,
       description,
