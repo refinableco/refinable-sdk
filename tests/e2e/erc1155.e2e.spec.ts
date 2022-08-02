@@ -16,6 +16,7 @@ import {
   WhitelistType,
 } from "../../src/@types/graphql";
 import { ClientType } from "../../src/refinable/Refinable";
+import { sleep } from "../../src/utils/utils";
 
 const createNft = async (refinable: Refinable, supply = 5) => {
   const fileStream = fs.createReadStream(
@@ -184,6 +185,8 @@ describe("ERC1155 - E2E", () => {
       };
 
       const nft = await createNft(refinable, 100);
+
+      await sleep(1000);
 
       const itemOnSale = await nft.putForSale({
         supply: 22,
