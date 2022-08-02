@@ -16,7 +16,7 @@ import {
   WhitelistType,
 } from "../../src/@types/graphql";
 import { ClientType } from "../../src/refinable/Refinable";
-import { sleep } from "../../src/solana/utils";
+import { sleep } from "../../src/utils/utils";
 
 const createNft = async (refinable: Refinable, supply = 5) => {
   const fileStream = fs.createReadStream(
@@ -452,9 +452,7 @@ describe("ERC1155 - E2E", () => {
         },
       });
 
-      await expect(offer.endAuction()).rejects.toThrow(
-        "Auction has not ended"
-      );
+      await expect(offer.endAuction()).rejects.toThrow("Auction has not ended");
     });
   });
 });
