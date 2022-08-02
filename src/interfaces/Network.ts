@@ -2,7 +2,6 @@ export enum ChainType {
   BSC = "bsc",
   POLYGON = "polygon",
   ETH = "ethereum",
-  SOLANA = "solana",
 }
 
 export enum NetworkType {
@@ -24,18 +23,13 @@ export enum Chain {
   Ethereum = 1,
   EthereumRinkeby = 4,
   EthereumGoerli = 5,
-  // Solana
-  SolanaMainnetBeta = 101,
-  SolanaTestnet = 102,
-  SolanaDevnet = 103,
-  SolanaLocalnet = 104,
 }
 
 export type EVM_CHAIN_IDS =
-  Chain.Local |
-  Chain.BscMainnet |
-  Chain.BscTestnet |
-  Chain.PolygonMainnet |
-  Chain.PolygonTestnet |
-  Chain.Ethereum |
-  Chain.EthereumGoerli;
+  | Chain.Local
+  | Chain.BscMainnet
+  | Chain.BscTestnet
+  | Chain.PolygonMainnet
+  | Chain.PolygonTestnet
+  | Chain.Ethereum
+  | Chain.EthereumGoerli;

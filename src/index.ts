@@ -21,7 +21,6 @@ import {
 export * from "./nft/interfaces/SaleInfo";
 export * from "./nft/interfaces/Voucher";
 import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
-import { SPLNFT } from "./nft/SPLNFT";
 import { AuctionOffer } from "./offer/AuctionOffer";
 import { Offer, PartialOffer, BasicOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
@@ -31,7 +30,6 @@ import { RefinableEvmClient } from "./refinable/client/RefinableEvmClient";
 import { Store } from "./store/Store";
 import { Environment } from "./types/RefinableOptions";
 import * as is from "./utils/is";
-import { RefinableSolanaClient } from "./refinable/client/RefinableSolanaClient";
 import { RoyaltyRegistry, RoyaltyType } from "./refinable/RoyaltyRegistry";
 export * from "./providers";
 export * from "./errors";
@@ -49,11 +47,9 @@ export {
   PartialOffer,
   AbstractNFT,
   AbstractEvmNFT,
-  SPLNFT,
   EvmTokenType,
   Refinable,
   RefinableEvmClient,
-  RefinableSolanaClient,
   NftMap,
   ClientType,
   Chain,

@@ -582,16 +582,6 @@ export type ImportCollectionOutput = {
   tokenType?: Maybe<TokenType>;
 };
 
-export type ImportSolanaCollectionInput = {
-  chainId: Scalars["Float"];
-  creator?: InputMaybe<Scalars["String"]>;
-  description: Scalars["String"];
-  iconUrl: Scalars["String"];
-  name: Scalars["String"];
-  slug: Scalars["String"];
-  updateAuthority?: InputMaybe<Scalars["String"]>;
-};
-
 export type IndexCollectionInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
@@ -945,7 +935,6 @@ export type Mutation = {
   generateVerificationToken: Scalars["Int"];
   hideItem: Item;
   importCollection: ImportCollectionOutput;
-  importSolanaCollection: Scalars["Boolean"];
   indexCollection: Scalars["Boolean"];
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
@@ -1018,10 +1007,6 @@ export type MutationHideItemArgs = {
 
 export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
-};
-
-export type MutationImportSolanaCollectionArgs = {
-  input: ImportSolanaCollectionInput;
 };
 
 export type MutationIndexCollectionArgs = {
@@ -1217,7 +1202,6 @@ export enum PriceCurrency {
   Eth = "ETH",
   Fine = "FINE",
   Matic = "MATIC",
-  Sol = "SOL",
   Usdc = "USDC",
   Usdt = "USDT",
   Weth = "WETH",
@@ -1683,7 +1667,6 @@ export type Token = {
 export enum TokenType {
   Erc721 = "ERC721",
   Erc1155 = "ERC1155",
-  Spl = "SPL",
 }
 
 export type TopUser = {
@@ -1895,7 +1878,6 @@ export type UserSortedCollectionsResponse = {
 
 export enum UserType {
   Evm = "Evm",
-  Solana = "Solana",
 }
 
 export type VerificationTokenInput = {
