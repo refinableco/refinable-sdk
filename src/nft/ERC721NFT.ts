@@ -30,20 +30,21 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     // for some custom contracts it fails to estimate the gas correctly
     try {
-      setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+      setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
         operatorAddress,
         true
       );
     } catch (ex) {
       if (ex.code === "UNPREDICTABLE_GAS_LIMIT") {
-        const gasLimit = await nftTokenContract.estimateGas.setApprovalForAll(
-          operatorAddress,
-          true
-        );
+        const gasLimit =
+          await nftTokenContract.contract.estimateGas.setApprovalForAll(
+            operatorAddress,
+            true
+          );
 
         const fee = await this.refinable.provider.getFeeData();
 
-        setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+        setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
           operatorAddress,
           true,
           {
