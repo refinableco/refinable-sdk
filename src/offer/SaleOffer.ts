@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
   Platform,
+  PriceCurrency,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
   PurchaseMetadata,
@@ -98,7 +99,10 @@ export class SaleOffer extends Offer {
       refinable: this.refinable,
       data: unsignedTx.data,
       to: unsignedTx.to,
-      value: unsignedTx.value,
+      value:
+        this._offer.price.currency != PriceCurrency.Eth
+          ? "0"
+          : unsignedTx.value,
     });
 
     if (resp.data.simulation.status === false) {
@@ -106,9 +110,13 @@ export class SaleOffer extends Offer {
     }
 
     try {
-      const response = await this.refinable.evm.signer.sendTransaction(
-        unsignedTx
-      );
+      const response = await this.refinable.evm.signer.sendTransaction({
+        ...unsignedTx,
+        value:
+          this._offer.price.currency != PriceCurrency.Eth
+            ? "0"
+            : unsignedTx.value,
+      });
 
       const receipt = await response.wait();
       return new EvmTransaction(receipt);
