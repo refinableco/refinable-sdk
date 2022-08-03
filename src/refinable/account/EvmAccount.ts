@@ -128,7 +128,7 @@ export default class EvmAccount implements Account {
         address: token.address,
         abi: [`function approve(address _spender, uint256 _value)`],
       },
-      this.refinable.evm.provider,
+      this.refinable.evm.providerOrSigner,
       this.refinable.evm.options
     );
 
