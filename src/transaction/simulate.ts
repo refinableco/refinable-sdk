@@ -12,13 +12,13 @@ export const simulateUnsignedTx = async ({
   value: string;
 }) => {
   // simulate
-  const gasLimit = await refinable.provider.estimateGas({
+  const gasLimit = await refinable.evm.signer.estimateGas({
     data,
     to,
     value,
   });
 
-  const feeData = await refinable.provider.getFeeData();
+  const feeData = await refinable.evm.signer.getFeeData();
   const body = {
     network_id: "1",
     from: refinable.accountAddress,
