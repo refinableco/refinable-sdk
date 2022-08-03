@@ -128,8 +128,8 @@ export class ContractFactory {
 
     const createCollectionData: CreateCollectionInput = {
       ...omit(params, "contractArguments"),
-      avatar: params.avatar as string,
-      banner: params.banner as string,
+      avatar: params.avatar,
+      banner: params.banner,
       tokenType: registeredContract.getTokenType(),
       contractId,
       chainId,
