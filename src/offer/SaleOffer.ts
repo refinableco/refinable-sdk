@@ -106,7 +106,7 @@ export class SaleOffer extends Offer {
     }
 
     try {
-      const response = await this.refinable.evm.provider.sendTransaction(
+      const response = await this.refinable.evm.signer.sendTransaction(
         unsignedTx
       );
 
