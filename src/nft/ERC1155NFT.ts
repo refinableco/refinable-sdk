@@ -25,17 +25,15 @@ export class ERC1155NFT extends AbstractEvmNFT {
   async approve(operatorAddress: string): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    const setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+    return await nftTokenContract.sendTransaction("setApprovalForAll", [
       operatorAddress,
-      true
-    );
-
-    return new EvmTransaction(setApprovalForAllTx);
+      true,
+    ]);
   }
 
   async isApproved(operatorAddress: string): Promise<boolean> {
     const nftTokenContract = await this.getTokenContract();
-    return nftTokenContract.isApprovedForAll(
+    return nftTokenContract.contract.isApprovedForAll(
       this.refinable.accountAddress,
       operatorAddress
     );
@@ -129,14 +127,12 @@ export class ERC1155NFT extends AbstractEvmNFT {
       isV2: true,
     });
 
-    const signedHash = await this.refinable.account.sign(
-      saleParamHash as string
-    );
+    const signedHash = await this.refinable.account.sign(saleParamHash);
 
     const saleId = await this.getSaleId();
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
 
-    const result = await this.refinable.apiClient.request<
+    const result = await this.refinable.graphqlClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {
@@ -171,26 +167,22 @@ export class ERC1155NFT extends AbstractEvmNFT {
   ): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    const transferTx = await nftTokenContract.safeTransferFrom(
+    return await nftTokenContract.sendTransaction("safeTransferFrom", [
       ownerEthAddress,
       recipientEthAddress,
       this.item.tokenId,
       amount,
-      ethers.constants.HashZero
-    );
-
-    return new EvmTransaction(transferTx);
+      ethers.constants.HashZero,
+    ]);
   }
 
   async burn(amount: number, ownerEthAddress: string): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    const burnTx = await nftTokenContract.burn(
+    return await nftTokenContract.sendTransaction("burn", [
       ownerEthAddress,
       this.item.tokenId,
-      amount
-    );
-
-    return new EvmTransaction(burnTx);
+      amount,
+    ]);
   }
 }

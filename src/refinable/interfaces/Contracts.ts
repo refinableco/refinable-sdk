@@ -1,6 +1,19 @@
 import { ReadStream } from "fs";
-import { CollectionInput } from "../../@types/graphql";
+import { CreateCollectionInput } from "../../@types/graphql";
 
-export interface SdkCollectionInput extends Omit<CollectionInput, "avatar"> {
+export interface CreateCollectionParams<T extends Record<string, unknown>>
+  extends Pick<
+    CreateCollectionInput,
+    | "description"
+    | "symbol"
+    | "name"
+    | "twitter"
+    | "discord"
+    | "instagram"
+    | "telegram"
+    | "website"
+  > {
   avatar: string | ReadStream;
+  banner?: string | ReadStream;
+  contractArguments: Omit<T, "name" | "symbol">;
 }

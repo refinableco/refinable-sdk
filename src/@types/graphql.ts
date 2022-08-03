@@ -141,17 +141,20 @@ export type Collection = {
   bannerUrl?: Maybe<Scalars["String"]>;
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
-  creator: User;
+  creator?: Maybe<User>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
+  mintingType: MintingType;
   name: Scalars["String"];
+  ownerEthAddress?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
@@ -172,15 +175,6 @@ export type CollectionEdge = {
   node: Collection;
 };
 
-export type CollectionInput = {
-  avatar: Scalars["String"];
-  description: Scalars["String"];
-  slug: Scalars["String"];
-  symbol: Scalars["String"];
-  title: Scalars["String"];
-  tokenType: Scalars["String"];
-};
-
 export type CollectionMetadataFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
@@ -190,6 +184,7 @@ export type CollectionMetadataFilterInput = {
   currencies?: InputMaybe<Array<PriceCurrency>>;
   metadata: Scalars["JSON"];
   offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
   tagName?: InputMaybe<Scalars["String"]>;
   titleQuery?: InputMaybe<Scalars["String"]>;
 };
@@ -229,6 +224,7 @@ export type CollectionsFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["Float"]>>;
   collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   creator?: InputMaybe<Scalars["String"]>;
+  userAddress?: InputMaybe<Scalars["String"]>;
 };
 
 export type CollectionsResponse = {
@@ -257,6 +253,7 @@ export type ContractOutput = {
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
+  id: Scalars["String"];
   tags: Array<ContractTag>;
   type: Scalars["String"];
 };
@@ -313,8 +310,25 @@ export enum ContractTypes {
   TransferProxy = "TRANSFER_PROXY",
 }
 
+export type CreateCollectionInput = {
+  avatar: Scalars["String"];
+  banner?: InputMaybe<Scalars["String"]>;
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  contractId: Scalars["String"];
+  description: Scalars["String"];
+  discord?: InputMaybe<Scalars["String"]>;
+  instagram?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
+  symbol: Scalars["String"];
+  telegram?: InputMaybe<Scalars["String"]>;
+  title?: InputMaybe<Scalars["String"]>;
+  tokenType: Scalars["String"];
+  twitter?: InputMaybe<Scalars["String"]>;
+  website?: InputMaybe<Scalars["String"]>;
+};
+
 export type CreateContractInput = {
-  collection: CollectionInput;
   contract: RefinableContractInput;
 };
 
@@ -418,15 +432,6 @@ export type CreateStoreInput = {
   website?: InputMaybe<Scalars["String"]>;
 };
 
-export type CreatorSuiteImportCollectionInput = {
-  chainId: Scalars["Float"];
-  contractAddress: Scalars["String"];
-};
-
-export type CreatorSuiteImportCollectionOutput = {
-  id: Scalars["String"];
-};
-
 export type CreatorSuiteProfileInput = {
   email?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
@@ -448,12 +453,14 @@ export type CustomLinkInput = {
 };
 
 export type EventInput = {
-  assetId: Scalars["ID"];
+  assetId?: InputMaybe<Scalars["ID"]>;
   assetType: AssetType;
+  trackData?: InputMaybe<Scalars["JSONObject"]>;
   type: EventType;
 };
 
 export enum EventType {
+  Track = "TRACK",
   View = "VIEW",
 }
 
@@ -515,7 +522,7 @@ export type GetMetadataOutput = {
   description?: Maybe<Scalars["String"]>;
   external_url?: Maybe<Scalars["String"]>;
   image?: Maybe<Scalars["String"]>;
-  name: Scalars["String"];
+  name?: Maybe<Scalars["String"]>;
   originalMetadata: Scalars["JSONObject"];
   video?: Maybe<Scalars["String"]>;
 };
@@ -561,11 +568,9 @@ export type HottestTagsFilterInput = {
 export type ImportCollectionInput = {
   bannerUrl?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Float"];
-  contractABI?: InputMaybe<Scalars["String"]>;
   contractAddress: Scalars["String"];
   description: Scalars["String"];
   iconUrl: Scalars["String"];
-  metadataUrlTemplate?: InputMaybe<Scalars["String"]>;
   name: Scalars["String"];
   slug: Scalars["String"];
   type?: InputMaybe<TokenType>;
@@ -573,42 +578,8 @@ export type ImportCollectionInput = {
 
 export type ImportCollectionOutput = {
   isValid?: Maybe<Scalars["Boolean"]>;
-  metadataUrlTemplate?: Maybe<Scalars["String"]>;
   randomTokenUrl?: Maybe<Scalars["String"]>;
-  tokenABI?: Maybe<Scalars["String"]>;
   tokenType?: Maybe<TokenType>;
-};
-
-export type ImportItemInput = {
-  apiUrl: Scalars["String"];
-  chainId: Scalars["Int"];
-  contractAddress: Scalars["String"];
-  tags?: InputMaybe<Array<TagInput>>;
-  tokenId: Scalars["String"];
-};
-
-export type ImportItemPreview = {
-  apiUrl?: Maybe<Scalars["String"]>;
-  apiUrlFound?: Maybe<Scalars["Boolean"]>;
-  description: Scalars["String"];
-  file: Scalars["String"];
-  name: Scalars["String"];
-};
-
-export type ImportItemPreviewInput = {
-  apiUrl: Scalars["String"];
-  contractAddress: Scalars["String"];
-  tokenId: Scalars["String"];
-};
-
-export type ImportSolanaCollectionInput = {
-  chainId: Scalars["Float"];
-  creator?: InputMaybe<Scalars["String"]>;
-  description: Scalars["String"];
-  iconUrl: Scalars["String"];
-  name: Scalars["String"];
-  slug: Scalars["String"];
-  updateAuthority?: InputMaybe<Scalars["String"]>;
 };
 
 export type IndexCollectionInput = {
@@ -706,6 +677,10 @@ export type ItemHistoryEdge = {
   node: ItemHistory;
 };
 
+export type ItemHistoryFilterInput = {
+  itemId?: InputMaybe<Scalars["ID"]>;
+};
+
 export type ItemHistoryPageInfo = {
   endCursor?: Maybe<Scalars["String"]>;
   hasNextPage: Scalars["Boolean"];
@@ -801,8 +776,6 @@ export type ItemReportResponse = {
 };
 
 export type ItemWithOffer = {
-  /** @deprecated editionsForSale are now used */
-  cheapestEditionForSale?: Maybe<Offer>;
   editionsForSale: Array<Offer>;
   id: Scalars["String"];
   item: Item;
@@ -829,6 +802,7 @@ export type ItemsFilterInput = {
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
   offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
   tagName?: InputMaybe<Scalars["String"]>;
   titleQuery?: InputMaybe<Scalars["String"]>;
 };
@@ -913,6 +887,7 @@ export type MintOffer = Offer & {
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
   name?: Maybe<Scalars["String"]>;
+  orderParams?: Maybe<Scalars["JSONObject"]>;
   payee: Scalars["String"];
   platform?: Maybe<Platform>;
   previewFile?: Maybe<PreviewFileProperties>;
@@ -932,6 +907,11 @@ export type MintOfferMarketConfigArgs = {
   storeId?: InputMaybe<Scalars["ID"]>;
 };
 
+export enum MintingType {
+  LazyBatch = "LAZY_BATCH",
+  Normal = "NORMAL",
+}
+
 export type Moonpay = {
   fiatCheckoutWidgetData: FiatCheckoutWidgetData;
 };
@@ -941,6 +921,7 @@ export type MoonpayFiatCheckoutWidgetDataArgs = {
 };
 
 export type Mutation = {
+  createCollection: Collection;
   createContract: ContractOutput;
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
@@ -949,14 +930,11 @@ export type Mutation = {
   createPurchase: Purchase;
   createPurchaseSession: PurchaseSession;
   createStore: Store;
-  creatorSuiteImportCollection: CreatorSuiteImportCollectionOutput;
   dismissReport: ItemReport;
   finishMint: FinishMintOutput;
   generateVerificationToken: Scalars["Int"];
   hideItem: Item;
   importCollection: ImportCollectionOutput;
-  importItem: CreateItemOutput;
-  importSolanaCollection: Scalars["Boolean"];
   indexCollection: Scalars["Boolean"];
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
@@ -964,6 +942,7 @@ export type Mutation = {
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
   toggleAddToWatchList?: Maybe<Collection>;
+  toggleHideCollection: UpdateCollectionOutput;
   toggleLike?: Maybe<Item>;
   updateCollection: UpdateCollectionOutput;
   updateNotificationSeenStatus: Notification;
@@ -971,7 +950,11 @@ export type Mutation = {
   updateStoreCollections?: Maybe<UpdateStore>;
   updateUser: User;
   uploadFile: Scalars["String"];
-  userImportCollection: UserImportCollectionOutput;
+  userImportCollection: Collection;
+};
+
+export type MutationCreateCollectionArgs = {
+  data: CreateCollectionInput;
 };
 
 export type MutationCreateContractArgs = {
@@ -1006,10 +989,6 @@ export type MutationCreateStoreArgs = {
   data: CreateStoreInput;
 };
 
-export type MutationCreatorSuiteImportCollectionArgs = {
-  input: CreatorSuiteImportCollectionInput;
-};
-
 export type MutationDismissReportArgs = {
   input: Scalars["String"];
 };
@@ -1028,14 +1007,6 @@ export type MutationHideItemArgs = {
 
 export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
-};
-
-export type MutationImportItemArgs = {
-  input: ImportItemInput;
-};
-
-export type MutationImportSolanaCollectionArgs = {
-  input: ImportSolanaCollectionInput;
 };
 
 export type MutationIndexCollectionArgs = {
@@ -1060,6 +1031,10 @@ export type MutationReportItemArgs = {
 
 export type MutationToggleAddToWatchListArgs = {
   collectionId: Scalars["String"];
+};
+
+export type MutationToggleHideCollectionArgs = {
+  id: Scalars["ID"];
 };
 
 export type MutationToggleLikeArgs = {
@@ -1165,6 +1140,7 @@ export type Offer = {
   item?: Maybe<Item>;
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
+  orderParams?: Maybe<Scalars["JSONObject"]>;
   platform?: Maybe<Platform>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
@@ -1201,6 +1177,7 @@ export type PagingInput = {
 
 export enum Platform {
   Looksrare = "LOOKSRARE",
+  Opensea = "OPENSEA",
   Refinable = "REFINABLE",
 }
 
@@ -1225,7 +1202,6 @@ export enum PriceCurrency {
   Eth = "ETH",
   Fine = "FINE",
   Matic = "MATIC",
-  Sol = "SOL",
   Usdc = "USDC",
   Usdt = "USDT",
   Weth = "WETH",
@@ -1279,10 +1255,10 @@ export type Query = {
   contractCount: ContractCount;
   getMetadata?: Maybe<GetMetadataOutput>;
   getUploadUrl: GetUploadUrlOutput;
+  history: ItemHistoryResponse;
   hotCollections: CollectionsResponse;
   hotItems: HotItemsResponse;
   hottestTags: Array<Tag>;
-  importPreview: ImportItemPreview;
   isCollectionImported: Scalars["Boolean"];
   isDomainTaken: Scalars["Boolean"];
   item?: Maybe<Item>;
@@ -1300,8 +1276,6 @@ export type Query = {
   store?: Maybe<Store>;
   storeWithFallback?: Maybe<Store>;
   stores?: Maybe<Array<Store>>;
-  /** @deprecated tag creation limit is not supported anymore */
-  tagCreationUserSuspended: TagSuspensionOutput;
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
   userSortedCollections: UserSortedCollectionsResponse;
@@ -1351,6 +1325,11 @@ export type QueryGetUploadUrlArgs = {
   type: UploadType;
 };
 
+export type QueryHistoryArgs = {
+  filter: ItemHistoryFilterInput;
+  paging: PagingInput;
+};
+
 export type QueryHotItemsArgs = {
   limit?: InputMaybe<Scalars["Int"]>;
   type: AssetType;
@@ -1358,10 +1337,6 @@ export type QueryHotItemsArgs = {
 
 export type QueryHottestTagsArgs = {
   filter: HottestTagsFilterInput;
-};
-
-export type QueryImportPreviewArgs = {
-  input: ImportItemPreviewInput;
 };
 
 export type QueryIsCollectionImportedArgs = {
@@ -1442,6 +1417,7 @@ export type QueryUserSortedCollectionsArgs = {
 
 export type RefinableContractInput = {
   chainId: Scalars["Float"];
+  contractAbi: Scalars["String"];
   contractAddress: Scalars["String"];
   contractType: ContractTypes;
 };
@@ -1482,6 +1458,7 @@ export type SaleOffer = Offer & {
   item?: Maybe<Item>;
   launchpadDetails?: Maybe<LaunchpadDetails>;
   marketConfig: MarketConfig;
+  orderParams?: Maybe<Scalars["JSONObject"]>;
   platform?: Maybe<Platform>;
   price: Price;
   signature?: Maybe<Scalars["String"]>;
@@ -1507,6 +1484,7 @@ export type SearchFilterInput = {
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
   offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
   query?: InputMaybe<Scalars["String"]>;
   tagName?: InputMaybe<Scalars["String"]>;
   titleQuery?: InputMaybe<Scalars["String"]>;
@@ -1675,25 +1653,20 @@ export type TagInput = {
   name: Scalars["String"];
 };
 
-export type TagSuspensionOutput = {
-  /** @deprecated We will use total number of allowances instead of boolean suspended */
-  isSuspended?: Maybe<Scalars["Boolean"]>;
-  /** @deprecated No more creation limit is needed */
-  tagCreationAllowance?: Maybe<Scalars["Int"]>;
-};
-
 export type Token = {
+  canMint: Scalars["Boolean"];
   chainId: Scalars["Int"];
   contractABI: Scalars["String"];
   contractAddress: Scalars["String"];
+  contractType: ContractTypes;
   tags: Array<ContractTag>;
+  tokenType: TokenType;
   type: TokenType;
 };
 
 export enum TokenType {
   Erc721 = "ERC721",
   Erc1155 = "ERC1155",
-  Spl = "SPL",
 }
 
 export type TopUser = {
@@ -1717,6 +1690,7 @@ export type Transcoding = {
 export type UpdateCollectionInput = {
   bannerUrl?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
+  hidden?: InputMaybe<Scalars["Boolean"]>;
   iconUrl?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
   telegram?: InputMaybe<Scalars["String"]>;
@@ -1726,7 +1700,6 @@ export type UpdateCollectionInput = {
 
 export type UpdateCollectionOutput = {
   collection?: Maybe<Collection>;
-  success: Scalars["Boolean"];
 };
 
 export type UpdateStore = {
@@ -1821,21 +1794,12 @@ export type UserItemsOnOfferArgs = {
 };
 
 export type UserImportCollectionInput = {
-  bannerUrl: Scalars["String"];
+  bannerUrl?: InputMaybe<Scalars["String"]>;
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
-  description: Scalars["String"];
-  discord?: InputMaybe<Scalars["String"]>;
-  iconUrl: Scalars["String"];
-  instagram?: InputMaybe<Scalars["String"]>;
-  name: Scalars["String"];
-  telegram?: InputMaybe<Scalars["String"]>;
-  twitter?: InputMaybe<Scalars["String"]>;
-  website?: InputMaybe<Scalars["String"]>;
-};
-
-export type UserImportCollectionOutput = {
-  slug: Scalars["String"];
+  description?: InputMaybe<Scalars["String"]>;
+  iconUrl?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
 };
 
 export type UserItemFilterInput = {
@@ -1850,6 +1814,7 @@ export enum UserItemFilterType {
 export type UserItemOnOfferFilterInput = {
   chainId?: InputMaybe<Scalars["Int"]>;
   contractAddresses?: InputMaybe<Array<Scalars["String"]>>;
+  platforms?: InputMaybe<Array<Platform>>;
   tokenId?: InputMaybe<Scalars["String"]>;
   type?: InputMaybe<OfferType>;
 };
@@ -1864,17 +1829,20 @@ export type UserSortedCollection = {
   bannerUrl?: Maybe<Scalars["String"]>;
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
-  creator: User;
+  creator?: Maybe<User>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
-  name: Scalars["String"];
+  mintingType: MintingType;
+  name?: Maybe<Scalars["String"]>;
+  ownerEthAddress?: Maybe<Scalars["String"]>;
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
@@ -1910,7 +1878,6 @@ export type UserSortedCollectionsResponse = {
 
 export enum UserType {
   Evm = "Evm",
-  Solana = "Solana",
 }
 
 export type VerificationTokenInput = {
@@ -1959,6 +1926,14 @@ export type CreatePurchaseSessionMutation = {
   createPurchaseSession: { url: string };
 };
 
+export type CreateCollectionMutationVariables = Exact<{
+  data: CreateCollectionInput;
+}>;
+
+export type CreateCollectionMutation = {
+  createCollection: { id: string; slug: string };
+};
+
 export type RefinableContractQueryVariables = Exact<{
   input: GetRefinableContractInput;
 }>;
@@ -2000,7 +1975,8 @@ export type GetMintableCollectionsQuery = {
     tokens: Array<{
       contractAddress: string;
       contractABI: string;
-      type: TokenType;
+      contractType: ContractTypes;
+      tokenType: TokenType;
       chainId: number;
       tags: Array<ContractTag>;
     }>;
@@ -2038,6 +2014,7 @@ export type CreateContractMutationVariables = Exact<{
 
 export type CreateContractMutation = {
   createContract: {
+    id: string;
     contractAddress: string;
     contractABI: string;
     type: string;
@@ -2348,6 +2325,8 @@ export type Offer_MintOffer_Fragment = {
   contractAddress: string;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
+  orderParams?: any | null | undefined;
+  platform?: Platform | null | undefined;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null | undefined };
   price: { amount: number; currency: PriceCurrency };
@@ -2433,6 +2412,8 @@ export type Offer_SaleOffer_Fragment = {
   contractAddress: string;
   signature?: string | null | undefined;
   blockchainId?: string | null | undefined;
+  orderParams?: any | null | undefined;
+  platform?: Platform | null | undefined;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null | undefined };
   price: { amount: number; currency: PriceCurrency };
@@ -2665,6 +2646,8 @@ export type GetOfferQuery = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         item?:
           | {
@@ -2769,6 +2752,8 @@ export type GetOfferQuery = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         item?:
           | {
@@ -3056,6 +3041,8 @@ export type CreateOfferForEditionsMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null | undefined };
         price: { amount: number; currency: PriceCurrency };
@@ -3140,6 +3127,8 @@ export type CreateOfferForEditionsMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null | undefined };
         price: { amount: number; currency: PriceCurrency };
@@ -3233,6 +3222,8 @@ export type CreateMintOfferMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         name?: string | null | undefined;
         description?: string | null | undefined;
@@ -3327,6 +3318,8 @@ export type CreateMintOfferMutation = {
         contractAddress: string;
         signature?: string | null | undefined;
         blockchainId?: string | null | undefined;
+        orderParams?: any | null | undefined;
+        platform?: Platform | null | undefined;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null | undefined };
         price: { amount: number; currency: PriceCurrency };

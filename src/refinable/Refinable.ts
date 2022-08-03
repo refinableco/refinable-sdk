@@ -1,18 +1,23 @@
+import axios, { AxiosInstance } from "axios";
+import { ethers, providers } from "ethers";
 import { Stream } from "form-data";
 import { GraphQLClient } from "graphql-request";
 import merge from "merge-options-default";
-import { AbstractEvmNFT, RefinableEvmClient, SPLNFT } from "..";
+import { AbstractEvmNFT, RefinableEvmClient } from "..";
 import {
   GetUserItemsQuery,
   GetUserItemsQueryVariables,
+  Platform,
   UserItemFilterType,
 } from "../@types/graphql";
-import { apiUrl } from "../config/sdk";
+import { apiUrl, graphqlUrl } from "../config/sdk";
 import { GET_USER_ITEMS } from "../graphql/items";
 import { uploadFile } from "../graphql/utils";
 import { ClassType, nftMap, NftMapTypes, SingleKeys } from "../interfaces";
-import { Signer } from "../interfaces/Signer";
-import { AbstractNFT, PartialNFTItem } from "../nft/AbstractNFT";
+import { AccountSigner, ProviderSignerWallet } from "../interfaces/Signer";
+import { PartialNFTItem } from "../nft/AbstractNFT";
+import { platforms } from "../platform";
+import { AbstractPlatform } from "../platform/AbstractPlatform";
 import {
   Environment,
   Options,
@@ -20,32 +25,40 @@ import {
 } from "../types/RefinableOptions";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
-import { RefinableSolanaClient } from "./client/RefinableSolanaClient";
 import { OfferClient } from "./offer/OfferClient";
 import EvmSigner from "./signer/EvmSigner";
-import SolanaSigner from "./signer/SolanaSigner";
 
 export enum ClientType {
-  Solana = "Solana",
   Evm = "Evm",
 }
 
 export class Refinable {
-  protected _apiClient?: GraphQLClient;
+  protected _graphqlClient?: GraphQLClient;
+  protected _apiClient?: AxiosInstance;
   protected _options: Options<RefinableOptions> = {
     environment: Environment.Mainnet,
   };
   protected _apiKey: string;
   protected _accountAddress: string;
-  protected _account?: Signer;
+  protected _account?: AccountSigner;
   protected _provider: any;
 
   // Clients
   public evm: RefinableEvmClient;
-  public solana: RefinableSolanaClient;
 
   get options() {
     return this._options;
+  }
+
+  get graphqlClient() {
+    if (!this._graphqlClient) {
+      throw new Error("GraphQL Client was not initialized");
+    }
+    return this._graphqlClient;
+  }
+
+  set graphqlClient(graphqlClient) {
+    this._graphqlClient = graphqlClient;
   }
 
   get apiClient() {
@@ -95,30 +108,34 @@ export class Refinable {
       options
     );
 
-    const graphqlUrl = apiUrl[this._options.environment];
+    const _graphqlUrl = graphqlUrl[this._options.environment];
+    const _apiUrl = apiUrl[this._options.environment];
 
     this._apiKey = apiToken;
-    this.apiClient = new GraphQLClient(graphqlUrl, {
-      headers:  { "X-API-KEY": apiToken, ...(this._options.headers ?? {}) },
+    this.graphqlClient = new GraphQLClient(_graphqlUrl, {
+      headers: { "X-API-KEY": apiToken, ...(this._options.headers ?? {}) },
+    });
+    this.apiClient = axios.create({
+      baseURL: _apiUrl,
+      headers: {
+        "X-API-KEY": apiToken,
+        ...(this._options.headers ?? {}),
+        "content-type": "application/JSON",
+      },
     });
 
     this.evm = new RefinableEvmClient(options, this);
-    this.solana = new RefinableSolanaClient(options, this);
   }
 
   async init() {
     await this.evm.init();
-    await this.solana.init();
   }
 
-  async connect(type: ClientType, provider: unknown) {
-    this._provider = provider;
+  async connect(type: ClientType, providerOrSigner: ProviderSignerWallet) {
+    this._provider = providerOrSigner;
 
-    if (type === ClientType.Evm) {
-      this._account = new EvmSigner(this);
-    } else {
-      this._account = new SolanaSigner(this);
-    }
+    this._account = new EvmSigner(this);
+    this.evm.connect(providerOrSigner);
 
     this._accountAddress = await this.account.getAddress();
 
@@ -128,11 +145,13 @@ export class Refinable {
   disconnect() {
     this._provider = null;
     this._accountAddress = null;
+
+    this.evm.disconnect();
   }
 
   createNft<K extends NftMapTypes>(
     item: PartialNFTItem & { type: SingleKeys<K> }
-  ): ClassType<K, SPLNFT | AbstractEvmNFT> {
+  ): ClassType<K, AbstractEvmNFT> {
     if (!item) return null;
 
     const Class = nftMap[item.type as NftMapTypes];
@@ -148,7 +167,7 @@ export class Refinable {
     after?: string
   ): Promise<GetUserItemsQuery["user"]["items"] | []> {
     const itemsPerPage = limit(paging);
-    const queryResponse = await this.apiClient.request<
+    const queryResponse = await this.graphqlClient.request<
       GetUserItemsQuery,
       GetUserItemsQueryVariables
     >(GET_USER_ITEMS, {
@@ -181,7 +200,7 @@ export class Refinable {
   // Upload image / video
   public async uploadFile(file: Stream): Promise<string> {
     const { uploadFile: uploadedFileName } = await uploadFile(
-      this.apiClient,
+      this.graphqlClient,
       file
     );
 
@@ -198,5 +217,12 @@ export class Refinable {
 
   get offer(): OfferClient {
     return new OfferClient(this);
+  }
+
+  platform(platform: Platform): AbstractPlatform {
+    if (!platforms[platform]) {
+      throw new Error("Platform is not supported");
+    }
+    return new platforms[platform](this);
   }
 }

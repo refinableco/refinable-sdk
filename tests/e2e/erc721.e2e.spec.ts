@@ -47,25 +47,19 @@ describe("ERC721 - E2E", () => {
   beforeAll(async () => {
     refinable = await Refinable.create(API_KEY, {
       environment: Environment.Local,
-      evm: {
-        waitConfirmations: 1,
-      },
     });
 
     await refinable.connect(ClientType.Evm, wallet);
 
     refinable2 = await Refinable.create(API_KEY_2, {
       environment: Environment.Local,
-      evm: {
-        waitConfirmations: 1,
-      },
     });
 
     await refinable2.connect(ClientType.Evm, wallet2);
   });
 
   it("should get the current instance", async () => {
-    const currentChainId = await refinable.provider.getChainId();
+    const currentChainId = await refinable.evm.signer.getChainId();
     expect(currentChainId).toBe(Chain.Local);
   });
 
@@ -133,7 +127,7 @@ describe("ERC721 - E2E", () => {
       };
       const itemOnSale = await nft.putForSale({ price });
       expect(itemOnSale.totalSupply).toEqual(1);
-      expect(itemOnSale.sellerAddress.toLowerCase()).toEqual(
+      expect(itemOnSale.seller?.ethAddress?.toLowerCase()).toEqual(
         address.toLowerCase()
       );
       expect(itemOnSale.type).toEqual("SALE");
@@ -246,7 +240,7 @@ describe("ERC721 - E2E", () => {
         expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
         expect(offer.buy()).rejects.toThrowError(
-          "reverted with reason string 'Whitelist: You are not whitelisted or public sale has not started"
+          "You are not whitelisted or public sale has not started"
         );
       });
 
@@ -403,7 +397,7 @@ describe("ERC721 - E2E", () => {
       });
       expect(offer).toBeDefined();
       expect(offer.type).toBe("AUCTION");
-      expect(offer.sellerAddress.toLowerCase()).toBe(
+      expect(offer.seller?.ethAddress?.toLowerCase()).toBe(
         wallet.address.toLowerCase()
       );
       expect(offer.totalSupply).toBe(1);
@@ -433,7 +427,7 @@ describe("ERC721 - E2E", () => {
       });
 
       await expect(offer.endAuction()).rejects.toThrow(
-        "Auction: Auction has not ended"
+        "Auction has not ended"
       );
     });
   });

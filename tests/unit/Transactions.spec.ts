@@ -3,9 +3,8 @@ import type {
   TransactionResponse,
 } from "@ethersproject/abstract-provider";
 import EvmTransaction from "../../src/transaction/EvmTransaction";
-import SolanaTransaction from "../../src/transaction/SolanaTransaction";
 
-const getEvmTxReceipt = (
+export const getEvmTxReceipt = (
   override?: Partial<TransactionReceipt>
 ): TransactionReceipt => ({
   to: "0xffA18fb5a09A6107A66daf71BBaa743B4FCf2168",
@@ -50,74 +49,17 @@ export const ETH_TX_RESPONSE: TransactionResponse = {
 
 describe("Transaction", () => {
   describe("EvmTransaction", () => {
-
-    it("Should throw error when requesting success but not waited", async () => {
-      expect.assertions(1);
-
-      const tx = new EvmTransaction(ETH_TX_RESPONSE);
-
-      expect(() => {
-        tx.success;
-      }).toThrow("Must await tx first");
-    });
     it("Should return success false when tx did not pass", async () => {
-      const tx = new EvmTransaction({
-        ...ETH_TX_RESPONSE,
-        wait: jest.fn().mockResolvedValue(getEvmTxReceipt({ status: 0 })),
-      });
+      const tx = new EvmTransaction(getEvmTxReceipt({ status: 0 }));
 
       await tx.wait(1);
 
       expect(tx.success).toBe(false);
     });
     it("Should return success when tx passed", async () => {
-      const tx = new EvmTransaction({
-        ...ETH_TX_RESPONSE,
-        wait: jest.fn().mockResolvedValue(getEvmTxReceipt({ status: 1 })),
-      });
+      const tx = new EvmTransaction(getEvmTxReceipt({ status: 1 }));
 
       await tx.wait(1);
-
-      expect(tx.success).toBe(true);
-    });
-  });
-  describe("SolanaTransaction", () => {
-    const TX_ID =
-      "0xe98c9c5893142fe1ff09eded1ef49f4170180e311ba985cd138ca4c08a389e9a";
-    const CONNECTION = {
-      confirmTransaction: jest.fn(),
-    };
-
-    it("Should throw error when requesting success but not waited", async () => {
-      expect.assertions(1);
-
-      const tx = new SolanaTransaction(TX_ID, CONNECTION as any);
-
-      expect(() => {
-        tx.success;
-      }).toThrow("Must await tx first");
-    });
-
-    it("Should return success false when tx did not pass", async () => {
-      CONNECTION.confirmTransaction.mockResolvedValueOnce({
-        value: { err: new Error("Some Solana error") },
-      });
-
-      const tx = new SolanaTransaction(TX_ID, CONNECTION as any);
-
-      await tx.wait("confirmed");
-
-      expect(tx.success).toBe(false);
-    });
-
-    it("Should return success when tx passed", async () => {
-      CONNECTION.confirmTransaction.mockResolvedValueOnce({
-        value: null,
-      });
-
-      const tx = new SolanaTransaction(TX_ID, CONNECTION as any);
-
-      await tx.wait("confirmed");
 
       expect(tx.success).toBe(true);
     });

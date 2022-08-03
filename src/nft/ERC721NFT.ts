@@ -24,26 +24,27 @@ export class ERC721NFT extends AbstractEvmNFT {
   async approve(operatorAddress: string): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    // TODO: we should actually use this but our contracts do not support it
+    // FIXME: we should actually use this but our contracts do not support it
     // return this.nftTokenContract.approve(operatorAddress, this.item.tokenId);
     let setApprovalForAllTx;
 
     // for some custom contracts it fails to estimate the gas correctly
     try {
-      setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+      setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
         operatorAddress,
         true
       );
     } catch (ex) {
       if (ex.code === "UNPREDICTABLE_GAS_LIMIT") {
-        const gasLimit = await nftTokenContract.estimateGas.setApprovalForAll(
-          operatorAddress,
-          true
-        );
+        const gasLimit =
+          await nftTokenContract.contract.estimateGas.setApprovalForAll(
+            operatorAddress,
+            true
+          );
 
         const fee = await this.refinable.provider.getFeeData();
 
-        setApprovalForAllTx = await nftTokenContract.setApprovalForAll(
+        setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
           operatorAddress,
           true,
           {
@@ -62,10 +63,11 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     // TODO: we should actually use this but our contracts do not support it
     // const approvedSpender = await this.nftTokenContract.getApproved(this.item.tokenId);
-    const isApprovedForAll = await nftTokenContract.isApprovedForAll(
-      this.refinable.accountAddress,
-      operatorAddress
-    );
+    const isApprovedForAll: boolean =
+      await nftTokenContract.contract.isApprovedForAll(
+        this.refinable.accountAddress,
+        operatorAddress
+      );
 
     // return approvedSpender.toLowerCase() === operatorAddress.toLowerCase() || isApprovedForAll;
     return isApprovedForAll;
@@ -158,7 +160,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     const saleId = await this.getSaleId();
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
 
-    const result = await this.refinable.apiClient.request<
+    const result = await this.refinable.graphqlClient.request<
       CreateOfferForEditionsMutation,
       CreateOfferForEditionsMutationVariables
     >(CREATE_OFFER, {
@@ -192,19 +194,16 @@ export class ERC721NFT extends AbstractEvmNFT {
   ): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    // the method is overloaded, generally this is the one we want to use
-    const transferTx = await nftTokenContract[
-      "safeTransferFrom(address,address,uint256)"
-    ](ownerEthAddress, recipientEthAddress, this.item.tokenId);
-
-    return new EvmTransaction(transferTx);
+    return await nftTokenContract.sendTransaction(
+      // the method is overloaded, generally this is the one we want to use
+      "safeTransferFrom(address,address,uint256)",
+      [ownerEthAddress, recipientEthAddress, this.item.tokenId]
+    );
   }
 
   async burn(): Promise<EvmTransaction> {
     const nftTokenContract = await this.getTokenContract();
 
-    const burnTx = await nftTokenContract.burn(this.item.tokenId);
-
-    return new EvmTransaction(burnTx);
+    return await nftTokenContract.sendTransaction("burn", [this.item.tokenId]);
   }
 }

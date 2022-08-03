@@ -1,5 +1,3 @@
-import type { Commitment } from "@solana/web3.js";
-
 export enum Environment {
   Mainnet = "mainnet",
   Testnet = "testnet",
@@ -12,12 +10,11 @@ export interface RefinableOptions {
   environment?: Environment;
   headers?: Record<string, string>;
   evm?: RefinableEvmOptions;
-  solana?: RefinableSolanaOptions;
 }
 
 export interface RefinableEvmOptions {
-  waitConfirmations?: number;
-}
-export interface RefinableSolanaOptions {
-  commitment?: Commitment;
+  gasSettings?: {
+    maxPriceInGwei?: number; // Maximum gas price for transactions (default 300 gwei)
+    speed?: "standard" | "fast" | "fastest"; // the tx speed setting: 'standard'|'fast|'fastest' (default: 'fastest')
+  };
 }

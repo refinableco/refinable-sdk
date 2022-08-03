@@ -1,12 +1,8 @@
-import { ContractFactory } from "ethers";
 import { TokenType } from "..";
 import {
-  CollectionInput,
   ContractTypes,
   CreateContractMutation,
   CreateContractMutationVariables,
-  GetCollectionBySlugQuery,
-  GetCollectionBySlugQueryVariables,
   GetMintableCollectionsQuery,
   GetMintableCollectionsQueryVariables,
   GetTokenContractQuery,
@@ -15,27 +11,18 @@ import {
   RefinableContractQueryVariables,
   RefinableContractsQuery,
   RefinableContractsQueryVariables,
-  Token,
 } from "../@types/graphql";
-import {
-  contractMetadata,
-  getContractsTags,
-  ipfsUrl,
-  signer,
-} from "../config/sdk";
-import { Contract, IContract } from "../Contract";
+import { getContractsTags } from "../config/contracts";
 import {
   CREATE_CONTRACT,
   FIND_TOKEN_CONTRACT,
-  GET_COLLECTION,
   GET_MINTABLE_COLLECTIONS_QUERY,
   GET_REFINABLE_CONTRACT,
   GET_REFINABLE_CONTRACTS,
 } from "../graphql/contracts";
 import { Chain } from "../interfaces/Network";
-import EvmTransaction from "../transaction/EvmTransaction";
-import { optionalParam } from "../utils/utils";
-import { SdkCollectionInput } from "./interfaces/Contracts";
+import { Contract, IContract } from "./contract/Contract";
+import { ContractFactory } from "./ContractFactory";
 import { Refinable } from "./Refinable";
 
 export class Contracts {
@@ -44,7 +31,7 @@ export class Contracts {
   } = {};
 
   private mintableContracts: {
-    [chainId: string]: { [address: string]: Token & { default: boolean } };
+    [chainId: string]: { [address: string]: Contract };
   };
 
   private baseContracts: {
@@ -68,7 +55,7 @@ export class Contracts {
     }
     const tags = getContractsTags(this.refinable.options.environment);
 
-    const { refinableContracts } = await this.refinable.apiClient.request<
+    const { refinableContracts } = await this.refinable.graphqlClient.request<
       RefinableContractsQuery,
       RefinableContractsQueryVariables
     >(GET_REFINABLE_CONTRACTS, {
@@ -91,7 +78,7 @@ export class Contracts {
   }
 
   async getRefinableContracts(chainId: Chain, types: ContractTypes[]) {
-    const { refinableContracts } = await this.refinable.apiClient.request<
+    const { refinableContracts } = await this.refinable.graphqlClient.request<
       RefinableContractsQuery,
       RefinableContractsQueryVariables
     >(GET_REFINABLE_CONTRACTS, {
@@ -110,7 +97,7 @@ export class Contracts {
 
     if (hasContract) return hasContract;
 
-    const { refinableContract } = await this.refinable.apiClient.request<
+    const { refinableContract } = await this.refinable.graphqlClient.request<
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
@@ -121,7 +108,7 @@ export class Contracts {
   }
 
   async getRefinableContractByType(chainId: Chain, types: ContractTypes[]) {
-    const { refinableContract } = await this.refinable.apiClient.request<
+    const { refinableContract } = await this.refinable.graphqlClient.request<
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
@@ -136,7 +123,7 @@ export class Contracts {
       return this.mintableContracts;
     }
 
-    const { mintableCollections } = await this.refinable.apiClient.request<
+    const { mintableCollections } = await this.refinable.graphqlClient.request<
       GetMintableCollectionsQuery,
       GetMintableCollectionsQueryVariables
     >(GET_MINTABLE_COLLECTIONS_QUERY);
@@ -149,6 +136,7 @@ export class Contracts {
           contractsForChainId[token.contractAddress.toLowerCase()] =
             this.cacheContract({
               ...token,
+              type: token.contractType,
               default: collection.default,
             });
 
@@ -165,8 +153,9 @@ export class Contracts {
 
   async getDefaultTokenContract(chainId: Chain, tokenType: TokenType) {
     const mintableContracts = await this.getMintableContracts();
+
     return Object.values(mintableContracts[chainId.toString()]).find(
-      (token) => token.type === tokenType && token.default
+      (token) => token.tokenType === tokenType && token.default
     );
   }
 
@@ -178,13 +167,11 @@ export class Contracts {
     if (!contract)
       throw new Error("This contract cannot be minted through Refinable");
 
-    return new Contract(this.refinable, contract);
+    return ContractFactory.getContract(contract, this.refinable.evm.options);
   }
 
   async isContractDeployed(contractAddress: string) {
-    const code = await this.refinable.provider.provider.getCode(
-      contractAddress
-    );
+    const code = await this.refinable.evm.provider.getCode(contractAddress);
 
     return code !== "0x0";
   }
@@ -200,7 +187,7 @@ export class Contracts {
 
     if (hasContract) return hasContract;
 
-    const response = await this.refinable.apiClient.request<
+    const response = await this.refinable.graphqlClient.request<
       GetTokenContractQuery,
       GetTokenContractQueryVariables
     >(FIND_TOKEN_CONTRACT, {
@@ -229,7 +216,10 @@ export class Contracts {
   }
 
   private cacheContract(contractOutput: IContract) {
-    const contract = new Contract(this.refinable, contractOutput);
+    const contract = ContractFactory.getContract(
+      contractOutput,
+      this.refinable.evm.options
+    );
 
     this.cachedContracts[contract.chainId] = {
       ...(this.cachedContracts[contract.chainId] ?? {}),
@@ -239,79 +229,32 @@ export class Contracts {
     return contract;
   }
 
-  async createCollection(collection: SdkCollectionInput) {
-    const collRes = await this.refinable.apiClient.request<
-      GetCollectionBySlugQuery,
-      GetCollectionBySlugQueryVariables
-    >(GET_COLLECTION, {
-      slug: collection.slug,
-    });
-
-    if (!!collRes?.collection?.slug) {
-      throw new Error("Collection slug is duplicated");
-    }
-
-    const is1155 = collection.tokenType === TokenType.Erc1155;
-    const { abi }: { abi: any } = is1155
-      ? await import("../artifacts/abi/RefinableERC1155WhitelistedV3.json")
-      : await import("../artifacts/abi/RefinableERC721WhitelistedV3.json");
-    const { bytecode: contractByteCode }: { bytecode: string } = is1155
-      ? await import("../artifacts/bytecode/RefinableERC1155WhitelistedV3.json")
-      : await import("../artifacts/bytecode/RefinableERC721WhitelistedV3.json");
-
-    const factory = new ContractFactory(
-      abi,
-      contractByteCode,
-      this.refinable.provider
-    );
-
-    const metadataUri = contractMetadata[this.refinable.options.environment];
-    const ipfsUri = ipfsUrl[this.refinable.options.environment];
-    const signerAddress = signer[this.refinable.options.environment];
-    const contract = await factory.deploy(
-      collection.title,
-      collection.symbol,
-      this.refinable.accountAddress,
-      signerAddress,
-      metadataUri,
-      ipfsUri, // uri
-      ...optionalParam(is1155, ipfsUri)
-    );
-
-    await contract.deployed();
-
-    await contract.addMinter(this.refinable.accountAddress);
-
-    const tx = new EvmTransaction(contract.deployTransaction);
-
-    await tx.wait();
-
-    if (!(typeof collection.avatar === "string")) {
-      collection.avatar = await this.refinable.uploadFile(collection.avatar);
-    }
-
-    const { createContract: dbContractResponse } =
-      await this.refinable.apiClient.request<
+  public async registerContract(
+    chainId: number,
+    contractType: ContractTypes,
+    contractAddress: string,
+    contractAbi: string
+  ) {
+    const { createContract: response } =
+      await this.refinable.graphqlClient.request<
         CreateContractMutation,
         CreateContractMutationVariables
       >(CREATE_CONTRACT, {
         data: {
           contract: {
-            contractAddress: tx.txReceipt.contractAddress,
-            chainId: await this.refinable.provider.getChainId(),
-            contractType: is1155
-              ? ContractTypes.Erc1155WhitelistedToken
-              : ContractTypes.Erc721WhitelistedToken,
+            contractAddress,
+            chainId,
+            contractType,
+            contractAbi,
           },
-          collection: collection as CollectionInput,
         },
       });
 
-    const cachedContract = this.cacheContract(dbContractResponse);
+    const contract = this.cacheContract(response);
 
     return {
-      tx,
-      contract: cachedContract,
+      id: response.id,
+      contract,
     };
   }
 }

@@ -24,6 +24,8 @@ export interface PartialOffer
     | "marketConfig"
     | "supply"
     | "chainId"
+    | "platform"
+    | "orderParams"
   > {}
 
 export class BasicOffer {
@@ -45,9 +47,7 @@ export class BasicOffer {
   }
 
   get price() {
-    const amount =
-      this.currentStage?.price ??
-      this._offer.price.amount;
+    const amount = this.currentStage?.price ?? this._offer.price.amount;
 
     return {
       currency: this._offer.price.currency,
@@ -67,8 +67,8 @@ export class BasicOffer {
     return this._offer.auction;
   }
 
-  get sellerAddress() {
-    return this._offer.user.ethAddress;
+  get seller() {
+    return this._offer.user;
   }
 
   get totalSupply() {
@@ -81,6 +81,14 @@ export class BasicOffer {
 
   get currentStage() {
     return this._offer.launchpadDetails?.currentStage;
+  }
+
+  get platform() {
+    return this._offer.platform;
+  }
+
+  get orderParams() {
+    return this._offer.orderParams;
   }
 
   protected get whitelistVoucher(): WhitelistVoucherParams | null {

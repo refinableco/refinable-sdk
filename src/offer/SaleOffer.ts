@@ -1,6 +1,7 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
+  Platform,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
   PurchaseMetadata,
@@ -10,29 +11,31 @@ import { PURCHASE_ITEM } from "../graphql/sale";
 import { AbstractNFT, NFTBuyParams } from "../nft/AbstractNFT";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
-import {
-  WhitelistType,
-  WhitelistVoucherParams,
-} from "../nft/interfaces/Voucher";
 import { Refinable } from "../refinable/Refinable";
 import { Transaction } from "../transaction/Transaction";
 import { isERC1155Item, isEVMNFT } from "../utils/is";
 import { Offer, PartialOffer } from "./Offer";
+import { SimulationFailedError } from "../errors";
+import { simulateUnsignedTx } from "../transaction/simulate";
+import EvmTransaction from "../transaction/EvmTransaction";
+import { TransactionError } from "../errors/TransactionError";
 
 interface BuyParams {
   amount?: number;
 }
 
 export class SaleOffer extends Offer {
-  constructor(
-    refinable: Refinable,
-    offer: PartialOffer,
-    nft: AbstractNFT
-  ) {
+  constructor(refinable: Refinable, offer: PartialOffer, nft: AbstractNFT) {
     super(refinable, offer, nft);
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
+    const isExternal = this._offer.platform !== Platform.Refinable;
+
+    if (isExternal) {
+      return this.externalBuy();
+    }
+
     let supply = await this.getSupplyOnSale();
 
     const amount = params?.amount ?? 1;
@@ -64,7 +67,7 @@ export class SaleOffer extends Offer {
     }
 
     if (result.txId) {
-      await this.refinable.apiClient.request<
+      await this.refinable.graphqlClient.request<
         PurchaseItemMutation,
         PurchaseItemMutationVariables
       >(PURCHASE_ITEM, {
@@ -80,6 +83,38 @@ export class SaleOffer extends Offer {
     }
 
     return result;
+  }
+
+  private async externalBuy() {
+    const unsignedTx = this.refinable
+      .platform(this._offer.platform)
+      .buy(
+        this._offer,
+        this.nft.getItem().contractAddress,
+        this.nft.getItem().tokenId
+      );
+
+    const resp = await simulateUnsignedTx({
+      refinable: this.refinable,
+      data: unsignedTx.data,
+      to: unsignedTx.to,
+      value: unsignedTx.value,
+    });
+
+    if (resp.data.simulation.status === false) {
+      throw new SimulationFailedError();
+    }
+
+    try {
+      const response = await this.refinable.evm.signer.sendTransaction(
+        unsignedTx
+      );
+
+      const receipt = await response.wait();
+      return new EvmTransaction(receipt);
+    } catch (e) {
+      throw new TransactionError(e);
+    }
   }
 
   public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {

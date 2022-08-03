@@ -2,12 +2,10 @@ import { TokenType } from "./@types/graphql";
 import { AbstractNFT } from "./nft/AbstractNFT";
 import { ERC1155NFT } from "./nft/ERC1155NFT";
 import { ERC721NFT } from "./nft/ERC721NFT";
-import { SPLNFT } from "./nft/SPLNFT";
 
 export const nftMap = {
   [TokenType.Erc721]: ERC721NFT,
   [TokenType.Erc1155]: ERC1155NFT,
-  [TokenType.Spl]: SPLNFT,
 };
 
 export type NftMap = typeof nftMap;

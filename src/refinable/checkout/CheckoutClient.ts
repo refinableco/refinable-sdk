@@ -16,7 +16,7 @@ export class CheckoutClient {
   ) {
     const { successUrl, cancelUrl, ...filter } = input;
 
-    const response = await this.refinableClient.apiClient.request<
+    const response = await this.refinableClient.graphqlClient.request<
       CreatePurchaseSessionMutation,
       CreatePurchaseSessionMutationVariables
     >(CREATE_PURCHASE_SESSION, {

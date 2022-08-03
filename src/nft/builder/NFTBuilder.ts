@@ -1,5 +1,4 @@
-import { TransactionResponse } from "@ethersproject/providers";
-import { AbstractNFT, Refinable, RefinableEvmClient, TokenType } from "../..";
+import { AbstractNFT, Refinable, TokenType } from "../..";
 import {
   CreateItemMutation,
   CreateItemMutationVariables,
@@ -7,6 +6,7 @@ import {
   FinishMintMutationVariables,
 } from "../../@types/graphql";
 import { CREATE_ITEM, FINISH_MINT } from "../../graphql/mint";
+import EvmTransaction from "../../transaction/EvmTransaction";
 import { isERC1155Item } from "../../utils/is";
 import { optionalParam } from "../../utils/utils";
 import { AbstractEvmNFT } from "../AbstractEvmNFT";
@@ -23,7 +23,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
 {
   private signature: string;
   private item: CreateItemMutation["createItem"]["item"];
-  public mintTransaction: TransactionResponse;
+  public mintTransaction: EvmTransaction;
 
   constructor(
     private readonly refinable: Refinable,
@@ -77,9 +77,6 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       );
     }
 
-    if (this.buildData.type === TokenType.Spl)
-      throw new Error("Not supported yet");
-
     const {
       type,
       description,
@@ -94,7 +91,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       thumbnail,
     } = this.buildData;
 
-    const { createItem } = await this.refinable.apiClient.request<
+    const { createItem } = await this.refinable.graphqlClient.request<
       CreateItemMutation,
       CreateItemMutationVariables
     >(CREATE_ITEM, {
@@ -164,15 +161,9 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       );
     }
 
-    const nftTokenContract = tokenContract.toEthersContract(
-      this.refinable.provider
-    );
-
-    const result: TransactionResponse = await nftTokenContract.mint(
-      ...mintArgs
-    );
-
-    await result.wait(this.refinable.evm.options.waitConfirmations);
+    const result = await tokenContract
+      .connect(this.refinable.provider)
+      .sendTransaction("mint", mintArgs);
 
     this.mintTransaction = result;
 
@@ -188,7 +179,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
 
     const { tokenId, contractAddress, chainId } = this.item;
 
-    const finishMint = await this.refinable.apiClient.request<
+    const finishMint = await this.refinable.graphqlClient.request<
       FinishMintMutation,
       FinishMintMutationVariables
     >(FINISH_MINT, {
@@ -196,7 +187,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
         chainId,
         tokenId,
         contractAddress,
-        transactionHash: this.mintTransaction.hash,
+        transactionHash: this.mintTransaction.txId,
       },
     });
 

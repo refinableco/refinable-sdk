@@ -9,11 +9,7 @@ import { Refinable } from "../refinable/Refinable";
 import { Offer, PartialOffer } from "./Offer";
 
 export class AuctionOffer extends Offer {
-  constructor(
-    refinable: Refinable,
-    offer: PartialOffer,
-    nft: AbstractNFT
-  ) {
+  constructor(refinable: Refinable, offer: PartialOffer, nft: AbstractNFT) {
     super(refinable, offer, nft);
   }
 
@@ -25,7 +21,7 @@ export class AuctionOffer extends Offer {
       marketConfig: this._offer.marketConfig,
     });
 
-    await this.refinable.apiClient.request<
+    await this.refinable.graphqlClient.request<
       PlaceAuctionBidMutation,
       PlaceAuctionBidMutationVariables
     >(PLACE_AUCTION_BID, {
