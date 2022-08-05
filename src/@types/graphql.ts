@@ -142,7 +142,6 @@ export type Collection = {
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
   creator?: Maybe<User>;
-  creatorEthAddress?: Maybe<Scalars["String"]>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
@@ -320,7 +319,6 @@ export type CreateCollectionInput = {
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
-  maxSupply?: InputMaybe<Scalars["Float"]>;
   name?: InputMaybe<Scalars["String"]>;
   symbol: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
@@ -587,7 +585,6 @@ export type ImportCollectionOutput = {
 export type IndexCollectionInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
-  platforms: Array<Platform>;
 };
 
 export type Item = {
@@ -1182,7 +1179,6 @@ export enum Platform {
   Looksrare = "LOOKSRARE",
   Opensea = "OPENSEA",
   Refinable = "REFINABLE",
-  X2Y2 = "X2Y2",
 }
 
 export type PreviewFileProperties = {
@@ -1834,7 +1830,6 @@ export type UserSortedCollection = {
   chainIds: Array<Scalars["Float"]>;
   collectionIds: Array<Scalars["String"]>;
   creator?: Maybe<User>;
-  creatorEthAddress?: Maybe<Scalars["String"]>;
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
