@@ -3,6 +3,8 @@ export class NotEnoughSupplyError extends Error {
     super("There is not enough supply left for this action");
     this.name = this.constructor.name;
 
-    Error.captureStackTrace(this, this.constructor);
+    // Not supported in some browsers
+    if (typeof Error.captureStackTrace === "function")
+      Error.captureStackTrace(this, this.constructor);
   }
 }
