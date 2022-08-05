@@ -3,7 +3,6 @@ import omit from "lodash/omit";
 import { z } from "zod";
 import {
   ContractTypes,
-  CreateCollectionInput,
   CreateCollectionMutation,
   CreateCollectionMutationVariables,
   TokenType,
@@ -126,28 +125,21 @@ export class ContractFactory {
       params.banner = await this.refinable.uploadFile(params.banner);
     }
 
-    const createCollectionData: CreateCollectionInput = {
-      ...omit(params, "contractArguments"),
-      avatar: params.avatar,
-      banner: params.banner,
-      tokenType: registeredContract.getTokenType(),
-      contractId,
-      chainId,
-      contractAddress: registeredContract.contractAddress,
-    }
-
-    if (type === ContractTypes.Erc721LazyMintToken) {
-      const contractArguments = params.contractArguments as z.input<typeof Erc721LazyMintContract["deployArgsSchema"]>
-      createCollectionData.maxSupply = contractArguments.tokenMintLimit
-    }
-
     // 4. Create collection
     const { createCollection: createdCollection } =
       await this.refinable.graphqlClient.request<
         CreateCollectionMutation,
         CreateCollectionMutationVariables
       >(CREATE_COLLECTION, {
-        data: createCollectionData,
+        data: {
+          ...omit(params, "contractArguments"),
+          avatar: params.avatar as string,
+          banner: params.banner as string,
+          tokenType: registeredContract.getTokenType(),
+          contractId,
+          chainId,
+          contractAddress: registeredContract.contractAddress,
+        },
       });
 
     return {
