@@ -107,7 +107,7 @@ export class SaleOffer extends Offer {
           : unsignedTx.value,
     });
 
-    if (resp.data.simulation.status === false) {
+    if (resp.data?.simulation?.status === false) {
       throw new SimulationFailedError();
     }
 
