@@ -87,13 +87,15 @@ export class SaleOffer extends Offer {
   }
 
   private async externalBuy() {
-    const unsignedTx = this.refinable
+    const unsignedTxOrPromise = this.refinable
       .platform(this._offer.platform)
       .buy(
         this._offer,
         this.nft.getItem().contractAddress,
         this.nft.getItem().tokenId
       );
+
+    const unsignedTx = this._offer.platform === Platform.X2Y2 ? await unsignedTxOrPromise : unsignedTxOrPromise;
 
     const resp = await simulateUnsignedTx({
       refinable: this.refinable,
