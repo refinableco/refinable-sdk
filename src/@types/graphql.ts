@@ -545,6 +545,18 @@ export type GetRefinableContractsInput = {
   types?: InputMaybe<Array<ContractTypes>>;
 };
 
+export type GetUnsignedTxInput = {
+  currency: Scalars["String"];
+  deadline: Scalars["Float"];
+  id: Scalars["Float"];
+  itemHash: Scalars["String"];
+  maker: Scalars["String"];
+  nft: Nft;
+  price: Scalars["String"];
+  taker: Scalars["String"];
+  type: Scalars["String"];
+};
+
 export type GetUploadUrlOutput = {
   fields: Scalars["JSON"];
   url: Scalars["String"];
@@ -1075,6 +1087,11 @@ export type MutationUserImportCollectionArgs = {
   input: UserImportCollectionInput;
 };
 
+export type Nft = {
+  token: Scalars["String"];
+  tokenId: Scalars["String"];
+};
+
 export type Notification = {
   createdAt?: Maybe<Scalars["DateTime"]>;
   eventId?: Maybe<Scalars["String"]>;
@@ -1283,6 +1300,7 @@ export type Query = {
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
   userSortedCollections: UserSortedCollectionsResponse;
+  x2y2: X2Y2;
 };
 
 export type QueryAuctionArgs = {
@@ -1691,6 +1709,13 @@ export type Transcoding = {
   url: Scalars["String"];
 };
 
+export type TxDataResponse = {
+  data: Scalars["String"];
+  from: Scalars["String"];
+  to: Scalars["String"];
+  value?: Maybe<Scalars["String"]>;
+};
+
 export type UpdateCollectionInput = {
   bannerUrl?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
@@ -1903,6 +1928,14 @@ export type WhitelistVoucher = {
   startTime: Scalars["DateTime"];
   /** @deprecated No longer needed */
   whitelistType: WhitelistType;
+};
+
+export type X2Y2 = {
+  getUnsignedTx: TxDataResponse;
+};
+
+export type X2Y2GetUnsignedTxArgs = {
+  data: GetUnsignedTxInput;
 };
 
 export type UndefinedEdge = {
@@ -3405,4 +3438,19 @@ export type PurchaseItemMutationVariables = Exact<{
 
 export type PurchaseItemMutation = {
   createPurchase: { transactionHash: string };
+};
+
+export type X2y2QueryVariables = Exact<{
+  data: GetUnsignedTxInput;
+}>;
+
+export type X2y2Query = {
+  x2y2: {
+    getUnsignedTx: {
+      from: string;
+      to: string;
+      data: string;
+      value?: string | null | undefined;
+    };
+  };
 };
