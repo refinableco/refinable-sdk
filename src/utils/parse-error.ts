@@ -15,6 +15,7 @@ const contractErrorCodes = [
 export const parseKnownMessages = (data: {
   message: string;
   code?: number;
+  identifier?: string;
 }): { message: string; code?: number; identifier: string } => {
   if ((data?.message ?? "").startsWith("Nonce too high.")) {
     return {
@@ -25,9 +26,15 @@ export const parseKnownMessages = (data: {
   }
 
   if ((data?.message ?? "").startsWith("unauthorized signature")) {
+    let message = "Process failed. Please try again.";
+
+    if (data.identifier === "MintVoucher") {
+      message = "Unable to finalise this sale, it might no longer be active.";
+    }
+
     return {
       identifier: "Metamask",
-      message: "Process failed. Please try again.",
+      message,
       code: data?.code,
     };
   }

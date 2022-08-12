@@ -7,6 +7,7 @@ import {
 } from "../../@types/graphql";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { Chain } from "../Chain";
 import { ContractWrapper } from "./ContractWrapper";
 
 export interface IContract extends Omit<ContractOutput, "__typename" | "id"> {
@@ -15,6 +16,7 @@ export interface IContract extends Omit<ContractOutput, "__typename" | "id"> {
 }
 
 export class Contract implements IContract {
+  protected chain: Chain;
   type: ContractTypes;
   contractAddress: string;
   chainId: number;
@@ -23,11 +25,21 @@ export class Contract implements IContract {
   default?: boolean = false;
   tokenType?: TokenType;
 
+  protected _contractWrapper?: ContractWrapper;
+
   constructor(
     contract: IContract,
-    private readonly evmOptions: RefinableEvmOptions
+    protected readonly evmOptions: RefinableEvmOptions
   ) {
     Object.assign(this, contract);
+
+    this.chain = new Chain(contract.chainId);
+  }
+
+  get contractWrapper() {
+    if (!this._contractWrapper) throw new Error("Must use connect() first");
+
+    return this._contractWrapper;
   }
 
   hasTags(tags: ContractTag[]) {
@@ -49,7 +61,7 @@ export class Contract implements IContract {
   }
 
   connect(signerOrProvider: ProviderSignerWallet) {
-    return new ContractWrapper(
+    this._contractWrapper = new ContractWrapper(
       {
         abi: this.contractABI,
         address: this.contractAddress,
@@ -57,6 +69,7 @@ export class Contract implements IContract {
       signerOrProvider,
       this.evmOptions
     );
+    return this;
   }
 
   getTokenType() {

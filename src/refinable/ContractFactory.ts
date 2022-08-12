@@ -113,32 +113,30 @@ export class ContractFactory {
       );
 
     // 3. Upload banner and avatar
-    if (
-      !(typeof params.avatar === "string") &&
-      !(typeof params.avatar === "undefined")
-    ) {
+
+    if (params.avatar && typeof params.avatar !== "string") {
       params.avatar = await this.refinable.uploadFile(params.avatar);
     }
-    if (
-      !(typeof params.banner === "string") &&
-      !(typeof params.banner === "undefined")
-    ) {
+
+    if (params.banner && typeof params.banner !== "string") {
       params.banner = await this.refinable.uploadFile(params.banner);
     }
 
     const createCollectionData: CreateCollectionInput = {
       ...omit(params, "contractArguments"),
-      avatar: params.avatar,
-      banner: params.banner,
+      avatar: params.avatar as string,
+      banner: params.banner as string,
       tokenType: registeredContract.getTokenType(),
       contractId,
       chainId,
       contractAddress: registeredContract.contractAddress,
-    }
+    };
 
     if (type === ContractTypes.Erc721LazyMintToken) {
-      const contractArguments = params.contractArguments as z.input<typeof Erc721LazyMintContract["deployArgsSchema"]>
-      createCollectionData.maxSupply = contractArguments.tokenMintLimit
+      const contractArguments = params.contractArguments as z.input<
+        typeof Erc721LazyMintContract["deployArgsSchema"]
+      >;
+      createCollectionData.maxSupply = contractArguments.tokenMintLimit;
     }
 
     // 4. Create collection

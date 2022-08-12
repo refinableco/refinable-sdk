@@ -21,7 +21,10 @@ export class TransactionError extends Error {
 
     super(reason);
 
-    Error.captureStackTrace(this, this.constructor);
+    // Not supported in some browsers
+    if (typeof Error.captureStackTrace === "function")
+      Error.captureStackTrace(this, this.constructor);
+
     this.reason = reason;
     this.data = data;
     this.functionInfo = functionInfo;
@@ -31,12 +34,11 @@ export class TransactionError extends Error {
   }
 }
 
-
 /**
- * Recontructs schema and input parameters based on the ABI and the input data 
- * @param data 
- * @param contractInterface 
- * @returns 
+ * Recontructs schema and input parameters based on the ABI and the input data
+ * @param data
+ * @param contractInterface
+ * @returns
  */
 function parseFunctionInfo(
   data: string,

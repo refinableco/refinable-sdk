@@ -5,7 +5,9 @@ export class SimulationFailedError extends Error {
     super("Simulation Failed");
     this.name = this.constructor.name;
 
-    Error.captureStackTrace(this, this.constructor);
+    // Not supported in some browsers
+    if (typeof Error.captureStackTrace === "function")
+      Error.captureStackTrace(this, this.constructor);
   }
 }
 

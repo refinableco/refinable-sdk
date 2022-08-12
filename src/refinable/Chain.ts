@@ -1,10 +1,8 @@
+import { utils } from "ethers";
 import { Price, PriceCurrency } from "../@types/graphql";
 import { chainMap } from "../config/chains";
 import { IChainConfig } from "../interfaces/Config";
 import { getSupportedCurrency } from "../utils/chain";
-import { Contract, utils } from "ethers";
-import type { TransactionResponse } from "@ethersproject/abstract-provider";
-import EvmTransaction from "../transaction/EvmTransaction";
 
 export class Chain {
   protected _chain: IChainConfig;

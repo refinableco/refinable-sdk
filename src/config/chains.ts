@@ -1,3 +1,4 @@
+import { providers } from "ethers";
 import { IChainConfig } from "../interfaces/Config";
 import { Chain, ChainType, NetworkType } from "../interfaces/Network";
 
@@ -312,4 +313,9 @@ export function getChainByNetworkId(chain: Chain) {
     throw new Error(`Chain is not supported: ${chain}`);
   }
   return foundChain;
+}
+
+export function getProviderByNetworkId(chainId: Chain) {
+  const chain = getChainByNetworkId(chainId);
+  return new providers.JsonRpcProvider(chain.nodeUri[0]);
 }

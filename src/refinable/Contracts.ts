@@ -13,6 +13,7 @@ import {
   RefinableContractsQueryVariables,
 } from "../@types/graphql";
 import { getContractsTags } from "../config/contracts";
+import { ContractNotFoundError } from "../errors/ContractNotFoundError";
 import {
   CREATE_CONTRACT,
   FIND_TOKEN_CONTRACT,
@@ -97,25 +98,31 @@ export class Contracts {
 
     if (hasContract) return hasContract;
 
-    const { refinableContract } = await this.refinable.graphqlClient.request<
+    const response = await this.refinable.graphqlClient.request<
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
       input: { contractAddress, chainId, types },
     });
 
-    return this.cacheContract(refinableContract);
+    if (!response?.refinableContract)
+      throw new ContractNotFoundError({ contractAddress, chainId });
+
+    return this.cacheContract(response?.refinableContract);
   }
 
   async getRefinableContractByType(chainId: Chain, types: ContractTypes[]) {
-    const { refinableContract } = await this.refinable.graphqlClient.request<
+    const response = await this.refinable.graphqlClient.request<
       RefinableContractQuery,
       RefinableContractQueryVariables
     >(GET_REFINABLE_CONTRACT, {
       input: { chainId, types },
     });
 
-    return this.cacheContract(refinableContract);
+    if (!response?.refinableContract)
+      throw new ContractNotFoundError({ chainId, type: types[0] });
+
+    return this.cacheContract(response.refinableContract);
   }
 
   async getMintableContracts() {
@@ -176,14 +183,14 @@ export class Contracts {
     return code !== "0x0";
   }
 
-  async findContract({
+  async findContract<C extends Contract = Contract>({
     contractAddress,
     chainId,
   }: {
     contractAddress: string;
     chainId: Chain;
-  }): Promise<Contract> {
-    const hasContract = this.getCachedContract(chainId, contractAddress);
+  }): Promise<C> {
+    const hasContract = this.getCachedContract<C>(chainId, contractAddress);
 
     if (hasContract) return hasContract;
 
@@ -194,7 +201,19 @@ export class Contracts {
       input: { contractAddress, chainId },
     });
 
-    return this.cacheContract(response?.contract);
+    if (!response?.contract)
+      throw new ContractNotFoundError({ contractAddress, chainId });
+
+    return this.cacheContract<C>(response?.contract);
+  }
+
+  async findAndConnectContract<C extends Contract = Contract>(params: {
+    contractAddress: string;
+    chainId: Chain;
+  }): Promise<C> {
+    const contract = await this.refinable.evm.contracts.findContract<C>(params);
+
+    return contract.connect(this.refinable.provider);
   }
 
   getBaseContract(chainId: Chain, type: string) {
@@ -202,20 +221,25 @@ export class Contracts {
       throw new Error(`No contract of type ${type} for this chain ${chainId}`);
 
     const contract = this.baseContracts[chainId][type];
-    if (!contract)
-      throw new Error(
-        `Unable to initialize contract for type ${type} on chain ${chainId}`
-      );
+
+    if (!contract) throw new ContractNotFoundError({ type, chainId });
 
     return contract;
   }
 
-  private getCachedContract(chainId: Chain, contractAddress: string) {
+  private getCachedContract<C extends Contract = Contract>(
+    chainId: Chain,
+    contractAddress: string
+  ) {
     if (!contractAddress || !chainId) return null;
-    return this.cachedContracts?.[chainId]?.[contractAddress.toLowerCase()];
+    return this.cachedContracts?.[chainId]?.[
+      contractAddress.toLowerCase()
+    ] as C;
   }
 
-  private cacheContract(contractOutput: IContract) {
+  private cacheContract<C extends Contract = Contract>(
+    contractOutput: IContract
+  ) {
     const contract = ContractFactory.getContract(
       contractOutput,
       this.refinable.evm.options
@@ -226,7 +250,7 @@ export class Contracts {
       [contract.contractAddress.toLowerCase()]: contract,
     };
 
-    return contract;
+    return contract as C;
   }
 
   public async registerContract(
