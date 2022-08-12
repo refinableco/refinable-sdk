@@ -29,7 +29,7 @@ export const parseKnownMessages = (data: {
     let message = "Process failed. Please try again.";
 
     if (data.identifier === "MintVoucher") {
-      message = "Unable to finalise this sale, it might no longer be active.";
+      message = "Unable to finalize this sale, it might no longer be active.";
     }
 
     return {

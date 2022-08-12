@@ -211,7 +211,7 @@ describe("MintOffer - E2E", () => {
       const offer = await refinableBuyer.offer.getOffer<MintOffer>(itemOnSale.id);
 
       expect(offer.buy()).rejects.toThrowError(
-        "Unable to finalise this sale, it might no longer be active."
+        "Unable to finalize this sale, it might no longer be active."
       );
     });
 
