@@ -24,7 +24,7 @@ export class OfferClient {
       offer?.chainId != null
         ? offer.chainId
         : await this.refinable.evm.signer.getChainId();
-    return new MintOffer(this.refinable, this.refinable.evm, chainId, offer);
+    return new MintOffer(this.refinable, chainId, offer);
   }
 
   createOffer<O extends Offer = Offer>(

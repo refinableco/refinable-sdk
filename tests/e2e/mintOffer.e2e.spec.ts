@@ -57,7 +57,7 @@ describe("MintOffer - E2E", () => {
     );
 
     return await mintOffer.putForSale({
-      contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
+      contractAddress: "0x6aD1da3E91114cE64B06d57958A197a8171CF606",
       price: {
         amount: 0.18,
         currency: PriceCurrency.Bnb,
@@ -145,7 +145,7 @@ describe("MintOffer - E2E", () => {
       expect(offer.whitelistStage).toEqual(LaunchpadCountDownType.Public);
 
       expect(offer.buy()).rejects.toThrowError(
-        "reverted with reason string 'Whitelist: You are not whitelisted or public sale has not started"
+        "You are not whitelisted or public sale has not started"
       );
     });
 
@@ -190,6 +190,29 @@ describe("MintOffer - E2E", () => {
       const offer = await refinableBuyer.offer.getOffer(mintOffer.id);
 
       expect(offer.whitelistStage).toBe(LaunchpadCountDownType.Public);
+    });
+
+    it("Should not be able to buy after cancelling sale", async () => {
+      const itemOnSale = await putLazyContractForSale({
+        startTime: addDays(new Date(), 4),
+        launchpadDetails: {
+          stages: [
+            {
+              stage: WhitelistType.Vip,
+              startTime: subDays(new Date(), 1),
+              whitelist: [refinableBuyer.accountAddress.toLowerCase()],
+            },
+          ],
+        },
+      });
+
+      await itemOnSale.cancelSale()
+
+      const offer = await refinableBuyer.offer.getOffer<MintOffer>(itemOnSale.id);
+
+      expect(offer.buy()).rejects.toThrowError(
+        "Unable to finalize this sale, it might no longer be active."
+      );
     });
 
     it("should be able to buy a whitelisted item", async () => {

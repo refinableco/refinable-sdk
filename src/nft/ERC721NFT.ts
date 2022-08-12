@@ -22,7 +22,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async approve(operatorAddress: string): Promise<EvmTransaction> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     // FIXME: we should actually use this but our contracts do not support it
     // return this.nftTokenContract.approve(operatorAddress, this.item.tokenId);
@@ -59,7 +59,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async isApproved(operatorAddress: string) {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     // TODO: we should actually use this but our contracts do not support it
     // const approvedSpender = await this.nftTokenContract.getApproved(this.item.tokenId);
@@ -192,7 +192,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     ownerEthAddress: string,
     recipientEthAddress: string
   ): Promise<EvmTransaction> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     return await nftTokenContract.sendTransaction(
       // the method is overloaded, generally this is the one we want to use
@@ -202,7 +202,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async burn(): Promise<EvmTransaction> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     return await nftTokenContract.sendTransaction("burn", [this.item.tokenId]);
   }

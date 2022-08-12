@@ -134,8 +134,8 @@ export class Refinable {
   async connect(type: ClientType, providerOrSigner: ProviderSignerWallet) {
     this._provider = providerOrSigner;
 
-    this._account = new EvmSigner(this);
     this.evm.connect(providerOrSigner);
+    this._account = new EvmSigner(providerOrSigner, this.evm.options);
 
     this._accountAddress = await this.account.getAddress();
 

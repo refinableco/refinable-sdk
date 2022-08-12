@@ -23,7 +23,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async approve(operatorAddress: string): Promise<EvmTransaction> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     return await nftTokenContract.sendTransaction("setApprovalForAll", [
       operatorAddress,
@@ -32,7 +32,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async isApproved(operatorAddress: string): Promise<boolean> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
     return nftTokenContract.contract.isApprovedForAll(
       this.refinable.accountAddress,
       operatorAddress
@@ -165,7 +165,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
     recipientEthAddress: string,
     amount = 1
   ): Promise<EvmTransaction> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     return await nftTokenContract.sendTransaction("safeTransferFrom", [
       ownerEthAddress,
@@ -177,7 +177,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async burn(amount: number, ownerEthAddress: string): Promise<EvmTransaction> {
-    const nftTokenContract = await this.getTokenContract();
+    const nftTokenContract = await this.getTokenContractWrapper();
 
     return await nftTokenContract.sendTransaction("burn", [
       ownerEthAddress,

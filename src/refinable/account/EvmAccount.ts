@@ -1,15 +1,27 @@
-import { ethers } from "ethers";
+import { ethers, providers } from "ethers";
+import { getProviderByNetworkId } from "../../config/chains";
 import { Account } from "../../interfaces/Account";
 import { NativeCurrency } from "../../interfaces/Config";
+import { ProviderSignerWallet } from "../../interfaces/Signer";
 import EvmTransaction from "../../transaction/EvmTransaction";
+import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { getSignerAndProvider } from "../../utils/singer";
 import { ContractWrapper } from "../contract/ContractWrapper";
-import { Refinable } from "../Refinable";
 
 export default class EvmAccount implements Account {
-  constructor(protected readonly refinable: Refinable) {}
+  public _provider: providers.Provider;
+  public _signer: ethers.Signer;
+  constructor(
+    protected readonly providerOrSigner: ProviderSignerWallet,
+    protected readonly evmOptions: RefinableEvmOptions
+  ) {
+    const [signer, provider] = getSignerAndProvider(providerOrSigner);
+    this._provider = provider;
+    this._signer = signer;
+  }
 
   async getAddress(): Promise<string> {
-    return this.refinable.evm.signer.getAddress();
+    return this._signer.getAddress();
   }
 
   /**
@@ -49,10 +61,10 @@ export default class EvmAccount implements Account {
             type: "function",
           },
         ],
-        this.refinable.evm.provider
+        this._signer
       );
       const balance = await token.balanceOf(
-        userEthAddress ?? this.refinable.accountAddress
+        userEthAddress ?? (await this.getAddress())
       );
       result = ethers.utils.formatUnits(balance, decimals);
     } catch (e) {
@@ -81,7 +93,7 @@ export default class EvmAccount implements Account {
             type: "function",
           },
         ],
-        this.refinable.evm.provider
+        this._signer
       );
       decimals = await token.decimals();
     } catch (e) {
@@ -99,10 +111,10 @@ export default class EvmAccount implements Account {
     userEthAddress?: string
   ): Promise<string> {
     const getBalancePromise = chainId
-      ? this.refinable.evm
-          .getProviderByChainId(chainId)
-          .getBalance(userEthAddress ?? this.refinable.accountAddress)
-      : this.refinable.evm.signer.getBalance();
+      ? getProviderByNetworkId(chainId).getBalance(
+          userEthAddress ?? (await this.getAddress())
+        )
+      : this._signer.getBalance();
 
     const result = await getBalancePromise;
     return ethers.utils.formatEther(result).toString();
@@ -128,8 +140,8 @@ export default class EvmAccount implements Account {
         address: token.address,
         abi: [`function approve(address _spender, uint256 _value)`],
       },
-      this.refinable.evm.providerOrSigner,
-      this.refinable.evm.options
+      this.providerOrSigner,
+      this.evmOptions
     );
 
     const formattedAmount = ethers.utils

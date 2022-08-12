@@ -1,4 +1,4 @@
-import { providers, Signer } from "ethers";
+import type { providers, Signer, Wallet } from "ethers";
 import { Account } from "./Account";
 
 export interface AccountSigner extends Account {
@@ -8,4 +8,7 @@ export interface AccountSigner extends Account {
 export type ProviderSignerWallet =
   | providers.Networkish
   | Signer
-  | providers.Provider;
+  | providers.Provider
+  | Wallet;
+
+export type KindaSigner = providers.JsonRpcSigner | Wallet;

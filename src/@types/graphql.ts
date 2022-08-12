@@ -153,6 +153,7 @@ export type Collection = {
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
+  maxSupply?: Maybe<Scalars["Float"]>;
   mintingType: MintingType;
   name: Scalars["String"];
   ownerEthAddress?: Maybe<Scalars["String"]>;
@@ -183,7 +184,7 @@ export type CollectionMetadataFilterInput = {
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
-  metadata: Scalars["JSON"];
+  metadata?: InputMaybe<Scalars["JSON"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
   tagName?: InputMaybe<Scalars["String"]>;
@@ -225,6 +226,7 @@ export type CollectionsFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["Float"]>>;
   collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   creator?: InputMaybe<Scalars["String"]>;
+  query?: InputMaybe<Scalars["String"]>;
   userAddress?: InputMaybe<Scalars["String"]>;
 };
 
@@ -320,7 +322,7 @@ export type CreateCollectionInput = {
   description: Scalars["String"];
   discord?: InputMaybe<Scalars["String"]>;
   instagram?: InputMaybe<Scalars["String"]>;
-  maxSupply?: InputMaybe<Scalars["Float"]>;
+  maxSupply?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   symbol: Scalars["String"];
   telegram?: InputMaybe<Scalars["String"]>;
@@ -596,6 +598,11 @@ export type ImportCollectionOutput = {
   tokenType?: Maybe<TokenType>;
 };
 
+export type ImportCollectionStateRecordInput = {
+  isSuccess: Scalars["Boolean"];
+  reason?: InputMaybe<Scalars["String"]>;
+};
+
 export type IndexCollectionInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
@@ -659,6 +666,12 @@ export type ItemUserSupplyArgs = {
 export type ItemAttribute = {
   displayType?: Maybe<Scalars["String"]>;
   traitType?: Maybe<Scalars["String"]>;
+  value: Scalars["String"];
+};
+
+export type ItemAttributeInput = {
+  displayType?: InputMaybe<Scalars["String"]>;
+  traitType?: InputMaybe<Scalars["String"]>;
   value: Scalars["String"];
 };
 
@@ -816,6 +829,7 @@ export type ItemsFilterInput = {
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
+  metadata?: InputMaybe<Scalars["JSON"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
   tagName?: InputMaybe<Scalars["String"]>;
@@ -865,6 +879,16 @@ export type LaunchpadStageInput = {
   stage: WhitelistType;
   startTime?: InputMaybe<Scalars["DateTime"]>;
   whitelist?: InputMaybe<Array<Scalars["String"]>>;
+};
+
+export type LazyItemInput = {
+  attributes: Array<ItemAttributeInput>;
+  description?: InputMaybe<Scalars["String"]>;
+  fileType: Scalars["String"];
+  image: Scalars["String"];
+  mimeType: Scalars["String"];
+  name: Scalars["String"];
+  supply: Scalars["Int"];
 };
 
 export type LoginInput = {
@@ -956,10 +980,12 @@ export type Mutation = {
   placeAuctionBid: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
+  saveBatchCollection: Collection;
   toggleAddToWatchList?: Maybe<Collection>;
   toggleHideCollection: UpdateCollectionOutput;
   toggleLike?: Maybe<Item>;
   updateCollection: UpdateCollectionOutput;
+  updateImportCollectionState: Scalars["Boolean"];
   updateNotificationSeenStatus: Notification;
   updateStore?: Maybe<UpdateStore>;
   updateStoreCollections?: Maybe<UpdateStore>;
@@ -1044,6 +1070,10 @@ export type MutationReportItemArgs = {
   input: ItemReportInput;
 };
 
+export type MutationSaveBatchCollectionArgs = {
+  input: SaveBatchCollectionInput;
+};
+
 export type MutationToggleAddToWatchListArgs = {
   collectionId: Scalars["String"];
 };
@@ -1059,6 +1089,10 @@ export type MutationToggleLikeArgs = {
 export type MutationUpdateCollectionArgs = {
   data: UpdateCollectionInput;
   id: Scalars["ID"];
+};
+
+export type MutationUpdateImportCollectionStateArgs = {
+  input: UpdateImportCollectionStateInput;
 };
 
 export type MutationUpdateNotificationSeenStatusArgs = {
@@ -1498,6 +1532,13 @@ export type SaleOfferMarketConfigArgs = {
   storeId?: InputMaybe<Scalars["ID"]>;
 };
 
+export type SaveBatchCollectionInput = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+  items: Array<LazyItemInput>;
+  metadataPath: Scalars["String"];
+};
+
 export type SearchFilterInput = {
   auctionType?: InputMaybe<AuctionType>;
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
@@ -1505,6 +1546,7 @@ export type SearchFilterInput = {
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
   contentType?: InputMaybe<ContentType>;
   currencies?: InputMaybe<Array<PriceCurrency>>;
+  metadata?: InputMaybe<Scalars["JSON"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
   query?: InputMaybe<Scalars["String"]>;
@@ -1731,6 +1773,12 @@ export type UpdateCollectionOutput = {
   collection?: Maybe<Collection>;
 };
 
+export type UpdateImportCollectionStateInput = {
+  chainId: Scalars["Float"];
+  contractAddress: Scalars["String"];
+  validateState?: InputMaybe<ImportCollectionStateRecordInput>;
+};
+
 export type UpdateStore = {
   store: Store;
   success: Scalars["Boolean"];
@@ -1870,6 +1918,7 @@ export type UserSortedCollection = {
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
+  maxSupply?: Maybe<Scalars["Float"]>;
   mintingType: MintingType;
   name?: Maybe<Scalars["String"]>;
   ownerEthAddress?: Maybe<Scalars["String"]>;
@@ -1961,7 +2010,7 @@ export type CreatePurchaseSessionMutationVariables = Exact<{
 }>;
 
 export type CreatePurchaseSessionMutation = {
-  createPurchaseSession: { url: string };
+  createPurchaseSession: { id: string; url: string };
 };
 
 export type CreateCollectionMutationVariables = Exact<{

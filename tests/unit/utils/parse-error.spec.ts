@@ -89,7 +89,7 @@ describe("Error handling", () => {
           accessList: null,
         },
       },
-      "Process failed. Please try again.",
+      "Unable to finalize this sale, it might no longer be active.",
     ],
     [
       {

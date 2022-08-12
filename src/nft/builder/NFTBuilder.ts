@@ -163,7 +163,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
 
     const result = await tokenContract
       .connect(this.refinable.provider)
-      .sendTransaction("mint", mintArgs);
+      .contractWrapper.sendTransaction("mint", mintArgs);
 
     this.mintTransaction = result;
 

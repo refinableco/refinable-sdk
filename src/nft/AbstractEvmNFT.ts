@@ -68,7 +68,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ContractTypes.Sale
     );
 
-    return sale.connect(this.refinable.provider);
+    sale.connect(this.refinable.provider);
+
+    return sale.contractWrapper;
   }
 
   get auctionContract() {
@@ -77,7 +79,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ContractTypes.Auction
     );
 
-    return auction.connect(this.refinable.provider);
+    auction.connect(this.refinable.provider);
+
+    return auction.contractWrapper;
   }
 
   get nonceContract() {
@@ -86,7 +90,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       `${this.type}_SALE_NONCE_HOLDER`
     );
 
-    return saleNonceHolder.connect(this.refinable.provider);
+    saleNonceHolder.connect(this.refinable.provider);
+
+    return saleNonceHolder.contractWrapper;
   }
 
   get transferProxyContract() {
@@ -95,7 +101,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       `TRANSFER_PROXY`
     );
 
-    return transferProxy.connect(this.refinable.provider);
+    transferProxy.connect(this.refinable.provider);
+
+    return transferProxy.contractWrapper;
   }
 
   get airdropContract() {
@@ -104,10 +112,12 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       `${this.type}_AIRDROP`
     );
 
-    return airdrop?.connect(this.refinable.provider);
+    airdrop?.connect(this.refinable.provider);
+
+    return airdrop?.contractWrapper;
   }
 
-  public async getTokenContract() {
+  public async getTokenContractWrapper() {
     if (this.nftTokenContract) return this.nftTokenContract;
 
     const isERC1155 = isERC1155Item(this);
@@ -122,7 +132,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         type
       );
 
-    this.nftTokenContract = nftTokenContract.connect(this.refinable.provider);
+    nftTokenContract.connect(this.refinable.provider);
+
+    this.nftTokenContract = nftTokenContract.contractWrapper;
 
     return this.nftTokenContract;
   }
@@ -203,7 +215,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     const fees: LibPart[] = await serviceFeeContract
       .connect(this.refinable.provider)
-      .contract.getServiceFees(
+      .contractWrapper.contract.getServiceFees(
         FeeType.BUY,
         this.refinable.accountAddress,
         contractAddress,
@@ -639,11 +651,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
         ]
       );
 
+    auctionContract.connect(this.refinable.evm.providerOrSigner);
+
     return {
       contract: auctionContract,
-      contractWrapper: auctionContract.connect(
-        this.refinable.evm.providerOrSigner
-      ),
+      contractWrapper: auctionContract.contractWrapper,
     };
   }
 

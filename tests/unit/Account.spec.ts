@@ -22,7 +22,7 @@ describe("Account", () => {
           .spyOn(refinable.evm.signer as ethers.Signer, "getBalance")
           .mockResolvedValue(BigNumber.from("1000000000000000000"));
 
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getBalance()).toBe("1.0");
       });
@@ -32,7 +32,7 @@ describe("Account", () => {
           .spyOn(refinable.evm.signer as ethers.Signer, "getBalance")
           .mockResolvedValue(BigNumber.from("0000000000000000000"));
 
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getBalance()).toBe("0.0");
       });
@@ -40,13 +40,13 @@ describe("Account", () => {
 
     describe("getTokenDecimals", () => {
       it("Should use default decimals if no address passed", async () => {
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getTokenDecimals(null)).toBe(18);
       });
 
       it("Should use default decimals if incorrect address", async () => {
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getTokenDecimals("sss")).toBe(18);
       });
@@ -58,7 +58,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getTokenDecimals(ETH_ADDRESS)).toBe(9);
       });
@@ -66,13 +66,13 @@ describe("Account", () => {
 
     describe("getTokenBalance", () => {
       it("Should return null when tokenAddress not set", async () => {
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getTokenBalance(null)).toBe(null);
       });
 
       it("Should return null when fetching balance fails", async () => {
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         expect(await account.getTokenBalance(ETH_ADDRESS)).toBe(null);
       });
@@ -88,7 +88,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
@@ -106,7 +106,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
@@ -124,7 +124,7 @@ describe("Account", () => {
           })
         );
 
-        const account = new EvmAccount(refinable);
+        const account = new EvmAccount(refinable.provider, {});
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(9);
 
