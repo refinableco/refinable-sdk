@@ -9,8 +9,10 @@ import {
   Price,
   PriceCurrency,
   TokenType,
+  UpdateMintOfferMutation,
+  UpdateMintOfferMutationVariables,
 } from "../@types/graphql";
-import { CREATE_MINT_OFFER } from "../graphql/sale";
+import { CREATE_MINT_OFFER, UPDATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { MintVoucher } from "../nft/interfaces/MintVoucher";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
@@ -39,6 +41,12 @@ export interface PutForSaleParams {
   name?: string;
   description?: string;
   payee?: string;
+}
+export interface UpdateOfferParams {
+  launchpadDetails?: LaunchpadDetailsInput;
+  previewImage?: Stream | string;
+  name?: string;
+  description?: string;
 }
 
 export class MintOffer extends BasicOffer {
@@ -144,6 +152,46 @@ export class MintOffer extends BasicOffer {
     });
 
     this._offer = response?.createMintOffer;
+    return this;
+  }
+
+  public async updateOffer(params: UpdateOfferParams): Promise<this> {
+    const { launchpadDetails, name, description } = params;
+
+    // validate launchpad
+    if (this._offer.startTime && launchpadDetails?.stages) {
+      for (let i = 0; i < launchpadDetails.stages.length; i++) {
+        const stage = launchpadDetails.stages[i];
+        if (stage.startTime >= this._offer.startTime) {
+          throw new Error(
+            `The start time of the ${stage.stage} stage (index: ${i}) is after the start time of the public sale, this whitelist won't have any effect. Please remove this stage or adjust its startTime`
+          );
+        }
+      }
+    }
+
+    // upload image if there is one
+    let previewImage = params.previewImage;
+    if (params.previewImage && typeof params.previewImage !== "string") {
+      params.previewImage = await this.refinable.uploadFile(
+        params.previewImage
+      );
+    }
+
+    const response = await this.refinable.graphqlClient.request<
+      UpdateMintOfferMutation,
+      UpdateMintOfferMutationVariables
+    >(UPDATE_MINT_OFFER, {
+      id: this._offer.id,
+      input: {
+        launchpadDetails,
+        previewImage: previewImage as string,
+        name,
+        description,
+      },
+    });
+
+    this._offer = response?.updateMintOffer;
     return this;
   }
 
