@@ -20,6 +20,20 @@ export const CREATE_MINT_OFFER = gql`
   ${OfferFragment}
   ${MintOfferFragment}
 `;
+export const UPDATE_MINT_OFFER = gql`
+  mutation updateMintOffer(
+    $id: ID!
+    $input: UpdateMintOfferInput!
+    $storeId: ID
+  ) {
+    updateMintOffer(id: $id, input: $input) {
+      ...Offer
+      ...MintOffer
+    }
+  }
+  ${OfferFragment}
+  ${MintOfferFragment}
+`;
 
 export const PURCHASE_ITEM = gql`
   mutation purchaseItem($input: CreatePurchaseInput!) {

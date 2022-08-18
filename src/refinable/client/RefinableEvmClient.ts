@@ -107,10 +107,10 @@ export class RefinableEvmClient {
     return new RoyaltyRegistry(this.refinableClient, chainId);
   }
 
-  async getErc721LazyMintContract(contractAddress: string) {
+  async getErc721LazyMintContract(contractAddress: string, chainId?: number) {
     return this.contracts.findAndConnectContract<Erc721LazyMintContract>({
       contractAddress,
-      chainId: await this.signer.getChainId(),
+      chainId: chainId ?? (await this.signer.getChainId()),
     });
   }
 }
