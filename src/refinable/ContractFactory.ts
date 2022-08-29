@@ -188,10 +188,6 @@ export class ContractFactory {
       chainId,
       ContractTypes.ServiceFeeV2
     );
-    const erc721NonceHolder = getContractAddress(
-      chainId,
-      ContractTypes.Erc721SaleNonceHolder
-    );
 
     switch (type) {
       case ContractTypes.Erc721WhitelistedToken:
@@ -217,7 +213,6 @@ export class ContractFactory {
           args.royalties,
           refinableServiceFee, // service fee proxy
           signerAddress, // signer
-          erc721NonceHolder, // nonce holder 721
         ];
     }
   }
