@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Stream } from "form-data";
 import {
   CreateMintOfferMutation,
@@ -7,10 +7,8 @@ import {
   MintOfferFragment,
   OfferType,
   Price,
-  PriceCurrency,
-  TokenType,
-  UpdateMintOfferMutation,
-  UpdateMintOfferMutationVariables,
+  PriceCurrency, UpdateMintOfferMutation,
+  UpdateMintOfferMutationVariables
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER, UPDATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
@@ -98,11 +96,9 @@ export class MintOffer extends BasicOffer {
       );
     }
 
-    const nonceResult: BigNumber = await this.nonceContract.contract.getNonce(
-      contractAddress,
-      0,
-      this.refinable.accountAddress
-    );
+    const contract = await this.getContract();
+
+    const nonce = await contract.getNonce(this.refinable.accountAddress);
 
     const saleId = this.createSaleId(
       this.refinable.accountAddress,
@@ -112,7 +108,7 @@ export class MintOffer extends BasicOffer {
 
     const signature = await this.createMintSignature({
       seller: this.refinable.accountAddress,
-      nonce: nonceResult.toNumber(),
+      nonce,
       signer: this.refinable.account as EvmSigner,
       contractAddress,
       chainId: this.chainId,
@@ -345,17 +341,5 @@ export class MintOffer extends BasicOffer {
     );
 
     return { signedData, signature };
-  }
-
-  get nonceContract() {
-    // right now there are no plans for 1155 lazy mint
-    const saleNonceHolder = this.refinable.evm.contracts.getBaseContract(
-      this.chainId,
-      `${TokenType.Erc721}_SALE_NONCE_HOLDER`
-    );
-
-    saleNonceHolder.connect(this.refinable.provider);
-
-    return saleNonceHolder.contractWrapper;
   }
 }

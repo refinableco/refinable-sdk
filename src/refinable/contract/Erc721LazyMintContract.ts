@@ -81,6 +81,10 @@ export class Erc721LazyMintContract extends Contract {
     return this.contractWrapper.contract.saleSettings();
   }
 
+  async getNonce(seller: string): Promise<number> {
+    return (await this.contractWrapper.contract.getNonce(seller))?.toNumber();
+  }
+
   updateSaleSettings(saleSettings: Partial<SaleSettings>) {
     const settings: SaleSettings = {
       maxPerMint: 0,
