@@ -7,8 +7,9 @@ import {
   MintOfferFragment,
   OfferType,
   Price,
-  PriceCurrency, UpdateMintOfferMutation,
-  UpdateMintOfferMutationVariables
+  PriceCurrency,
+  UpdateMintOfferMutation,
+  UpdateMintOfferMutationVariables,
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER, UPDATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
@@ -96,7 +97,7 @@ export class MintOffer extends BasicOffer {
       );
     }
 
-    const contract = await this.getContract();
+    const contract = await this.getContract(contractAddress);
 
     const nonce = await contract.getNonce(this.refinable.accountAddress);
 
@@ -255,10 +256,10 @@ export class MintOffer extends BasicOffer {
     };
   }
 
-  private async getContract() {
+  private async getContract(contractAddress?: string) {
     return this.refinable.evm.contracts.findAndConnectContract<Erc721LazyMintContract>(
       {
-        contractAddress: this._offer.contractAddress,
+        contractAddress: contractAddress ?? this._offer.contractAddress,
         chainId: this.chainId,
       }
     );
