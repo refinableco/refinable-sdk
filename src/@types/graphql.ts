@@ -28,6 +28,17 @@ export type Scalars = {
   Upload: any;
 };
 
+export type ActivityStatistics = {
+  date: Scalars["DateTime"];
+  purchases: Scalars["Float"];
+  volume: Scalars["Float"];
+};
+
+export type ActivityStatisticsInput = {
+  collectionIds: Array<Scalars["String"]>;
+  lastDays?: InputMaybe<Scalars["Int"]>;
+};
+
 export enum AssetType {
   Collection = "COLLECTION",
   Item = "ITEM",
@@ -153,10 +164,11 @@ export type Collection = {
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
-  maxSupply?: Maybe<Scalars["Float"]>;
+  lazyInfo?: Maybe<LazyCollectionInfoOutput>;
   mintingType: MintingType;
   name: Scalars["String"];
   ownerEthAddress?: Maybe<Scalars["String"]>;
+  simpleItems: GetItemsOutput;
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
@@ -170,6 +182,50 @@ export type CollectionItemsArgs = {
   filter?: InputMaybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type CollectionSimpleItemsArgs = {
+  filter?: InputMaybe<CollectionMetadataFilterInput>;
+  paging: PagingInput;
+  sort?: InputMaybe<SortInput>;
+};
+
+export type CollectionActivity = {
+  createdAt?: Maybe<Scalars["String"]>;
+  from?: Maybe<User>;
+  item?: Maybe<Item>;
+  price?: Maybe<Price>;
+  supply?: Maybe<Scalars["Int"]>;
+  to?: Maybe<User>;
+  transactionHash?: Maybe<Scalars["String"]>;
+  type: Scalars["String"];
+};
+
+export type CollectionActivityEdge = {
+  cursor: Scalars["String"];
+  node: CollectionActivity;
+};
+
+export type CollectionActivityFilter = {
+  collectionIds: Array<Scalars["String"]>;
+  currencies?: InputMaybe<Array<PriceCurrency>>;
+  lastDays?: InputMaybe<Scalars["Int"]>;
+  offerTypes?: InputMaybe<Array<OfferType>>;
+  platforms?: InputMaybe<Array<Platform>>;
+  types: Array<ItemHistoryType>;
+};
+
+export type CollectionActivityPageInfo = {
+  endCursor?: Maybe<Scalars["String"]>;
+  hasNextPage: Scalars["Boolean"];
+  hasPreviousPage: Scalars["Boolean"];
+  startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type CollectionActivityResponse = {
+  edges?: Maybe<Array<CollectionActivityEdge>>;
+  pageInfo?: Maybe<CollectionActivityPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
 };
 
 export type CollectionEdge = {
@@ -516,6 +572,12 @@ export type FinishMintOutput = {
   item: Item;
 };
 
+export type GetItemsOutput = {
+  edges?: Maybe<Array<ItemEdge>>;
+  pageInfo?: Maybe<ItemPageInfo>;
+  totalCount?: Maybe<Scalars["Float"]>;
+};
+
 export type GetMetadataInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
@@ -735,6 +797,7 @@ export enum ItemHistoryType {
   Bid = "BID",
   Burn = "BURN",
   Minted = "MINTED",
+  MintOfferPurchase = "MINT_OFFER_PURCHASE",
   Purchase = "PURCHASE",
   SaleClosed = "SALE_CLOSED",
   SaleCreated = "SALE_CREATED",
@@ -886,6 +949,11 @@ export type LaunchpadStageInput = {
   whitelist?: InputMaybe<Array<Scalars["String"]>>;
 };
 
+export type LazyCollectionInfoOutput = {
+  isMinted: Scalars["Boolean"];
+  maxSupply: Scalars["Float"];
+};
+
 export type LazyItemInput = {
   attributes: Array<ItemAttributeInput>;
   description?: InputMaybe<Scalars["String"]>;
@@ -983,6 +1051,7 @@ export type Mutation = {
   login: Auth;
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
+  refreshCollection: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
   saveBatchCollection: Collection;
@@ -1066,6 +1135,10 @@ export type MutationLoginArgs = {
 
 export type MutationPlaceAuctionBidArgs = {
   input: AuctionPlaceBidInput;
+};
+
+export type MutationRefreshCollectionArgs = {
+  input: RefreshCollectionInput;
 };
 
 export type MutationRefreshMetadataArgs = {
@@ -1263,6 +1336,7 @@ export type Price = {
 };
 
 export enum PriceCurrency {
+  Ape = "APE",
   Bnb = "BNB",
   Busd = "BUSD",
   Eth = "ETH",
@@ -1303,18 +1377,21 @@ export type PurchaseMetadata = {
 
 export type PurchaseSession = {
   active?: Maybe<Scalars["Boolean"]>;
-  apiUser: User;
   blindPack?: Maybe<Scalars["Boolean"]>;
   cancelUrl?: Maybe<Scalars["String"]>;
-  collection?: Maybe<Collection>;
+  collection: Collection;
   id: Scalars["String"];
   name?: Maybe<Scalars["String"]>;
   offer: Offer;
   successUrl?: Maybe<Scalars["String"]>;
   url: Scalars["String"];
+  user: User;
+  userId: Scalars["String"];
 };
 
 export type Query = {
+  activity: CollectionActivityResponse;
+  activityStatistics: Array<ActivityStatistics>;
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
   collection?: Maybe<Collection>;
@@ -1351,6 +1428,15 @@ export type Query = {
   user?: Maybe<User>;
   userSortedCollections: UserSortedCollectionsResponse;
   x2y2: X2Y2;
+};
+
+export type QueryActivityArgs = {
+  filter: CollectionActivityFilter;
+  paging: PagingInput;
+};
+
+export type QueryActivityStatisticsArgs = {
+  filter?: InputMaybe<ActivityStatisticsInput>;
 };
 
 export type QueryAuctionArgs = {
@@ -1498,6 +1584,11 @@ export type RefinableContractInput = {
   contractType: ContractTypes;
 };
 
+export type RefreshCollectionInput = {
+  chainId: Scalars["Int"];
+  contractAddress: Scalars["String"];
+};
+
 export type RefreshMetadataInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
@@ -1557,6 +1648,7 @@ export type SaveBatchCollectionInput = {
   contractAddress: Scalars["String"];
   items: Array<LazyItemInput>;
   metadataPath: Scalars["String"];
+  slug: Scalars["String"];
 };
 
 export type SearchFilterInput = {
@@ -1673,6 +1765,7 @@ export type Subscription = {
   itemTransfered: Item;
   newNotification: Notification;
   offerUpdated?: Maybe<Offer>;
+  purchaseSessionUpdated?: Maybe<PurchaseSession>;
   saleCancelled: Offer;
 };
 
@@ -1715,6 +1808,10 @@ export type SubscriptionItemTransferedArgs = {
 
 export type SubscriptionOfferUpdatedArgs = {
   offerId: Scalars["ID"];
+};
+
+export type SubscriptionPurchaseSessionUpdatedArgs = {
+  id: Scalars["ID"];
 };
 
 export type SubscriptionSaleCancelledArgs = {
@@ -1945,10 +2042,11 @@ export type UserSortedCollection = {
   isAddedToWatchList: Scalars["Boolean"];
   isRefinableCollection: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
-  maxSupply?: Maybe<Scalars["Float"]>;
+  lazyInfo?: Maybe<LazyCollectionInfoOutput>;
   mintingType: MintingType;
   name?: Maybe<Scalars["String"]>;
   ownerEthAddress?: Maybe<Scalars["String"]>;
+  simpleItems: GetItemsOutput;
   slug: Scalars["String"];
   statistics: CollectionStatistics;
   telegram?: Maybe<Scalars["String"]>;
@@ -1959,6 +2057,12 @@ export type UserSortedCollection = {
 };
 
 export type UserSortedCollectionItemsArgs = {
+  filter?: InputMaybe<CollectionMetadataFilterInput>;
+  paging: PagingInput;
+  sort?: InputMaybe<SortInput>;
+};
+
+export type UserSortedCollectionSimpleItemsArgs = {
   filter?: InputMaybe<CollectionMetadataFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
