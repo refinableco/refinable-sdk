@@ -123,7 +123,11 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const isERC1155 = isERC1155Item(this);
     const type = isERC1155
       ? [ContractTypes.Erc1155Token, ContractTypes.Erc1155WhitelistedToken]
-      : [ContractTypes.Erc721Token, ContractTypes.Erc721WhitelistedToken];
+      : [
+          ContractTypes.Erc721Token,
+          ContractTypes.Erc721WhitelistedToken,
+          ContractTypes.Erc721LazyMintToken,
+        ];
 
     const nftTokenContract =
       await this.refinableEvmClient.contracts.getRefinableContract(
