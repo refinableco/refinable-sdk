@@ -69,8 +69,16 @@ export class Erc721LazyMintContract extends Contract {
     return response.toNumber();
   }
 
-  maxTokens(): Promise<number> {
-    return this.contractWrapper.contract.MAX_TOKENS();
+  async maxTokens(): Promise<number> {
+    const maxTokens = await this.contractWrapper.contract.MAX_TOKENS();
+
+    return maxTokens.toNumber();
+  }
+
+  async totalSupply(): Promise<number> {
+    const totalSupply = await this.contractWrapper.contract.totalSupply();
+
+    return totalSupply.toNumber();
   }
 
   isRevealed(): Promise<boolean> {
