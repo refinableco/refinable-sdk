@@ -45,6 +45,10 @@ export class BasicOffer {
   get chainId() {
     return this._offer.chainId;
   }
+  
+  get contractAddress() {
+    return this._offer.contractAddress;
+  }
 
   get price() {
     const amount = this.currentStage?.price ?? this._offer.price.amount;

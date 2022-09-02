@@ -216,16 +216,6 @@ export class MintOffer extends BasicOffer {
     });
   }
 
-  public async getRemaining(recipient?: string): Promise<number> {
-    const contract = await this.getContract();
-
-    const remaining = await contract.getRemaining(
-      recipient || this.refinable.accountAddress
-    );
-
-    return remaining;
-  }
-
   public async cancelSale(): Promise<EvmTransaction> {
     const contract = await this.getContract();
 
