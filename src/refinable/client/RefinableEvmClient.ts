@@ -1,8 +1,6 @@
-import { JsonRpcProvider } from "@ethersproject/providers";
-import { ethers, providers, Signer } from "ethers";
+import { ethers, providers } from "ethers";
 import _ from "lodash";
 import { Chain, NFTBuilder } from "../..";
-import { getChainByNetworkId } from "../../config/chains";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
 import { NftBuilderParams } from "../../nft/builder/IBuilder";
 import {
@@ -11,6 +9,7 @@ import {
 } from "../../types/RefinableOptions";
 import { getSignerAndProvider } from "../../utils/singer";
 import EvmAccount from "../account/EvmAccount";
+import { Erc721LazyMintContract } from "../contract/Erc721LazyMintContract";
 import { ContractFactory } from "../ContractFactory";
 import { Contracts } from "../Contracts";
 import { Refinable } from "../Refinable";
@@ -81,7 +80,6 @@ export class RefinableEvmClient {
   ) {
     this.options = _.merge(this.options, options.evm);
 
-    this.account = new EvmAccount(refinableClient);
     this.contracts = new Contracts(refinableClient);
     this.contractFactory = new ContractFactory(refinableClient);
   }
@@ -92,6 +90,7 @@ export class RefinableEvmClient {
     this.providerOrSigner = providerOrSigner;
     this._provider = provider;
     this._signer = signer;
+    this.account = new EvmAccount(providerOrSigner, this.options);
   }
 
   disconnect() {
@@ -108,8 +107,10 @@ export class RefinableEvmClient {
     return new RoyaltyRegistry(this.refinableClient, chainId);
   }
 
-  getProviderByChainId(chainId: Chain) {
-    const chain = getChainByNetworkId(chainId);
-    return new JsonRpcProvider(chain.nodeUri[0]);
+  async getErc721LazyMintContract(contractAddress: string, chainId?: number) {
+    return this.contracts.findAndConnectContract<Erc721LazyMintContract>({
+      contractAddress,
+      chainId: chainId ?? (await this.signer.getChainId()),
+    });
   }
 }

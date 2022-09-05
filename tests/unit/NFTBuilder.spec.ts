@@ -17,20 +17,25 @@ import { getMockRefinableClient } from "../helpers/client";
 import { getEvmTxReceipt } from "./Transactions.spec";
 
 const getContract = (override: Partial<IContract> = {}) =>
-  new Contract({
-    tags: [ContractTag.TokenV1_0_0],
-    chainId: 1,
-    contractABI: "[]",
-    contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
-    type: ContractTypes.Erc721Token,
-    default: true,
-    ...override,
-  });
+  new Contract(
+    {
+      tags: [ContractTag.TokenV1_0_0],
+      chainId: 1,
+      contractABI: "[]",
+      contractAddress: "0x898de23b24C7C2189488079a6871C711Dd125504",
+      type: ContractTypes.Erc721Token,
+      default: true,
+      ...override,
+    },
+    {}
+  );
 
-const mockContractWrapper = {
-  sendTransaction: jest
-    .fn()
-    .mockResolvedValue(new EvmTransaction(getEvmTxReceipt())),
+const contractMock = {
+  contractWrapper: {
+    sendTransaction: jest
+      .fn()
+      .mockResolvedValue(new EvmTransaction(getEvmTxReceipt())),
+  },
 } as any;
 
 const ITEM: CreateItemMutation["createItem"]["item"] = {
@@ -139,7 +144,7 @@ describe("NFTBuilder", () => {
     });
 
     it("Should be able to mint V1 ERC721 TOKEN", async () => {
-      const tokenContract = getContract(refinable);
+      const tokenContract = getContract();
 
       jest
         .spyOn(refinable.graphqlClient, "request")
@@ -149,7 +154,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       expect(() => erc721Builder.tokenId).toThrow(
         "Item not created, please create first"
@@ -163,7 +168,7 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(mockContractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
         ITEM.tokenId,
         ITEM_CREATE_RESPONSE.signature,
         [[ETH_ADDRESS, 10]],
@@ -196,7 +201,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       expect(() => erc1155Builder.tokenId).toThrow(
         "Item not created, please create first"
@@ -210,7 +215,7 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(mockContractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
         ITEM.tokenId,
         ITEM_CREATE_RESPONSE.signature,
         [[ETH_ADDRESS, 10]],
@@ -232,7 +237,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       expect(() => erc721Builder.tokenId).toThrow(
         "Item not created, please create first"
@@ -246,7 +251,7 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(mockContractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
         ITEM.tokenId,
         ITEM_CREATE_RESPONSE.signature,
         [[ETH_ADDRESS, 10]],
@@ -269,7 +274,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       expect(() => erc721Builder.tokenId).toThrow(
         "Item not created, please create first"
@@ -283,7 +288,7 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(mockContractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
         ITEM.tokenId,
         ITEM_CREATE_RESPONSE.signature,
         [[ETH_ADDRESS, 10]],
@@ -318,7 +323,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       expect(() => erc721Builder.tokenId).toThrow(
         "Item not created, please create first"
@@ -363,7 +368,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       const nft = await builder.createAndMint();
 
@@ -396,7 +401,7 @@ describe("NFTBuilder", () => {
         .spyOn(refinable.evm.contracts, "getMintableTokenContract")
         .mockResolvedValueOnce(tokenContract);
 
-      jest.spyOn(tokenContract, "connect").mockReturnValue(mockContractWrapper);
+      jest.spyOn(tokenContract, "connect").mockReturnValue(contractMock);
 
       const nft = await builder.createAndMint();
 

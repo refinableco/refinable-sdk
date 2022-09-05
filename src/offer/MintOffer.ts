@@ -1,6 +1,5 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Stream } from "form-data";
-import { RefinableEvmClient } from "..";
 import {
   CreateMintOfferMutation,
   CreateMintOfferMutationVariables,
@@ -9,17 +8,20 @@ import {
   OfferType,
   Price,
   PriceCurrency,
-  TokenType,
+  UpdateMintOfferMutation,
+  UpdateMintOfferMutationVariables,
 } from "../@types/graphql";
-import { CREATE_MINT_OFFER } from "../graphql/sale";
+import { CREATE_MINT_OFFER, UPDATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { MintVoucher } from "../nft/interfaces/MintVoucher";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
+import { Erc721LazyMintContract } from "../refinable/contract/Erc721LazyMintContract";
 import { Refinable } from "../refinable/Refinable";
+import EvmSigner from "../refinable/signer/EvmSigner";
+import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
-import { optionalParam } from "../utils/utils";
 import { BasicOffer, PartialOffer } from "./Offer";
 
 interface BuyParams {
@@ -34,19 +36,23 @@ export interface PutForSaleParams {
   endTime?: Date;
   launchpadDetails?: LaunchpadDetailsInput;
   supply: number;
-  previewImage?: Stream;
+  previewImage?: Stream | string;
   name?: string;
   description?: string;
   payee?: string;
 }
+export interface UpdateOfferParams {
+  launchpadDetails?: LaunchpadDetailsInput;
+  previewImage?: Stream | string;
+  name?: string;
+  description?: string;
+}
 
 export class MintOffer extends BasicOffer {
   private _chain: Chain;
-  private _contract: ethers.Contract;
 
   constructor(
     protected readonly refinable: Refinable,
-    protected readonly refinableEvmClient: RefinableEvmClient,
     chainId: number,
     protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
@@ -84,24 +90,27 @@ export class MintOffer extends BasicOffer {
     }
 
     // upload image if there is one
-    let previewImage;
-    if (params.previewImage) {
-      previewImage = await this.refinable.uploadFile(params.previewImage);
+    let previewImage = params.previewImage;
+    if (params.previewImage && typeof params.previewImage !== "string") {
+      params.previewImage = await this.refinable.uploadFile(
+        params.previewImage
+      );
     }
 
-    const nonceResult: BigNumber = await this.nonceContract.contract.getNonce(
-      contractAddress,
-      0,
-      this.refinable.accountAddress
-    );
+    const contract = await this.getContract(contractAddress);
+
+    const nonce = await contract.getNonce(this.refinable.accountAddress);
+
     const saleId = this.createSaleId(
       this.refinable.accountAddress,
       contractAddress
     );
     const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
+
     const signature = await this.createMintSignature({
-      nonce: nonceResult.toNumber(),
-      signer: (this.refinable as any).provider,
+      seller: this.refinable.accountAddress,
+      nonce,
+      signer: this.refinable.account as EvmSigner,
       contractAddress,
       chainId: this.chainId,
       message: {
@@ -132,7 +141,7 @@ export class MintOffer extends BasicOffer {
         supply,
         launchpadDetails,
         blockchainId,
-        previewImage,
+        previewImage: previewImage as string,
         name,
         description,
         payee,
@@ -141,6 +150,109 @@ export class MintOffer extends BasicOffer {
 
     this._offer = response?.createMintOffer;
     return this;
+  }
+
+  public async updateOffer(params: UpdateOfferParams): Promise<this> {
+    const { launchpadDetails, name, description } = params;
+
+    // validate launchpad
+    if (this._offer.startTime && launchpadDetails?.stages) {
+      for (let i = 0; i < launchpadDetails.stages.length; i++) {
+        const stage = launchpadDetails.stages[i];
+        if (stage.startTime >= this._offer.startTime) {
+          throw new Error(
+            `The start time of the ${stage.stage} stage (index: ${i}) is after the start time of the public sale, this whitelist won't have any effect. Please remove this stage or adjust its startTime`
+          );
+        }
+      }
+    }
+
+    // upload image if there is one
+    let previewImage = params.previewImage;
+    if (params.previewImage && typeof params.previewImage !== "string") {
+      params.previewImage = await this.refinable.uploadFile(
+        params.previewImage
+      );
+    }
+
+    const response = await this.refinable.graphqlClient.request<
+      UpdateMintOfferMutation,
+      UpdateMintOfferMutationVariables
+    >(UPDATE_MINT_OFFER, {
+      id: this._offer.id,
+      input: {
+        launchpadDetails,
+        previewImage: previewImage as string,
+        name,
+        description,
+      },
+    });
+
+    this._offer = response?.updateMintOffer;
+    return this;
+  }
+
+  public async buy(params: BuyParams = {}): Promise<Transaction> {
+    const contract = await this.getContract();
+
+    return contract.buy({
+      ...params,
+      mintVoucher: this.getMintVoucher(),
+      price: this._offer.price,
+      whitelistVoucher: this.whitelistVoucher,
+      recipient: params.recipient || this.refinable.accountAddress,
+    });
+  }
+
+  public async estimateGasBuy(params: BuyParams = {}) {
+    const contract = await this.getContract();
+
+    return contract.estimateGasBuy({
+      ...params,
+      mintVoucher: this.getMintVoucher(),
+      price: this._offer.price,
+      whitelistVoucher: this.whitelistVoucher,
+      recipient: params.recipient || this.refinable.accountAddress,
+    });
+  }
+
+  public async cancelSale(): Promise<EvmTransaction> {
+    const contract = await this.getContract();
+
+    return contract.endSale(this.seller?.ethAddress);
+  }
+
+  private getMintVoucher(): MintVoucher {
+    const paymentToken = this._chain.getPaymentToken(this.offer.price.currency);
+
+    const offerPrice = this._chain.parseCurrency(
+      this.offer.price.currency,
+      this.offer.price.amount
+    );
+
+    return {
+      currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
+      price: offerPrice ?? "0",
+      supply: this.offer.totalSupply.toString() ?? "0",
+      payee: this.offer.payee,
+      seller: this.offer.user?.ethAddress,
+      startTime: getUnixEpochTimeStampFromDateOr0(this.offer.startTime),
+      endTime: getUnixEpochTimeStampFromDateOr0(this.offer.endTime),
+      recipient: "0x0000000000000000000000000000000000000000", // using the zero address means anyone can claim
+      data: "0x",
+      signature: this.offer.signature,
+      marketConfigData: this.offer.marketConfig?.data ?? "0x",
+      marketConfigDataSignature: this.offer.marketConfig?.signature ?? "0x",
+    };
+  }
+
+  private async getContract(contractAddress?: string) {
+    return this.refinable.evm.contracts.findAndConnectContract<Erc721LazyMintContract>(
+      {
+        contractAddress: contractAddress ?? this._offer.contractAddress,
+        chainId: this.chainId,
+      }
+    );
   }
 
   private createSaleId(sellerAddress: string, contractAddress: string) {
@@ -153,12 +265,14 @@ export class MintOffer extends BasicOffer {
   private async createMintSignature({
     contractAddress,
     chainId,
+    seller,
     nonce,
     message,
     signer,
   }: {
     nonce: number;
     contractAddress: string;
+    seller: string;
     chainId: number;
     message: {
       currency: PriceCurrency;
@@ -169,10 +283,8 @@ export class MintOffer extends BasicOffer {
       data?: any[];
       payee: string;
     };
-    signer: any;
+    signer: EvmSigner;
   }) {
-    const seller = signer.address;
-
     const paymentToken = this._chain.getPaymentToken(message.currency);
     const value = this._chain.parseCurrency(message.currency, message.price);
 
@@ -213,176 +325,12 @@ export class MintOffer extends BasicOffer {
       },
     };
 
-    const signature = await signer._signTypedData(
+    const signature = await signer.signTypedData(
       signedData.domain,
       signedData.types,
       signedData.message
     );
 
     return { signedData, signature };
-  }
-
-  public async buy(params: BuyParams = {}): Promise<Transaction> {
-    const contract = await this._getContract();
-    const amountToClaim = params.amount ?? 1;
-
-    const price =
-      this.whitelistVoucher?.price > 0
-        ? this.whitelistVoucher?.price
-        : this._offer.price.amount;
-    const priceTimesAmount = price * amountToClaim;
-
-    // Add allows as much as the price requests
-    await this.refinableEvmClient.account.approveTokenContractAllowance(
-      this._chain.getCurrency(this._offer.price.currency),
-      priceTimesAmount,
-      contract.address
-    );
-
-    const { method, args, callOverrides } = this.getBuyTxParams({
-      recipient: params.recipient,
-      amount: amountToClaim,
-    });
-
-    const response = await contract.sendTransaction(
-      method,
-      args,
-      callOverrides
-    );
-
-    return response;
-  }
-
-  public async estimateGasBuy(params: BuyParams = {}) {
-    const contract = await this._getContract();
-
-    const { method, args, callOverrides } = this.getBuyTxParams({
-      recipient: params.recipient,
-      amount: params.amount,
-    });
-
-    // If callOverrides set, append to args
-    if (callOverrides) {
-      args.push(callOverrides);
-    }
-
-    return await contract.contract.estimateGas[method](...args);
-  }
-
-  private getBuyTxParams(params: { recipient?: string; amount?: number }) {
-    const mintVoucher = this.getMintVoucher();
-    const amount = params.amount ?? 1;
-    const recipient = params.recipient ?? this.refinable.accountAddress;
-
-    const price =
-      this.whitelistVoucher?.price > 0
-        ? this.whitelistVoucher?.price
-        : this._offer.price.amount;
-    const priceTimesAmount = price * amount;
-
-    const parsedPrice = this._chain.parseCurrency(
-      this._offer.price.currency,
-      priceTimesAmount
-    );
-
-    const voucherPrice = this._chain.parseCurrency(
-      this._offer.price.currency,
-      this.whitelistVoucher?.price ?? 0
-    );
-
-    const isNativeCurrency = this._chain.isNativeCurrency(
-      this._offer.price.currency
-    );
-
-    const args: unknown[] = [
-      // LibMintVoucher.MintVoucher calldata mintVoucher
-      mintVoucher,
-      // address recipient
-      recipient,
-      // uint256 numberOfTokens
-      amount,
-      // WhitelistVoucherParams memory voucher - optional
-      ...optionalParam(this.whitelistVoucher != null, {
-        ...this.whitelistVoucher,
-        price: voucherPrice,
-      }),
-    ];
-
-    // Do we want to buy from a whitelist-enabled sale and do we have a voucher?
-    const method = this.whitelistVoucher ? "claimWithVoucher" : "claim";
-
-    return {
-      args,
-      method,
-      callOverrides: isNativeCurrency
-        ? {
-            value: parsedPrice,
-          }
-        : undefined,
-    };
-  }
-
-  public async getRemaining(recipient?: string): Promise<number> {
-    const claimContract = await this._getContract();
-    const remaining = await claimContract.contract.getRemaining(
-      recipient && recipient != "" ? recipient : this.refinable.accountAddress
-    );
-
-    return remaining.toNumber();
-  }
-
-  private getMintVoucher(): MintVoucher {
-    const paymentToken = this._chain.getPaymentToken(this.offer.price.currency);
-
-    const offerPrice = this._chain.parseCurrency(
-      this.offer.price.currency,
-      this.offer.price.amount
-    );
-
-    return {
-      currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
-      price: offerPrice ?? "0",
-      supply: this.offer.totalSupply.toString() ?? "0",
-      payee: this.offer.payee,
-      seller: this.offer.user?.ethAddress,
-      startTime: getUnixEpochTimeStampFromDateOr0(this.offer.startTime),
-      endTime: getUnixEpochTimeStampFromDateOr0(this.offer.endTime),
-      recipient: "0x0000000000000000000000000000000000000000", // using the zero address means anyone can claim
-      data: "0x",
-      signature: this.offer.signature,
-      marketConfigData: this.offer.marketConfig?.data ?? "0x",
-      marketConfigDataSignature: this.offer.marketConfig?.signature ?? "0x",
-    };
-  }
-
-  /**
-   * Singleton to get the corresponding lazy mint contract
-   * @returns ethers.Contract
-   */
-  private async _getContract() {
-    if (!this.offer) {
-      throw new Error("Offer was not set");
-    }
-
-    const contract = await this.refinableEvmClient.contracts.findContract({
-      contractAddress: this.offer.contractAddress,
-      chainId: this.chainId,
-    });
-
-    return contract.connect(this.refinable.provider);
-  }
-
-  public async cancelSale<T extends Transaction = Transaction>(): Promise<T> {
-    throw new Error("Not Implemented");
-  }
-
-  get nonceContract() {
-    // right now there are no plans for 1155 lazy mint
-    const saleNonceHolder = this.refinableEvmClient.contracts.getBaseContract(
-      this.chainId,
-      `${TokenType.Erc721}_SALE_NONCE_HOLDER`
-    );
-
-    return saleNonceHolder.connect(this.refinable.provider);
   }
 }

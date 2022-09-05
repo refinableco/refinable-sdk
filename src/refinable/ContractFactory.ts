@@ -3,6 +3,7 @@ import omit from "lodash/omit";
 import { z } from "zod";
 import {
   ContractTypes,
+  CreateCollectionInput,
   CreateCollectionMutation,
   CreateCollectionMutationVariables,
   TokenType,
@@ -112,17 +113,30 @@ export class ContractFactory {
       );
 
     // 3. Upload banner and avatar
-    if (
-      !(typeof params.avatar === "string") &&
-      !(typeof params.avatar === "undefined")
-    ) {
+
+    if (params.avatar && typeof params.avatar !== "string") {
       params.avatar = await this.refinable.uploadFile(params.avatar);
     }
-    if (
-      !(typeof params.banner === "string") &&
-      !(typeof params.banner === "undefined")
-    ) {
+
+    if (params.banner && typeof params.banner !== "string") {
       params.banner = await this.refinable.uploadFile(params.banner);
+    }
+
+    const createCollectionData: CreateCollectionInput = {
+      ...omit(params, "contractArguments"),
+      avatar: params.avatar as string,
+      banner: params.banner as string,
+      tokenType: registeredContract.getTokenType(),
+      contractId,
+      chainId,
+      contractAddress: registeredContract.contractAddress,
+    };
+
+    if (type === ContractTypes.Erc721LazyMintToken) {
+      const contractArguments = params.contractArguments as z.input<
+        typeof Erc721LazyMintContract["deployArgsSchema"]
+      >;
+      createCollectionData.maxSupply = contractArguments.tokenMintLimit;
     }
 
     // 4. Create collection
@@ -131,15 +145,7 @@ export class ContractFactory {
         CreateCollectionMutation,
         CreateCollectionMutationVariables
       >(CREATE_COLLECTION, {
-        data: {
-          ...omit(params, "contractArguments"),
-          avatar: params.avatar as string,
-          banner: params.banner as string,
-          tokenType: registeredContract.getTokenType(),
-          contractId,
-          chainId,
-          contractAddress: registeredContract.contractAddress,
-        },
+        data: createCollectionData,
       });
 
     return {
@@ -182,10 +188,6 @@ export class ContractFactory {
       chainId,
       ContractTypes.ServiceFeeV2
     );
-    const erc721NonceHolder = getContractAddress(
-      chainId,
-      ContractTypes.Erc721SaleNonceHolder
-    );
 
     switch (type) {
       case ContractTypes.Erc721WhitelistedToken:
@@ -211,7 +213,6 @@ export class ContractFactory {
           args.royalties,
           refinableServiceFee, // service fee proxy
           signerAddress, // signer
-          erc721NonceHolder, // nonce holder 721
         ];
     }
   }

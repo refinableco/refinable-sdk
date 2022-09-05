@@ -1,3 +1,4 @@
+import { providers } from "ethers";
 import { IChainConfig } from "../interfaces/Config";
 import { Chain, ChainType, NetworkType } from "../interfaces/Network";
 
@@ -231,6 +232,12 @@ export const chainMap: Record<Chain, IChainConfig> = {
         decimals: 18,
         address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       },
+      {
+        name: 'APE',
+        symbol: 'APE',
+        decimals: 18,
+        address: '0x4d224452801ACEd8B2F0aebE155379bb5D594381',
+      },
     ],
   },
   /**
@@ -312,4 +319,9 @@ export function getChainByNetworkId(chain: Chain) {
     throw new Error(`Chain is not supported: ${chain}`);
   }
   return foundChain;
+}
+
+export function getProviderByNetworkId(chainId: Chain) {
+  const chain = getChainByNetworkId(chainId);
+  return new providers.JsonRpcProvider(chain.nodeUri[0]);
 }
