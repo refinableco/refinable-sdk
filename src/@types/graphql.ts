@@ -143,6 +143,11 @@ export type Brand = {
   name: Scalars["String"];
 };
 
+export enum CacheControlScope {
+  Private = "PRIVATE",
+  Public = "PUBLIC",
+}
+
 export type CheckCollectionInput = {
   chainId: Scalars["Float"];
   contractAddress: Scalars["String"];
@@ -391,6 +396,11 @@ export type CreateCollectionInput = {
 
 export type CreateContractInput = {
   contract: RefinableContractInput;
+};
+
+export type CreateContractPlaceholderDocumentInput = {
+  description: Scalars["String"];
+  name: Scalars["String"];
 };
 
 export type CreateEventInput = {
@@ -1035,6 +1045,7 @@ export type MoonpayFiatCheckoutWidgetDataArgs = {
 export type Mutation = {
   createCollection: Collection;
   createContract: ContractOutput;
+  createContractPlaceholderDocument: Scalars["String"];
   createEvent: Scalars["Boolean"];
   createItem: CreateItemOutput;
   createMintOffer: Offer;
@@ -1075,6 +1086,10 @@ export type MutationCreateCollectionArgs = {
 
 export type MutationCreateContractArgs = {
   data: CreateContractInput;
+};
+
+export type MutationCreateContractPlaceholderDocumentArgs = {
+  input: CreateContractPlaceholderDocumentInput;
 };
 
 export type MutationCreateEventArgs = {
@@ -1342,6 +1357,7 @@ export enum PriceCurrency {
   Eth = "ETH",
   Fine = "FINE",
   Matic = "MATIC",
+  Pst = "PST",
   Usdc = "USDC",
   Usdt = "USDT",
   Weth = "WETH",
