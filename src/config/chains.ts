@@ -87,6 +87,12 @@ export const chainMap: Record<Chain, IChainConfig> = {
         decimals: 18,
         address: "0x4e6415a5727ea08aae4580057187923aec331227",
       },
+      {
+        name: 'PST',
+        symbol: 'PST',
+        decimals: 9,
+        address: '0xc9210963b831095c35740A9Ec943CdC35995c467',
+      },
     ],
   },
   [Chain.BscTestnet]: {
