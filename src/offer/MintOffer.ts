@@ -36,14 +36,14 @@ export interface PutForSaleParams {
   endTime?: Date;
   launchpadDetails?: LaunchpadDetailsInput;
   supply: number;
-  previewImage?: Stream | string;
+  previewFile?: Stream | string;
   name?: string;
   description?: string;
   payee?: string;
 }
 export interface UpdateOfferParams {
   launchpadDetails?: LaunchpadDetailsInput;
-  previewImage?: Stream | string;
+  previewFile?: Stream | string;
   name?: string;
   description?: string;
 }
@@ -90,10 +90,10 @@ export class MintOffer extends BasicOffer {
     }
 
     // upload image if there is one
-    let previewImage = params.previewImage;
-    if (params.previewImage && typeof params.previewImage !== "string") {
-      params.previewImage = await this.refinable.uploadFile(
-        params.previewImage
+    let previewFile = params.previewFile;
+    if (params.previewFile && typeof params.previewFile !== "string") {
+      params.previewFile = await this.refinable.uploadFile(
+        params.previewFile
       );
     }
 
@@ -141,7 +141,7 @@ export class MintOffer extends BasicOffer {
         supply,
         launchpadDetails,
         blockchainId,
-        previewImage: previewImage as string,
+        previewFile: previewFile as string,
         name,
         description,
         payee,
@@ -168,10 +168,10 @@ export class MintOffer extends BasicOffer {
     }
 
     // upload image if there is one
-    let previewImage = params.previewImage;
-    if (params.previewImage && typeof params.previewImage !== "string") {
-      params.previewImage = await this.refinable.uploadFile(
-        params.previewImage
+    let previewFile = params.previewFile;
+    if (params.previewFile && typeof params.previewFile !== "string") {
+      params.previewFile = await this.refinable.uploadFile(
+        params.previewFile
       );
     }
 
@@ -182,7 +182,7 @@ export class MintOffer extends BasicOffer {
       id: this._offer.id,
       input: {
         launchpadDetails,
-        previewImage: previewImage as string,
+        previewFile: previewFile as string,
         name,
         description,
       },
