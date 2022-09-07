@@ -25,7 +25,7 @@ async function main() {
       },
       startTime: addDays(new Date(), 1),
       supply: 10000,
-      previewFile: fileStream,
+      previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",
       launchpadDetails: {

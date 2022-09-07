@@ -64,7 +64,7 @@ describe("MintOffer - E2E", () => {
       },
       startTime: new Date(),
       supply: 10000,
-      previewFile: fileStream,
+      previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",
       ...override,

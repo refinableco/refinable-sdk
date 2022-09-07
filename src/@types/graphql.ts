@@ -437,7 +437,7 @@ export type CreateMintOfferInput = {
   name?: InputMaybe<Scalars["String"]>;
   offerContractAddress?: InputMaybe<Scalars["String"]>;
   payee: Scalars["String"];
-  previewFile: Scalars["String"];
+  previewImage: Scalars["String"];
   price?: InputMaybe<PriceInput>;
   signature: Scalars["String"];
   startTime?: InputMaybe<Scalars["DateTime"]>;
@@ -1916,7 +1916,7 @@ export type UpdateMintOfferInput = {
   description?: InputMaybe<Scalars["String"]>;
   launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
   name?: InputMaybe<Scalars["String"]>;
-  previewFile: Scalars["String"];
+  previewImage: Scalars["String"];
 };
 
 export type UpdateStore = {

@@ -24,7 +24,7 @@ async function main() {
       },
       startTime: new Date(),
       supply: 100,
-      previewFile: fileStream,
+      previewImage: fileStream,
       name: "Some test collection",
       description: "Always room for a description",
       payee: "0x4c3Da80eAEc19399Bc4ce3486ec58755a875d645",
