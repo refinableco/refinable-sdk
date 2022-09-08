@@ -147,9 +147,10 @@ export default class EvmAccount implements Account {
       this.evmOptions
     );
 
-    const formattedAmount = ethers.utils
-      .parseUnits(amount.toString(), token.decimals)
-      .toString();
+    const formattedAmount = ethers.utils.parseUnits(
+      amount.toString(),
+      token.decimals
+    );
 
     const address = await this.getAddress();
     const allowed = await erc20Contract.contract.allowance(
@@ -170,8 +171,7 @@ export default class EvmAccount implements Account {
       token.name === "USDT" &&
       token.address.toLowerCase() ==
         "0xdac17f958d2ee523a2206206994597c13d831ec7" &&
-      allowed != "0" &&
-      allowed != formattedAmount
+      (allowed.lt(formattedAmount) || allowed.eq(0))
     ) {
       // FROM USDT: https://etherscan.io/address/0xdAC17F958D2ee523a2206206994597C13D831ec7#code
       // To change the approve amount you first have to reduce the addresses`
@@ -188,7 +188,7 @@ export default class EvmAccount implements Account {
     if (allowed == 0 || allowed != formattedAmount) {
       const tx = await erc20Contract.sendTransaction("approve", [
         spenderAddress,
-        formattedAmount,
+        formattedAmount.toString(),
       ]);
       await tx.wait(1);
     }
