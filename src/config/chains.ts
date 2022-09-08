@@ -223,7 +223,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
       {
         name: "USDT",
         symbol: "USDT",
-        decimals: 18,
+        decimals: 6,
         address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
       },
       {
@@ -235,7 +235,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
       {
         name: "USDC",
         symbol: "USDC",
-        decimals: 18,
+        decimals: 6,
         address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       },
       {
@@ -271,7 +271,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
       {
         name: "USDT",
         symbol: "USDT",
-        decimals: 18,
+        decimals: 6,
         address: "0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad",
       },
       {
@@ -283,7 +283,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
       {
         name: "USDC",
         symbol: "USDC",
-        decimals: 18,
+        decimals: 6,
         address: "0xeb8f08a975ab53e34d8a0330e0d34de942c95926",
       },
     ],
