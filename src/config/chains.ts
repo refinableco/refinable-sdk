@@ -88,10 +88,10 @@ export const chainMap: Record<Chain, IChainConfig> = {
         address: "0x4e6415a5727ea08aae4580057187923aec331227",
       },
       {
-        name: 'PST',
-        symbol: 'PST',
+        name: "PST",
+        symbol: "PST",
         decimals: 9,
-        address: '0xc9210963b831095c35740A9Ec943CdC35995c467',
+        address: "0xc9210963b831095c35740A9Ec943CdC35995c467",
       },
     ],
   },
@@ -131,7 +131,7 @@ export const chainMap: Record<Chain, IChainConfig> = {
         name: "BUSD",
         symbol: "BUSD",
         decimals: 18,
-        address: "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47",
+        address: "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee", //https://testnet.binance.org/faucet-smart
       },
       {
         name: "FINE",
@@ -239,10 +239,10 @@ export const chainMap: Record<Chain, IChainConfig> = {
         address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       },
       {
-        name: 'APE',
-        symbol: 'APE',
+        name: "APE",
+        symbol: "APE",
         decimals: 18,
-        address: '0x4d224452801ACEd8B2F0aebE155379bb5D594381',
+        address: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
       },
     ],
   },

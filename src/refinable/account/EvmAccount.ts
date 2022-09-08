@@ -138,7 +138,10 @@ export default class EvmAccount implements Account {
     const erc20Contract = new ContractWrapper(
       {
         address: token.address,
-        abi: [`function approve(address _spender, uint256 _value)`],
+        abi: [
+          `function approve(address _spender, uint256 _value)`,
+          `function allowance(address _owner, address _spender) public view returns (uint remaining)`,
+        ],
       },
       this.providerOrSigner,
       this.evmOptions
@@ -148,11 +151,39 @@ export default class EvmAccount implements Account {
       .parseUnits(amount.toString(), token.decimals)
       .toString();
 
-    const response = await erc20Contract.sendTransaction("approve", [
-      spenderAddress,
-      formattedAmount,
-    ]);
+    const address = await this.getAddress();
+    const allowed = await erc20Contract.contract.allowance(
+      address,
+      spenderAddress
+    );
 
-    return response;
+    /**
+     * ATTENTION: Regarding balances of ERC20 tokens
+     *
+     * USDT has a non-standard ERC20 implementation, they don't support increase/decreaseAllowance
+     * It would be better to use increase/decrease to prevent 2 calls, but for simplicity we set to 0 and then to approved amount again
+     * having to increase/decrease is actually a result of a failing amount before
+     */
+    if (allowed != "0" && allowed != formattedAmount) {
+      // FROM USDT: https://etherscan.io/address/0xdAC17F958D2ee523a2206206994597C13D831ec7#code
+      // To change the approve amount you first have to reduce the addresses`
+      //  allowance to zero by calling `approve(_spender, 0)` if it is not
+      //  already 0 to mitigate the race condition described here:
+      //  https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+      const tx = await erc20Contract.sendTransaction("approve", [
+        spenderAddress,
+        0,
+      ]);
+      await tx.wait(1);
+    }
+
+    if (allowed == 0 || allowed != formattedAmount) {
+      const tx = await erc20Contract.sendTransaction("approve", [
+        spenderAddress,
+        formattedAmount,
+      ]);
+      await tx.wait(1);
+    }
+    return;
   }
 }
