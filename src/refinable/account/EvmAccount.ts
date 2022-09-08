@@ -171,26 +171,21 @@ export default class EvmAccount implements Account {
       token.name === "USDT" &&
       token.address.toLowerCase() ==
         "0xdac17f958d2ee523a2206206994597c13d831ec7" &&
-      (allowed.lt(formattedAmount) || allowed.eq(0))
+      allowed.lt(formattedAmount)
     ) {
       // FROM USDT: https://etherscan.io/address/0xdAC17F958D2ee523a2206206994597C13D831ec7#code
       // To change the approve amount you first have to reduce the addresses`
       //  allowance to zero by calling `approve(_spender, 0)` if it is not
       //  already 0 to mitigate the race condition described here:
       //  https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-      const tx = await erc20Contract.sendTransaction("approve", [
-        spenderAddress,
-        0,
-      ]);
-      await tx.wait(1);
+      await erc20Contract.sendTransaction("approve", [spenderAddress, 0]);
     }
 
-    if (allowed == 0 || allowed != formattedAmount) {
-      const tx = await erc20Contract.sendTransaction("approve", [
+    if (allowed.lt(formattedAmount)) {
+      await erc20Contract.sendTransaction("approve", [
         spenderAddress,
         formattedAmount.toString(),
       ]);
-      await tx.wait(1);
     }
     return;
   }

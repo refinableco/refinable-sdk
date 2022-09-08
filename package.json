@@ -19,7 +19,6 @@
   ],
   "dependencies": {
     "@refinableco/reservoir-sdk": "^0.0.126",
-    "@sentry/node": "^7.12.1",
     "assert": "^2.0.0",
     "axios": "^0.25.0",
     "eth-rpc-errors": "^4.0.3",

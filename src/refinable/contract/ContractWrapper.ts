@@ -15,7 +15,6 @@ import EvmTransaction from "../../transaction/EvmTransaction";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
 import { getPolygonGasPriorityFee } from "../../utils/gas";
 import { getSignerAndProvider } from "../../utils/singer";
-import * as Sentry from "@sentry/node";
 
 export interface IContractWrapper {
   address: string;
@@ -130,7 +129,6 @@ export class ContractWrapper implements IContractWrapper {
     try {
       return await func(...args, callOverrides);
     } catch (e) {
-      Sentry.captureException(e);
       throw new TransactionError(e, this.contract.interface);
     }
   }
