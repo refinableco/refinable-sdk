@@ -1,3 +1,13 @@
+import * as Sentry from "@sentry/node";
+Sentry.init({
+  dsn: "https://80d8d43342be4e988441c8c997edb873@o571371.ingest.sentry.io/6730393",
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
+});
+
 import {
   CreateItemInput,
   OfferType,
