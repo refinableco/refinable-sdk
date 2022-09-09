@@ -1,19 +1,18 @@
 {
   "compilerOptions": {
     "lib": [
-      "es5",
-      "es2015.promise",
       "dom",
-      "es2015",
-      "es2019",
-      "es2020"
+      "esnext"
     ],
-    "target": "es5",
-    "module": "CommonJS",
+    
+    "target": "es6",
+    "module": "commonjs",
+    "esModuleInterop": true,
+
+    "moduleResolution": "node",
     "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
     "declaration": true,
     "outDir": "lib",
     "sourceMap": true,
