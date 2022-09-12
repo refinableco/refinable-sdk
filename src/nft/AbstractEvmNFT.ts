@@ -553,7 +553,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       [
         auctionIdOrFetch,
         ...optionalParam(
-          contract.hasTag(ContractTag.AuctionV5_0_0),
+          contract.hasTagSemver("AUCTION", ">=5.0.0"),
           bidAmount, // uint256 bidAmount
           marketConfig.data ?? "0x",
           marketConfig.signature ?? "0x"
@@ -601,7 +601,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     return await contractWrapper.sendTransaction("endAuction", [
       auctionIdOrFetch,
       ...optionalParam(
-        contract.hasTag(ContractTag.AuctionV5_0_0),
+        contract.hasTagSemver("AUCTION", ">=5.0.0"),
         marketConfig.data ?? "0x",
         marketConfig.signature ?? "0x"
       ),
