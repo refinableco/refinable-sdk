@@ -90,9 +90,18 @@ export class ContractFactory {
     type: C["type"],
     params: CreateCollectionParams<z.input<C["deployArgsSchema"]>>
   ) {
-    const chainId = await this.refinable.evm.signer.getChainId();
+    // 1. Upload banner and avatar if needed
+    if (params.avatar && typeof params.avatar !== "string") {
+      params.avatar = await this.refinable.uploadFile(params.avatar);
+    }
 
-    // 1. Deploy contract
+    if (params.banner && typeof params.banner !== "string") {
+      params.banner = await this.refinable.uploadFile(params.banner);
+    }
+
+    const chainId = (await this.refinable.evm.provider.getNetwork()).chainId;
+
+    // 2. Deploy contract
     const { contract, contractAbi } = await this.deploy<C>(chainId, type, {
       ...params.contractArguments,
       symbol: params.symbol,
@@ -103,7 +112,7 @@ export class ContractFactory {
 
     const deployTx = new EvmTransaction(receipt, this.refinable.evm.provider);
 
-    // 2. Register contract
+    // 3. Register contract
     const { id: contractId, contract: registeredContract } =
       await this.refinable.evm.contracts.registerContract(
         chainId,
@@ -111,16 +120,6 @@ export class ContractFactory {
         contract.address,
         JSON.stringify(contractAbi)
       );
-
-    // 3. Upload banner and avatar
-
-    if (params.avatar && typeof params.avatar !== "string") {
-      params.avatar = await this.refinable.uploadFile(params.avatar);
-    }
-
-    if (params.banner && typeof params.banner !== "string") {
-      params.banner = await this.refinable.uploadFile(params.banner);
-    }
 
     const createCollectionData: CreateCollectionInput = {
       ...omit(params, "contractArguments"),
