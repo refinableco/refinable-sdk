@@ -13,6 +13,7 @@ export async function createRefinableClient(chainId: Chain) {
   let environment = [
     Chain.BscTestnet,
     Chain.EthereumRinkeby,
+    Chain.EthereumGoerli,
     Chain.PolygonTestnet,
   ].includes(chainId)
     ? Environment.Testnet

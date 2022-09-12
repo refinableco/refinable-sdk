@@ -92,7 +92,7 @@ export class MintOffer extends BasicOffer {
     // upload image if there is one
     let previewFile = params.previewFile;
     if (params.previewFile && typeof params.previewFile !== "string") {
-      params.previewFile = await this.refinable.uploadFile(
+      previewFile = await this.refinable.uploadFile(
         params.previewFile
       );
     }
@@ -170,7 +170,7 @@ export class MintOffer extends BasicOffer {
     // upload image if there is one
     let previewFile = params.previewFile;
     if (params.previewFile && typeof params.previewFile !== "string") {
-      params.previewFile = await this.refinable.uploadFile(
+      previewFile = await this.refinable.uploadFile(
         params.previewFile
       );
     }
