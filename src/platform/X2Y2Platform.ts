@@ -1,5 +1,5 @@
 import { AbstractPlatform } from "./AbstractPlatform";
-import { GET_UNSGINED_TX } from "../graphql/x2y2";
+import { GET_UNSGINED_TX as GET_UNSIGNED_TX } from "../graphql/x2y2";
 import { GetUnsignedTxInput} from "../@types/graphql";
 import { Refinable } from "../refinable/Refinable";
 import { PartialOffer } from "../offer/Offer";
@@ -24,7 +24,7 @@ export class X2Y2Platform extends AbstractPlatform {
           tokenId
       },
     };
-    const queryResponse = await this.refinable.graphqlClient.request(GET_UNSGINED_TX, {
+    const queryResponse = await this.refinable.graphqlClient.request(GET_UNSIGNED_TX, {
         data: input
     });
     return queryResponse.x2y2.getUnsignedTx;
