@@ -17,16 +17,6 @@ jobs:
           scope: '@refinableco'
           cache: 'yarn'
       - run: yarn install --immutable
-      - run: yarn publish --access public --tag next
+      - run: yarn npm publish --access public --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      # Setup .npmrc file to publish to GitHub Packages
-      - uses: actions/setup-node@v3
-        with:
-          registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
-          scope: '@refinableco'
-      # Publish to GitHub Packages
-      - run: yarn publish --tag next
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
