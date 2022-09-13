@@ -103,7 +103,7 @@ export class Erc721LazyMintContract extends Contract {
     return this.contractWrapper.sendTransaction("updateParams", [settings]);
   }
 
-  setRoyaltyInfo(royalties: LibPart[]) {
+  setRoyaltyInfo(royalties: LibPart) {
     return this.contractWrapper.sendTransaction("setRoyaltyInfo", [royalties]);
   }
 
