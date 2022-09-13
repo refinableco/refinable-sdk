@@ -17,6 +17,6 @@ jobs:
           scope: '@refinableco'
           cache: 'yarn'
       - run: yarn install --immutable
-      - run: yarn npm publish --access public --tag next
+      - run: npm publish --access public --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
