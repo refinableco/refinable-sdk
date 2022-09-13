@@ -1,6 +1,6 @@
 {
   "name": "@refinableco/refinable-sdk",
-  "version": "4.2.12-next.0",
+  "version": "4.2.13-next.0",
   "description": "The Refinable SDK allows you to easily interact with the Refinable Marketplace to mint, sell and buy NFTs",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "yarn build",
-    "test": "jest --runInBand --testPathIgnorePatterns=.*e2e.spec.ts",
+    "test": "jest --runInBand --testPathIgnorePatterns='.*e2e.spec.ts'",
     "test:e2e": "env-cmd jest --runInBand --runTestsByPath './tests/e2e'",
     "test:silent": "yarn test --silent=true",
     "test:watch": "yarn test --watch",
@@ -18,7 +18,7 @@
     "/lib"
   ],
   "dependencies": {
-    "@refinableco/reservoir-sdk": "^0.0.126",
+    "@refinableco/reservoir-sdk": "^0.0.173",
     "assert": "^2.0.0",
     "axios": "^0.25.0",
     "eth-rpc-errors": "^4.0.3",
@@ -60,5 +60,6 @@
   },
   "resolutions": {
     "buffer": "~6.0.3"
-  }
+  },
+  "packageManager": "yarn@3.2.3"
 }

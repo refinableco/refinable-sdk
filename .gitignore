@@ -5,4 +5,22 @@ lib
 .env.local
 .env.testnet
 tests/e2e/secrets/*
-yarn-error.log
+
+dist
+tsconfig.tsbuildinfo
+
+# Logs
+yarn-debug.log*
+yarn-error.log*
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Npm
+.npmrc
