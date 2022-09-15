@@ -6,6 +6,7 @@ export enum LIST_STATUS_STEP {
   APPROVE = "approve",
   SIGN = "sign",
   CREATE = "create",
+  DONE = "done",
 }
 
 export interface ListStatus {
@@ -42,4 +43,9 @@ export interface ListCreateStatus extends ListStatus {
     launchpadDetails: LaunchpadDetailsInput;
     blockchainId: string;
   };
+}
+
+export interface ListDoneStatus extends ListStatus {
+  step: LIST_STATUS_STEP.DONE;
+  data: any;
 }

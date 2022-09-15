@@ -22,6 +22,7 @@ import {
   LIST_STATUS_STEP,
   ListSignStatus,
   ListCreateStatus,
+  ListDoneStatus,
 } from "./interfaces/SaleStatusStep";
 
 export class ERC721NFT extends AbstractEvmNFT {
@@ -296,6 +297,12 @@ export class ERC721NFT extends AbstractEvmNFT {
       );
       throw ex;
     }
+
+    onProgress<ListDoneStatus>({
+      step: LIST_STATUS_STEP.DONE,
+      platform: Platform.REFINABLE,
+      data: result,
+    });
 
     return this.refinable.offer.createOffer<SaleOffer>(
       result.createOfferForItems,
