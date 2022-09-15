@@ -219,7 +219,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     const fees: LibPart[] = await serviceFeeContract
       .connect(this.refinable.provider)
-      .contractWrapper.contract.getServiceFees(
+      .contractWrapper.read.getServiceFees(
         FeeType.BUY,
         this.refinable.accountAddress,
         contractAddress,
@@ -424,7 +424,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       auctionContractAddress
     );
 
-    return contractWrapper.contract.getAuctionId(
+    return contractWrapper.read.getAuctionId(
       this.item.contractAddress,
       this.item.tokenId,
       this.refinable.accountAddress
@@ -440,7 +440,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       return 0;
     }
     const minBidIncrementBps: BigNumber =
-      await contractWrapper.contract.minBidIncrementBps();
+      await contractWrapper.read.minBidIncrementBps();
 
     return parseBPS(minBidIncrementBps) / 100;
   }
