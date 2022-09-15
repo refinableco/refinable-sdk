@@ -151,9 +151,9 @@ export class ERC721NFT extends AbstractEvmNFT {
       endTime,
       launchpadDetails,
       platforms,
-      onInitialize,
-      onProgress,
-      onError,
+      onInitialize = () => true,
+      onProgress = () => true,
+      onError = () => true,
     } = params;
 
     // calculate steps
