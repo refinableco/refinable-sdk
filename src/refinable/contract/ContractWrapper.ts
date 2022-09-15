@@ -8,6 +8,7 @@ import {
   providers,
 } from "ethers";
 import merge from "lodash/merge";
+import { getProviderByNetworkId } from "../../config/chains";
 import { TransactionError } from "../../errors/TransactionError";
 import { Chain } from "../../interfaces/Network";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
@@ -19,6 +20,7 @@ import { getSignerAndProvider } from "../../utils/singer";
 export interface IContractWrapper {
   address: string;
   abi: ethers.ContractInterface;
+  chainId: number;
 }
 
 export interface ContractWrapperSettings {
@@ -31,8 +33,15 @@ export interface ContractWrapperSettings {
 export class ContractWrapper implements IContractWrapper {
   address: string;
   abi: ethers.ContractInterface;
+  chainId: number;
 
   public contract: Contract;
+
+  /**
+   * Read-only contract using JsonRpcProvider for the specific chain.
+   * When using this method, it is imporant the methods don't rely on msgSender()
+   */
+  public read: Contract;
 
   private isValidContract = false;
 
@@ -44,6 +53,8 @@ export class ContractWrapper implements IContractWrapper {
       speed: "fastest", // the tx speed setting: 'standard'|'fast|'fastest' (default: 'fastest')
     },
   };
+
+  private chainProvider: providers.JsonRpcProvider;
 
   constructor(
     contract: IContractWrapper,
@@ -58,6 +69,8 @@ export class ContractWrapper implements IContractWrapper {
     this.signer = signer;
 
     this.contract = this.toEthersContract(signer);
+    this.chainProvider = getProviderByNetworkId(contract.chainId);
+    this.read = this.toEthersContract(this.chainProvider);
 
     this.options = merge(this.options, options);
   }

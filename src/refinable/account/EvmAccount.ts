@@ -142,6 +142,7 @@ export default class EvmAccount implements Account {
           `function approve(address _spender, uint256 _value)`,
           `function allowance(address _owner, address _spender) public view returns (uint remaining)`,
         ],
+        chainId: (await this._provider.getNetwork()).chainId,
       },
       this.providerOrSigner,
       this.evmOptions
