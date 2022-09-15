@@ -9,12 +9,20 @@ import {
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
+import { Platform } from "../platform";
 import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
 import { SaleVersion } from "./interfaces/SaleInfo";
+import {
+  ListApproveStatus,
+  ListStatus,
+  LIST_STATUS_STEP,
+  ListSignStatus,
+  ListCreateStatus,
+} from "./interfaces/SaleStatusStep";
 
 export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
@@ -126,8 +134,43 @@ export class ERC721NFT extends AbstractEvmNFT {
     startTime?: Date;
     endTime?: Date;
     launchpadDetails?: LaunchpadDetailsInput;
+    platforms?: Platform[];
+    onInitialize?: (
+      steps: { step: LIST_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends ListStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: LIST_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
   }): Promise<SaleOffer> {
-    const { price, startTime, endTime, launchpadDetails } = params;
+    const {
+      price,
+      startTime,
+      endTime,
+      launchpadDetails,
+      platforms,
+      onInitialize,
+      onProgress,
+      onError,
+    } = params;
+
+    // calculate steps
+    const steps = [
+      {
+        step: LIST_STATUS_STEP.APPROVE,
+        platform: Platform.REFINABLE,
+      },
+      {
+        step: LIST_STATUS_STEP.SIGN,
+        platform: Platform.REFINABLE,
+      },
+      {
+        step: LIST_STATUS_STEP.CREATE,
+        platform: Platform.REFINABLE,
+      },
+    ];
+    onInitialize(steps);
 
     this.verifyItem();
 
@@ -143,28 +186,66 @@ export class ERC721NFT extends AbstractEvmNFT {
       }
     }
 
-    await this.approveIfNeeded(this.transferProxyContract.address);
+    let saleParamsHash;
+    try {
+      await this.approveIfNeeded(this.transferProxyContract.address, () => {
+        onProgress<ListApproveStatus>({
+          step: LIST_STATUS_STEP.APPROVE,
+          platform: Platform.REFINABLE,
+          data: {
+            addressToApprove: this.transferProxyContract.address,
+          },
+        });
+      });
 
-    const saleParamsHash = await this.getSaleParamsHash({
-      price,
-      ethAddress: this.refinable.accountAddress,
-      startTime,
-      endTime,
-      isV2: true,
+      saleParamsHash = await this.getSaleParamsHash({
+        price,
+        ethAddress: this.refinable.accountAddress,
+        startTime,
+        endTime,
+        isV2: true,
+      });
+    } catch (ex) {
+      onError(
+        {
+          step: LIST_STATUS_STEP.APPROVE,
+          platform: Platform.REFINABLE,
+        },
+        ex.message
+      );
+      throw ex;
+    }
+
+    onProgress<ListSignStatus>({
+      step: LIST_STATUS_STEP.SIGN,
+      platform: Platform.REFINABLE,
+      data: {
+        what: "Sale Parameters",
+        hash: saleParamsHash,
+      },
     });
 
-    const signedHash = await this.refinable.account.sign(
-      saleParamsHash as string
-    );
+    let signedHash, saleId, blockchainId;
 
-    const saleId = await this.getSaleId();
-    const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
+    try {
+      signedHash = await this.refinable.account.sign(saleParamsHash as string);
+      saleId = await this.getSaleId();
+      blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
+    } catch (ex) {
+      onError(
+        {
+          step: LIST_STATUS_STEP.SIGN,
+          platform: Platform.REFINABLE,
+        },
+        ex.message
+      );
+      throw ex;
+    }
 
-    const result = await this.refinable.graphqlClient.request<
-      CreateOfferForEditionsMutation,
-      CreateOfferForEditionsMutationVariables
-    >(CREATE_OFFER, {
-      input: {
+    onProgress<ListCreateStatus>({
+      step: LIST_STATUS_STEP.CREATE,
+      platform: Platform.REFINABLE,
+      data: {
         chainId: this.item.chainId,
         tokenId: this.item.tokenId,
         signature: signedHash,
@@ -181,6 +262,40 @@ export class ERC721NFT extends AbstractEvmNFT {
         blockchainId,
       },
     });
+
+    let result;
+    try {
+      result = await this.refinable.graphqlClient.request<
+        CreateOfferForEditionsMutation,
+        CreateOfferForEditionsMutationVariables
+      >(CREATE_OFFER, {
+        input: {
+          chainId: this.item.chainId,
+          tokenId: this.item.tokenId,
+          signature: signedHash,
+          type: OfferType.Sale,
+          contractAddress: this.item.contractAddress,
+          price: {
+            currency: price.currency,
+            amount: parseFloat(price.amount.toString()),
+          },
+          startTime,
+          endTime,
+          supply: 1,
+          launchpadDetails,
+          blockchainId,
+        },
+      });
+    } catch (ex) {
+      onError(
+        {
+          step: LIST_STATUS_STEP.CREATE,
+          platform: Platform.REFINABLE,
+        },
+        ex.message
+      );
+      throw ex;
+    }
 
     return this.refinable.offer.createOffer<SaleOffer>(
       result.createOfferForItems,
