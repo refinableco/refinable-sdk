@@ -4,12 +4,12 @@ import {
   LaunchpadDetailsInput,
   MarketConfig,
   OfferType,
+  Platform,
   Price,
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
-import { Platform } from "../platform";
 import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
@@ -160,17 +160,35 @@ export class ERC721NFT extends AbstractEvmNFT {
     const steps = [
       {
         step: LIST_STATUS_STEP.APPROVE,
-        platform: Platform.REFINABLE,
+        platform: Platform.Refinable,
       },
       {
         step: LIST_STATUS_STEP.SIGN,
-        platform: Platform.REFINABLE,
+        platform: Platform.Refinable,
       },
       {
         step: LIST_STATUS_STEP.CREATE,
-        platform: Platform.REFINABLE,
+        platform: Platform.Refinable,
       },
     ];
+
+    // for (const platform of platforms) {
+    //   steps.push(
+    //     {
+    //       step: LIST_STATUS_STEP.APPROVE,
+    //       platform,
+    //     },
+    //     {
+    //       step: LIST_STATUS_STEP.SIGN,
+    //       platform,
+    //     },
+    //     {
+    //       step: LIST_STATUS_STEP.CREATE,
+    //       platform,
+    //     }
+    //   );
+    // }
+
     onInitialize(steps);
 
     this.verifyItem();
@@ -192,7 +210,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       await this.approveIfNeeded(this.transferProxyContract.address, () => {
         onProgress<ListApproveStatus>({
           step: LIST_STATUS_STEP.APPROVE,
-          platform: Platform.REFINABLE,
+          platform: Platform.Refinable,
           data: {
             addressToApprove: this.transferProxyContract.address,
           },
@@ -210,7 +228,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       onError(
         {
           step: LIST_STATUS_STEP.APPROVE,
-          platform: Platform.REFINABLE,
+          platform: Platform.Refinable,
         },
         ex.message
       );
@@ -219,7 +237,7 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     onProgress<ListSignStatus>({
       step: LIST_STATUS_STEP.SIGN,
-      platform: Platform.REFINABLE,
+      platform: Platform.Refinable,
       data: {
         what: "Sale Parameters",
         hash: saleParamsHash,
@@ -236,7 +254,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       onError(
         {
           step: LIST_STATUS_STEP.SIGN,
-          platform: Platform.REFINABLE,
+          platform: Platform.Refinable,
         },
         ex.message
       );
@@ -245,7 +263,7 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     onProgress<ListCreateStatus>({
       step: LIST_STATUS_STEP.CREATE,
-      platform: Platform.REFINABLE,
+      platform: Platform.Refinable,
       data: {
         chainId: this.item.chainId,
         tokenId: this.item.tokenId,
@@ -291,7 +309,7 @@ export class ERC721NFT extends AbstractEvmNFT {
       onError(
         {
           step: LIST_STATUS_STEP.CREATE,
-          platform: Platform.REFINABLE,
+          platform: Platform.Refinable,
         },
         ex.message
       );
@@ -300,9 +318,21 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     onProgress<ListDoneStatus>({
       step: LIST_STATUS_STEP.DONE,
-      platform: Platform.REFINABLE,
+      platform: Platform.Refinable,
       data: result,
     });
+
+    // // third party platforms
+    // const platformFactory = new PlatformFactory(this.refinable);
+    // for (const platform of platforms) {
+    //   const instance = platformFactory.createPlatform(platform);
+
+    //   await instance.listForSale(
+    //     params,
+    //     this._item.contractAddress,
+    //     this._item.tokenId
+    //   );
+    // }
 
     return this.refinable.offer.createOffer<SaleOffer>(
       result.createOfferForItems,

@@ -1,5 +1,9 @@
-import { LaunchpadDetailsInput, OfferType, Price } from "../../@types/graphql";
-import { Platform } from "../../platform";
+import {
+  LaunchpadDetailsInput,
+  OfferType,
+  Price,
+  Platform,
+} from "../../@types/graphql";
 
 export enum LIST_STATUS_STEP {
   CALCULATED_STEPS = "calculated-steps",

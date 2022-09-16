@@ -9,13 +9,13 @@ import {
   OfferType,
   Price,
   TokenType,
+  Platform,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
 import { LibPart } from "../interfaces/LibPart";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
-import { Platform } from "../platform";
 import { RefinableEvmClient } from "../refinable/client/RefinableEvmClient";
 import { ContractWrapper } from "../refinable/contract/ContractWrapper";
 import { Refinable } from "../refinable/Refinable";

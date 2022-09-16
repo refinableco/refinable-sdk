@@ -1,6 +1,7 @@
 import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
+  Platform,
   PriceCurrency,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
@@ -19,7 +20,6 @@ import { SimulationFailedError } from "../errors";
 import { simulateUnsignedTx } from "../transaction/simulate";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { TransactionError } from "../errors/TransactionError";
-import { Platform } from "../platform";
 
 interface BuyParams {
   amount?: number;
@@ -31,7 +31,7 @@ export class SaleOffer extends Offer {
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
-    const isExternal = this._offer.platform !== Platform.REFINABLE.toString();
+    const isExternal = this._offer.platform !== Platform.Refinable.toString();
 
     if (isExternal) {
       return this.externalBuy();
