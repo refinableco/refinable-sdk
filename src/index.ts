@@ -33,6 +33,7 @@ import * as is from "./utils/is";
 import { RoyaltyRegistry, RoyaltyType } from "./refinable/RoyaltyRegistry";
 export * from "./providers";
 export * from "./errors";
+export * from "./platform";
 
 export {
   BasicOffer,

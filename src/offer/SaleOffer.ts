@@ -31,7 +31,7 @@ export class SaleOffer extends Offer {
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
-    const isExternal = this._offer.platform !== Platform.Refinable;
+    const isExternal = this._offer.platform !== Platform.Refinable.toString();
 
     if (isExternal) {
       return this.externalBuy();
@@ -95,7 +95,10 @@ export class SaleOffer extends Offer {
         this.nft.getItem().tokenId
       );
 
-    const unsignedTx = this._offer.platform === Platform.X2Y2 ? await unsignedTxOrPromise : unsignedTxOrPromise;
+    const unsignedTx =
+      this._offer.platform === Platform.X2Y2.toString()
+        ? await unsignedTxOrPromise
+        : unsignedTxOrPromise;
 
     const resp = await simulateUnsignedTx({
       refinable: this.refinable,

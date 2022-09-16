@@ -9,6 +9,7 @@ import {
   OfferType,
   Price,
   TokenType,
+  Platform,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -35,6 +36,7 @@ import {
 } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
+import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
@@ -175,6 +177,15 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   abstract putForSale(params: {
     price: Price;
     supply?: number;
+    platforms?: Platform[];
+    onInitialize?: (
+      steps: { step: LIST_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends ListStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: LIST_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
   }): Promise<SaleOffer>;
   abstract transfer(
     ownerEthAddress: string,
@@ -668,7 +679,8 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
    */
 
   public async approveIfNeeded(
-    operatorAddress: string
+    operatorAddress: string,
+    approvingCallback?: () => void
   ): Promise<Transaction | null> {
     const isContractDeployed =
       await this.refinable.evm.contracts.isContractDeployed(operatorAddress);
@@ -682,6 +694,9 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const isApproved = await this.isApproved(operatorAddress);
 
     if (!isApproved) {
+      if (approvingCallback) {
+        approvingCallback();
+      }
       const approvalResult = await this.approve(operatorAddress);
 
       return approvalResult;

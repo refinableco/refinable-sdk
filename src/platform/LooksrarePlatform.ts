@@ -34,4 +34,19 @@ export class LooksrarePlatform extends AbstractPlatform {
 
     return unsignedTx;
   }
+
+  listForSale(offer: PartialOffer, contractAddress: string, tokenId: string) {
+    throw new Error("Not implemented yet.");
+    // const order = new LooksRare.Order(1, {
+    //   ...offer.orderParams,
+    //   collection: contractAddress,
+    //   tokenId: tokenId,
+    //   kind: "single-token",
+    //   params: BytesEmpty,
+    // });
+
+    // console.log(order);
+
+    // order.params
+  }
 }
