@@ -66,6 +66,8 @@ export class ERC721NFT extends AbstractEvmNFT {
             gasPrice: fee.gasPrice,
           }
         );
+      } else {
+        throw ex;
       }
     }
 
@@ -235,7 +237,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           step: LIST_STATUS_STEP.APPROVE,
           platform: Platform.Refinable,
         },
-        ex.message
+        ex
       );
       throw ex;
     }
@@ -261,7 +263,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           step: LIST_STATUS_STEP.SIGN,
           platform: Platform.Refinable,
         },
-        ex.message
+        ex
       );
       throw ex;
     }
@@ -316,7 +318,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           step: LIST_STATUS_STEP.CREATE,
           platform: Platform.Refinable,
         },
-        ex.message
+        ex
       );
       throw ex;
     }

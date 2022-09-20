@@ -687,7 +687,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     if (!isContractDeployed) {
       throw new Error(
-        `OperatContract at address ${operatorAddress} is not deployed`
+        `Operator Contract at address ${operatorAddress} is not deployed`
       );
     }
 

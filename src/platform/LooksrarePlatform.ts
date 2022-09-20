@@ -104,8 +104,6 @@ export class LooksrarePlatform extends AbstractPlatform {
       input: { ...order.params, signature },
     });
 
-    console.log({ response });
-
     return order;
   }
 
