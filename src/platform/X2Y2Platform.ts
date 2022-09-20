@@ -1,8 +1,10 @@
 import { AbstractPlatform } from "./AbstractPlatform";
 import { GET_UNSGINED_TX as GET_UNSIGNED_TX } from "../graphql/x2y2";
-import { GetUnsignedTxInput } from "../@types/graphql";
+import { GetUnsignedTxInput, Platform } from "../@types/graphql";
 import { Refinable } from "../refinable/Refinable";
 import { PartialOffer } from "../offer/Offer";
+import { ListStatus, LIST_STATUS_STEP } from "../nft/interfaces/SaleStatusStep";
+import { Types } from "@refinableco/reservoir-sdk/dist/x2y2";
 
 export class X2Y2Platform extends AbstractPlatform {
   constructor(refinable: Refinable) {
@@ -33,7 +35,16 @@ export class X2Y2Platform extends AbstractPlatform {
     return queryResponse.x2y2.getUnsignedTx;
   }
 
-  listForSale(offer: PartialOffer, contractAddress: string, tokenId: string) {
+  async listForSale(
+    orderParams: Types.Order,
+    options: {
+      onProgress?: <T extends ListStatus>(status: T) => void;
+      onError?: (
+        { step, platform }: { step: LIST_STATUS_STEP; platform: Platform.X2Y2 },
+        error
+      ) => void;
+    }
+  ) {
     throw new Error("Method not implemented.");
   }
 }

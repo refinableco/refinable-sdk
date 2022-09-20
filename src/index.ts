@@ -34,6 +34,7 @@ import { RoyaltyRegistry, RoyaltyType } from "./refinable/RoyaltyRegistry";
 export * from "./providers";
 export * from "./errors";
 export * from "./platform";
+export * from "./utils/parse-error";
 
 export {
   BasicOffer,

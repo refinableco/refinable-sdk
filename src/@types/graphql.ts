@@ -35,6 +35,43 @@ export type ActivityStatisticsInput = {
   lastDays?: InputMaybe<Scalars["Int"]>;
 };
 
+export type Analytics = {
+  collections: Array<AnalyticsElement>;
+  mostTradedItems: Array<AnalyticsMostTraded>;
+  mostViewedItems: Array<Item>;
+  previousTimeRange: AnalyticsTimeRange;
+  storefronts: Array<AnalyticsElement>;
+  timeRange: AnalyticsTimeRange;
+};
+
+export type AnalyticsElement = {
+  _id: Scalars["String"];
+  name: Scalars["String"];
+  stats: Array<AnalyticsStats>;
+  views: Scalars["Float"];
+};
+
+export type AnalyticsFilter = {
+  lastDays?: InputMaybe<Scalars["Int"]>;
+};
+
+export type AnalyticsMostTraded = {
+  item: Item;
+  trades: Scalars["Float"];
+  volume: Scalars["Float"];
+};
+
+export type AnalyticsStats = {
+  date: Scalars["DateTime"];
+  trades: Scalars["Float"];
+  volume: Scalars["Float"];
+};
+
+export type AnalyticsTimeRange = {
+  from: Scalars["DateTime"];
+  to: Scalars["DateTime"];
+};
+
 export enum AssetType {
   Collection = "COLLECTION",
   Item = "ITEM",
@@ -681,7 +718,7 @@ export type ImportCollectionStateRecordInput = {
 export type IndexCollectionInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
-  platforms: Array<Platform>;
+  platforms?: InputMaybe<Array<Platform>>;
 };
 
 export type Item = {
@@ -981,6 +1018,23 @@ export type LoginInput = {
   walletType?: InputMaybe<Scalars["String"]>;
 };
 
+export type LooksrareListForSaleInput = {
+  amount: Scalars["String"];
+  collection: Scalars["String"];
+  currency: Scalars["String"];
+  endTime: Scalars["Int"];
+  isOrderAsk: Scalars["Boolean"];
+  minPercentageToAsk: Scalars["Int"];
+  nonce: Scalars["String"];
+  params: Scalars["String"];
+  price: Scalars["String"];
+  signature: Scalars["String"];
+  signer: Scalars["String"];
+  startTime: Scalars["Int"];
+  strategy: Scalars["String"];
+  tokenId: Scalars["String"];
+};
+
 export type MarketConfig = {
   buyServiceFeeBps?: Maybe<ServiceFee>;
   data: Scalars["String"];
@@ -1056,8 +1110,9 @@ export type Mutation = {
   generateVerificationToken: Scalars["Int"];
   hideItem: Item;
   importCollection: ImportCollectionOutput;
-  indexCollection: Scalars["Boolean"];
+  indexCollections: Scalars["Boolean"];
   login: Auth;
+  looksrareListForSale: Scalars["String"];
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
   refreshCollection: Scalars["Boolean"];
@@ -1138,12 +1193,16 @@ export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
 };
 
-export type MutationIndexCollectionArgs = {
+export type MutationIndexCollectionsArgs = {
   input: IndexCollectionInput;
 };
 
 export type MutationLoginArgs = {
   data: LoginInput;
+};
+
+export type MutationLooksrareListForSaleArgs = {
+  input: LooksrareListForSaleInput;
 };
 
 export type MutationPlaceAuctionBidArgs = {
@@ -1406,6 +1465,7 @@ export type PurchaseSession = {
 export type Query = {
   activity: CollectionActivityResponse;
   activityStatistics: Array<ActivityStatistics>;
+  analytics: Analytics;
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
   collection?: Maybe<Collection>;
@@ -1451,6 +1511,10 @@ export type QueryActivityArgs = {
 
 export type QueryActivityStatisticsArgs = {
   filter?: InputMaybe<ActivityStatisticsInput>;
+};
+
+export type QueryAnalyticsArgs = {
+  filter: AnalyticsFilter;
 };
 
 export type QueryAuctionArgs = {
