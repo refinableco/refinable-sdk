@@ -1,6 +1,7 @@
 import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
 import { WhitelistVoucherParams } from "../nft/interfaces/Voucher";
+import { Chain } from "../refinable/Chain";
 import { Refinable } from "../refinable/Refinable";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
 
@@ -45,7 +46,7 @@ export class BasicOffer {
   get chainId() {
     return this._offer.chainId;
   }
-  
+
   get contractAddress() {
     return this._offer.contractAddress;
   }
@@ -114,11 +115,14 @@ export class BasicOffer {
 }
 
 export class Offer extends BasicOffer {
+  protected chain: Chain;
   constructor(
     protected readonly refinable: Refinable,
     protected _offer: PartialOffer,
     protected readonly nft?: AbstractNFT
   ) {
     super(refinable, _offer);
+
+    this.chain = new Chain(_offer.chainId);
   }
 }

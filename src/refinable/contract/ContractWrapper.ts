@@ -141,13 +141,6 @@ export class ContractWrapper implements IContractWrapper {
     }
 
     try {
-      if (this.contract?.populateTransaction?.[method]) {
-        const unsignedTx = await this.contract.populateTransaction[method](
-          ...args,
-          callOverrides
-        );
-        console.log(unsignedTx);
-      }
       return await func(...args, callOverrides);
     } catch (e) {
       throw new TransactionError(e, this.contract.interface);
