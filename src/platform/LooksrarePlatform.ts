@@ -21,6 +21,9 @@ export const LOOKSRARE_LIST_FOR_SALE = gql`
 `;
 
 export class LooksrarePlatform extends AbstractPlatform {
+  getApprovalAddress(chainId: number): string {
+    return LooksRare.Addresses.Exchange[chainId];
+  }
   buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
     const { v, r, s } = splitSignature(offer.orderParams.signature);
 
