@@ -6,12 +6,12 @@ import { PartialOffer } from "../offer/Offer";
 import { ListStatus, LIST_STATUS_STEP } from "../nft/interfaces/SaleStatusStep";
 import { Types } from "@refinableco/reservoir-sdk/dist/x2y2";
 import { X2Y2 } from "@refinableco/reservoir-sdk";
+import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 
 export class X2Y2Platform extends AbstractPlatform {
   constructor(refinable: Refinable) {
     super(refinable);
   }
-
 
   getApprovalAddress(chainId: number): string {
     return X2Y2.Addresses.Exchange[chainId];
@@ -42,6 +42,7 @@ export class X2Y2Platform extends AbstractPlatform {
   }
 
   async listForSale(
+    nft: AbstractEvmNFT,
     orderParams: Types.Order,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;

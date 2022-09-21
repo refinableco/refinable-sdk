@@ -335,7 +335,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     if (Array.isArray(platforms)) {
       const platformFactory = new PlatformFactory(this.refinable);
       for (const platform of platforms) {
-        const instance = platformFactory.createPlatform(platform);
+        const platformInstance = platformFactory.createPlatform(platform);
 
         // -- LOOKSRARE
         // EX.
@@ -357,7 +357,8 @@ export class ERC721NFT extends AbstractEvmNFT {
         //   "params": ""
         // }
         const now = Math.floor(Date.now() / 1000);
-        await instance.listForSale(
+        await platformInstance.listForSale(
+          this,
           {
             tokenId: this._item.tokenId,
             collection: this._item.contractAddress,
@@ -365,7 +366,6 @@ export class ERC721NFT extends AbstractEvmNFT {
             currency: Common.Addresses.Weth[1],
             signer: this.refinable.accountAddress,
             isOrderAsk: true, // side === "sell"
-            nonce: "0",
             amount: "1",
             price: parseEther(price.amount.toString()).toString(),
             startTime: now,

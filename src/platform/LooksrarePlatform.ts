@@ -2,10 +2,12 @@ import { splitSignature } from "ethers/lib/utils";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
 import { LooksRare } from "@refinableco/reservoir-sdk";
+import { Types as LookrareTypes } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
 import { Types } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import {
   ListApproveStatus,
+  ListCreateStatus,
   ListSignStatus,
   ListStatus,
   LIST_STATUS_STEP,
@@ -36,7 +38,7 @@ export class LooksrarePlatform extends AbstractPlatform {
       r,
       s,
       kind: "single-token",
-      params: BytesEmpty,
+      params: [],
     });
     const unsignedTx = exchange.fillOrderTx(
       this.refinable.accountAddress,
@@ -54,7 +56,11 @@ export class LooksrarePlatform extends AbstractPlatform {
     return unsignedTx;
   }
 
+  /**
+   * 1: stands for chain id (Ethereum)
+   */
   async listForSale(
+    nft,
     orderParams: Types.MakerOrderParams,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
@@ -72,9 +78,11 @@ export class LooksrarePlatform extends AbstractPlatform {
       platform: Platform.Looksrare,
       step: LIST_STATUS_STEP.APPROVE,
       data: {
-        addressToApprove: "0x00000000000000000",
+        addressToApprove: LooksRare.Addresses.TransferManagerErc721[1],
       },
     });
+    // Approve the transfer manager
+    await nft.approveIfNeeded(LooksRare.Addresses.TransferManagerErc721[1]);
 
     // sign
     const nonce = await this.getNonce(orderParams.signer);
@@ -86,7 +94,7 @@ export class LooksrarePlatform extends AbstractPlatform {
 
       // reservoir specific params
       kind: "single-token",
-    });
+    } as LookrareTypes.MakerOrderParams);
     options.onProgress<ListSignStatus>({
       platform: Platform.Looksrare,
       step: LIST_STATUS_STEP.SIGN,
@@ -99,15 +107,22 @@ export class LooksrarePlatform extends AbstractPlatform {
       order.getSignatureData()
     );
 
+    const { r, s, v, kind, ...strippedOrderParams } = order.params;
+
     // create
+    const input = { ...strippedOrderParams, signature };
+    options.onProgress<ListCreateStatus>({
+      platform: Platform.Looksrare,
+      step: LIST_STATUS_STEP.CREATE,
+    });
     const response = await this.refinable.graphqlClient.request<
       string,
       MutationLooksrareListForSaleArgs
     >(LOOKSRARE_LIST_FOR_SALE, {
-      input: { ...order.params, signature },
+      input,
     });
 
-    return order;
+    return response;
   }
 
   private async getNonce(makerAddress: string) {
