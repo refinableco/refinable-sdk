@@ -16,7 +16,7 @@ export enum LIST_STATUS_STEP {
 export interface ListStatus {
   step: LIST_STATUS_STEP;
   platform: Platform;
-  data: any;
+  data?: any;
 }
 
 export interface ListApproveStatus extends ListStatus {
@@ -34,7 +34,7 @@ export interface ListSignStatus extends ListStatus {
 }
 export interface ListCreateStatus extends ListStatus {
   step: LIST_STATUS_STEP.CREATE;
-  data: {
+  data?: {
     chainId: number;
     tokenId: string;
     signature: string;
