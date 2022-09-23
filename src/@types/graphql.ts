@@ -366,6 +366,7 @@ export enum ContractTag {
   AuctionV4_0_0 = "AUCTION_v4_0_0",
   AuctionV5_0_0 = "AUCTION_v5_0_0",
   AuctionV5_0_1 = "AUCTION_v5_0_1",
+  AuctionV5_0_2 = "AUCTION_v5_0_2",
   LazyMintTokenV1_0_0 = "LAZY_MINT_TOKEN_v1_0_0",
   RoyaltyRegistryV1_0_0 = "ROYALTY_REGISTRY_v1_0_0",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
@@ -379,6 +380,7 @@ export enum ContractTag {
   SaleV4_1_0 = "SALE_v4_1_0",
   SaleV4_1_1 = "SALE_v4_1_1",
   SaleV4_1_2 = "SALE_v4_1_2",
+  SaleV4_1_3 = "SALE_v4_1_3",
   ServiceFeeProxyV1_0_0 = "SERVICE_FEE_PROXY_v1_0_0",
   ServiceFeeV1_0_0 = "SERVICE_FEE_v1_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
@@ -676,6 +678,30 @@ export type GetUploadUrlOutput = {
   url: Scalars["String"];
 };
 
+export type HeroSectionImageInput = {
+  height: Scalars["Float"];
+  url: Scalars["String"];
+  width: Scalars["Float"];
+};
+
+export type HeroSectionImageOutput = {
+  height: Scalars["Float"];
+  url: Scalars["String"];
+  width: Scalars["Float"];
+};
+
+export type HeroSectionInput = {
+  image?: InputMaybe<HeroSectionImageInput>;
+  subtext?: InputMaybe<Scalars["String"]>;
+  title?: InputMaybe<Scalars["String"]>;
+};
+
+export type HeroSectionOutput = {
+  image?: Maybe<HeroSectionImageOutput>;
+  subtext: Scalars["String"];
+  title: Scalars["String"];
+};
+
 export type HideItemInput = {
   id: Scalars["String"];
   reason: Scalars["String"];
@@ -778,12 +804,6 @@ export type ItemUserSupplyArgs = {
 export type ItemAttribute = {
   displayType?: Maybe<Scalars["String"]>;
   traitType?: Maybe<Scalars["String"]>;
-  value: Scalars["String"];
-};
-
-export type ItemAttributeInput = {
-  displayType?: InputMaybe<Scalars["String"]>;
-  traitType?: InputMaybe<Scalars["String"]>;
   value: Scalars["String"];
 };
 
@@ -997,16 +1017,6 @@ export type LaunchpadStageInput = {
 export type LazyCollectionInfoOutput = {
   isMinted: Scalars["Boolean"];
   maxSupply: Scalars["Float"];
-};
-
-export type LazyItemInput = {
-  attributes: Array<ItemAttributeInput>;
-  description?: InputMaybe<Scalars["String"]>;
-  fileType: Scalars["String"];
-  image: Scalars["String"];
-  mimeType: Scalars["String"];
-  name: Scalars["String"];
-  supply: Scalars["Int"];
 };
 
 export type LoginInput = {
@@ -1724,7 +1734,7 @@ export type SaleOfferMarketConfigArgs = {
 export type SaveBatchCollectionInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
-  items: Array<LazyItemInput>;
+  itemsFileKey: Scalars["String"];
   metadataPath: Scalars["String"];
   slug: Scalars["String"];
 };
@@ -1788,9 +1798,11 @@ export type Store = {
   domain: Scalars["String"];
   email?: Maybe<Scalars["String"]>;
   externalCustomLink?: Maybe<Scalars["String"]>;
+  facebook?: Maybe<Scalars["String"]>;
   favicon?: Maybe<Scalars["String"]>;
   fees?: Maybe<Fees>;
   fontFamily?: Maybe<Scalars["String"]>;
+  heroSection: HeroSectionOutput;
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   isCreator: Scalars["Boolean"];
@@ -1978,7 +1990,7 @@ export type UpdateMintOfferInput = {
   description?: InputMaybe<Scalars["String"]>;
   launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
   name?: InputMaybe<Scalars["String"]>;
-  previewFile: Scalars["String"];
+  previewFile?: InputMaybe<Scalars["String"]>;
 };
 
 export type UpdateStore = {
@@ -1999,8 +2011,10 @@ export type UpdateStoreInput = {
   description?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
   email?: InputMaybe<Scalars["String"]>;
+  facebook?: InputMaybe<Scalars["String"]>;
   favicon?: InputMaybe<Scalars["String"]>;
   fees?: InputMaybe<FeesInput>;
+  heroSection?: InputMaybe<HeroSectionInput>;
   instagram?: InputMaybe<Scalars["String"]>;
   logo?: InputMaybe<Scalars["String"]>;
   logoHeight?: InputMaybe<Scalars["Float"]>;
