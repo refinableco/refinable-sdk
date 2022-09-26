@@ -572,6 +572,11 @@ export enum EventType {
   View = "VIEW",
 }
 
+export type FaqEntry = {
+  answer: Scalars["String"];
+  question: Scalars["String"];
+};
+
 export type Fees = {
   buyerFee?: Maybe<Scalars["Float"]>;
   payoutAddress?: Maybe<Scalars["String"]>;
@@ -636,6 +641,7 @@ export type GetMetadataOutput = {
   description?: Maybe<Scalars["String"]>;
   external_url?: Maybe<Scalars["String"]>;
   image?: Maybe<Scalars["String"]>;
+  isMetadataValid: Scalars["Boolean"];
   name?: Maybe<Scalars["String"]>;
   originalMetadata: Scalars["JSONObject"];
   video?: Maybe<Scalars["String"]>;
@@ -1423,11 +1429,13 @@ export enum PriceCurrency {
   Busd = "BUSD",
   Eth = "ETH",
   Fine = "FINE",
+  High = "HIGH",
   Matic = "MATIC",
   Pst = "PST",
   Usdc = "USDC",
   Usdt = "USDT",
   Weth = "WETH",
+  Wspp = "WSPP",
 }
 
 export type PriceInput = {
@@ -1799,6 +1807,7 @@ export type Store = {
   email?: Maybe<Scalars["String"]>;
   externalCustomLink?: Maybe<Scalars["String"]>;
   facebook?: Maybe<Scalars["String"]>;
+  faqs?: Maybe<Array<FaqEntry>>;
   favicon?: Maybe<Scalars["String"]>;
   fees?: Maybe<Fees>;
   fontFamily?: Maybe<Scalars["String"]>;
