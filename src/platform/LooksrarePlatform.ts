@@ -38,7 +38,7 @@ export class LooksrarePlatform extends AbstractPlatform {
       r,
       s,
       kind: "single-token",
-      params: [],
+      params: BytesEmpty,
     });
     const unsignedTx = exchange.fillOrderTx(
       this.refinable.accountAddress,
