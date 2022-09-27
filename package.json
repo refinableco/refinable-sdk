@@ -11,6 +11,7 @@
     "test": "jest --runInBand --testPathIgnorePatterns='.*e2e.spec.ts'",
     "test:e2e": "env-cmd jest --runInBand --runTestsByPath './tests/e2e'",
     "test:silent": "yarn test --silent=true",
+    "test:target": "jest",
     "test:watch": "yarn test --watch",
     "generate-types": "graphql-codegen"
   },

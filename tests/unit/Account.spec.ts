@@ -92,7 +92,27 @@ describe("Account", () => {
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
-        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("0.0");
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("0");
+      });
+
+      it("Should return and correctly format zero balance using 0 decimals", async () => {
+        jest.spyOn(ethers, "Contract").mockImplementationOnce(
+          jest.fn().mockImplementation(() => {
+            return {
+              balanceOf: jest
+                .fn()
+                .mockResolvedValue(BigNumber.from("10000000000000000000")),
+            };
+          })
+        );
+
+        const account = new EvmAccount(refinable.provider, {});
+
+        jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(0);
+
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe(
+          "10000000000000000000"
+        );
       });
 
       it("Should return and correctly format balance using 18 decimals", async () => {
@@ -110,7 +130,25 @@ describe("Account", () => {
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
 
-        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("1.0");
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("1");
+      });
+
+      it("Should return and correctly format balance using 18 decimals, with some decimals", async () => {
+        jest.spyOn(ethers, "Contract").mockImplementation(
+          jest.fn().mockImplementation(() => {
+            return {
+              balanceOf: jest
+                .fn()
+                .mockResolvedValue(BigNumber.from("1100000000000000000")),
+            };
+          })
+        );
+
+        const account = new EvmAccount(refinable.provider, {});
+
+        jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(18);
+
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("1.1");
       });
 
       it("Should return and correctly format balance using 9 decimals", async () => {
@@ -128,7 +166,7 @@ describe("Account", () => {
 
         jest.spyOn(account, "getTokenDecimals").mockResolvedValueOnce(9);
 
-        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("22.0");
+        expect(await account.getTokenBalance(ETH_ADDRESS)).toBe("22");
       });
     });
   });

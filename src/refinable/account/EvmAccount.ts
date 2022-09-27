@@ -34,7 +34,6 @@ export default class EvmAccount implements Account {
   ): Promise<string> {
     if (tokenAddress == null) return null;
 
-    let result = null;
     const decimals = await this.getTokenDecimals(tokenAddress);
 
     try {
@@ -66,13 +65,13 @@ export default class EvmAccount implements Account {
       const balance = await token.balanceOf(
         userEthAddress ?? (await this.getAddress())
       );
-      result = ethers.BigNumber.from(
-        ethers.utils.formatUnits(balance, decimals)
-      ).toString();
+
+      return this.formatBalance(balance, decimals);
     } catch (e) {
       console.error(`ERROR: Failed to get the balance: ${e.message}`);
     }
-    return result;
+
+    return null;
   }
 
   /**
@@ -192,5 +191,43 @@ export default class EvmAccount implements Account {
       ]);
     }
     return;
+  }
+
+  private formatBalance(balance: string, decimals: number) {
+    const BN = ethers.BigNumber.from;
+
+    const bnBalance = BN(balance);
+    const divByDecimals = BN(10).pow(decimals);
+
+    const fractionalBalance = bnBalance.mod(divByDecimals);
+    const fractionalString = fractionalBalance.toString();
+
+    const integerBalance = bnBalance.sub(fractionalBalance).div(divByDecimals);
+
+    if (fractionalString === "0") {
+      return integerBalance.toString();
+    }
+
+    // Count extra 0s at the end of the stringified number
+    let bitwiseOperand = 0;
+    for (let i = fractionalString.length - 1; i >= 0; i--) {
+      if (fractionalString.charAt(i) === "0") {
+        bitwiseOperand++;
+      } else {
+        break;
+      }
+    }
+
+    const decimalsString = `.${fractionalBalance
+      // get rid of extra 0s found above (Two's complement)
+      .toTwos(bitwiseOperand)
+      .div(BN(10).pow(bitwiseOperand))
+      .toString()}`;
+
+    return `${integerBalance.toString()}${
+      bitwiseOperand === decimals && decimalsString === ".0"
+        ? ""
+        : decimalsString
+    }`;
   }
 }
