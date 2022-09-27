@@ -1,5 +1,4 @@
 import { ethers, providers } from "ethers";
-import { toBN } from "web3-utils";
 import { getProviderByNetworkId } from "../../config/chains";
 import { Account } from "../../interfaces/Account";
 import { NativeCurrency } from "../../interfaces/Config";
@@ -67,7 +66,9 @@ export default class EvmAccount implements Account {
       const balance = await token.balanceOf(
         userEthAddress ?? (await this.getAddress())
       );
-      result = toBN(ethers.utils.formatUnits(balance, decimals)).toString();
+      result = ethers.BigNumber.from(
+        ethers.utils.formatUnits(balance, decimals)
+      ).toString();
     } catch (e) {
       console.error(`ERROR: Failed to get the balance: ${e.message}`);
     }
