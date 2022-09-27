@@ -1,5 +1,4 @@
 import { ContractTypes } from "../@types/graphql";
-import { getProviderByNetworkId } from "../config/chains";
 import { RoyaltyType } from "../enums/royalty-type.enum";
 import { LibPart } from "../interfaces/LibPart";
 import { Chain } from "../interfaces/Network";
@@ -10,13 +9,10 @@ export { RoyaltyType };
 
 export class RoyaltyRegistry {
   private contract: ContractWrapper;
-  private chainProvider: any;
   constructor(
     private readonly refinable: Refinable,
     private readonly chainId: Chain
-  ) {
-    this.chainProvider = getProviderByNetworkId(this.chainId);
-  }
+  ) {}
 
   private async _lazyGetContract() {
     if (this.contract) {
@@ -29,7 +25,7 @@ export class RoyaltyRegistry {
         [ContractTypes.RoyaltyRegistry]
       );
 
-    contract.connect(this.refinable.provider ?? this.chainProvider);
+    contract.connect(this.refinable.provider);
 
     this.contract = contract.contractWrapper;
     return this.contract;
@@ -38,7 +34,7 @@ export class RoyaltyRegistry {
   async getRoyaltyInfo(contractAddress: string, tokenId = "1") {
     const lazyContract = await this._lazyGetContract();
 
-    const royaltyInfo = await lazyContract.contract.getRoyaltyInfoForToken(
+    const royaltyInfo = await lazyContract.read.getRoyaltyInfoForToken(
       contractAddress,
       tokenId
     );

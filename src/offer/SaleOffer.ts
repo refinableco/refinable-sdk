@@ -31,7 +31,7 @@ export class SaleOffer extends Offer {
   }
 
   public async buy(params?: BuyParams, metadata?: PurchaseMetadata) {
-    const isExternal = this._offer.platform !== Platform.Refinable;
+    const isExternal = this._offer.platform !== Platform.Refinable.toString();
 
     if (isExternal) {
       return this.externalBuy();
@@ -87,15 +87,21 @@ export class SaleOffer extends Offer {
   }
 
   private async externalBuy() {
-    const unsignedTxOrPromise = this.refinable
-      .platform(this._offer.platform)
-      .buy(
-        this._offer,
-        this.nft.getItem().contractAddress,
-        this.nft.getItem().tokenId
-      );
+    const externalPlatform = this.refinable.platform(this._offer.platform);
 
-    const unsignedTx = this._offer.platform === Platform.X2Y2 ? await unsignedTxOrPromise : unsignedTxOrPromise;
+    // 1. Approve token if needed
+    await this.refinable.evm.account.approveTokenContractAllowance(
+      this.chain.getCurrency(this._offer.price.currency),
+      this._offer.price.amount,
+      externalPlatform.getApprovalAddress(this._offer.chainId)
+    );
+
+    // 2. Simulate tx
+    const unsignedTx = await externalPlatform.buy(
+      this._offer,
+      this.nft.getItem().contractAddress,
+      this.nft.getItem().tokenId
+    );
 
     const resp = await simulateUnsignedTx({
       refinable: this.refinable,
@@ -112,6 +118,7 @@ export class SaleOffer extends Offer {
     }
 
     try {
+      // 3. Send transaction
       const response = await this.refinable.evm.signer.sendTransaction({
         ...unsignedTx,
         value:

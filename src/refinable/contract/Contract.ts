@@ -65,6 +65,7 @@ export class Contract implements IContract {
       {
         abi: this.contractABI,
         address: this.contractAddress,
+        chainId: this.chainId,
       },
       signerOrProvider,
       this.evmOptions

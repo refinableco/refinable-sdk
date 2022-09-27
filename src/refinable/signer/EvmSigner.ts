@@ -3,13 +3,16 @@ import type {
   TypedDataField,
 } from "@ethersproject/abstract-signer";
 import { utils } from "ethers";
-import type {
+import {
   AccountSigner,
   KindaSigner,
   ProviderSignerWallet,
+  EIP712,
+  isEIP712,
 } from "../../interfaces/Signer";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
 import EvmAccount from "../account/EvmAccount";
+import { TypedDataSigner } from "@ethersproject/abstract-signer";
 
 export default class EvmSigner extends EvmAccount implements AccountSigner {
   constructor(
@@ -19,8 +22,15 @@ export default class EvmSigner extends EvmAccount implements AccountSigner {
     super(providerOrSigner, evmOptions);
   }
 
-  async sign(message: string) {
-    const signature = await this._signer.signMessage(utils.arrayify(message));
+  async sign(message: string | EIP712) {
+    let signature;
+    if (isEIP712(message)) {
+      signature = await (
+        this._signer as unknown as TypedDataSigner
+      )._signTypedData(message.domain, message.types, message.value);
+    } else {
+      signature = await this._signer.signMessage(utils.arrayify(message));
+    }
 
     // WARNING! DO NOT remove!
     // this piece of code seems strange, but it fixes a lot of signatures that are faulty due to ledgers

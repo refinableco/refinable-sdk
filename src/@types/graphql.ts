@@ -18,13 +18,9 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: any;
-  /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: any;
-  /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSONObject: any;
-  /** The `Upload` scalar type represents a file upload. */
   Upload: any;
 };
 
@@ -37,6 +33,43 @@ export type ActivityStatistics = {
 export type ActivityStatisticsInput = {
   collectionIds: Array<Scalars["String"]>;
   lastDays?: InputMaybe<Scalars["Int"]>;
+};
+
+export type Analytics = {
+  collections: Array<AnalyticsElement>;
+  mostTradedItems: Array<AnalyticsMostTraded>;
+  mostViewedItems: Array<Item>;
+  previousTimeRange: AnalyticsTimeRange;
+  storefronts: Array<AnalyticsElement>;
+  timeRange: AnalyticsTimeRange;
+};
+
+export type AnalyticsElement = {
+  _id: Scalars["String"];
+  name: Scalars["String"];
+  stats: Array<AnalyticsStats>;
+  views: Scalars["Float"];
+};
+
+export type AnalyticsFilter = {
+  lastDays?: InputMaybe<Scalars["Int"]>;
+};
+
+export type AnalyticsMostTraded = {
+  item: Item;
+  trades: Scalars["Float"];
+  volume: Scalars["Float"];
+};
+
+export type AnalyticsStats = {
+  date: Scalars["DateTime"];
+  trades: Scalars["Float"];
+  volume: Scalars["Float"];
+};
+
+export type AnalyticsTimeRange = {
+  from: Scalars["DateTime"];
+  to: Scalars["DateTime"];
 };
 
 export enum AssetType {
@@ -332,6 +365,7 @@ export enum ContractTag {
   AuctionV3_1_1 = "AUCTION_v3_1_1",
   AuctionV4_0_0 = "AUCTION_v4_0_0",
   AuctionV5_0_0 = "AUCTION_v5_0_0",
+  AuctionV5_0_1 = "AUCTION_v5_0_1",
   LazyMintTokenV1_0_0 = "LAZY_MINT_TOKEN_v1_0_0",
   RoyaltyRegistryV1_0_0 = "ROYALTY_REGISTRY_v1_0_0",
   SaleNonceHolderV1_0_0 = "SALE_NONCE_HOLDER_v1_0_0",
@@ -344,6 +378,7 @@ export enum ContractTag {
   SaleV4_0_0 = "SALE_v4_0_0",
   SaleV4_1_0 = "SALE_v4_1_0",
   SaleV4_1_1 = "SALE_v4_1_1",
+  SaleV4_1_2 = "SALE_v4_1_2",
   ServiceFeeProxyV1_0_0 = "SERVICE_FEE_PROXY_v1_0_0",
   ServiceFeeV1_0_0 = "SERVICE_FEE_v1_0_0",
   TokenV1_0_0 = "TOKEN_v1_0_0",
@@ -437,7 +472,7 @@ export type CreateMintOfferInput = {
   name?: InputMaybe<Scalars["String"]>;
   offerContractAddress?: InputMaybe<Scalars["String"]>;
   payee: Scalars["String"];
-  previewImage: Scalars["String"];
+  previewFile: Scalars["String"];
   price?: InputMaybe<PriceInput>;
   signature: Scalars["String"];
   startTime?: InputMaybe<Scalars["DateTime"]>;
@@ -683,7 +718,7 @@ export type ImportCollectionStateRecordInput = {
 export type IndexCollectionInput = {
   chainId: Scalars["Int"];
   contractAddress: Scalars["String"];
-  platforms: Array<Platform>;
+  platforms?: InputMaybe<Array<Platform>>;
 };
 
 export type Item = {
@@ -983,6 +1018,23 @@ export type LoginInput = {
   walletType?: InputMaybe<Scalars["String"]>;
 };
 
+export type LooksrareListForSaleInput = {
+  amount: Scalars["String"];
+  collection: Scalars["String"];
+  currency: Scalars["String"];
+  endTime: Scalars["Int"];
+  isOrderAsk: Scalars["Boolean"];
+  minPercentageToAsk: Scalars["Int"];
+  nonce: Scalars["String"];
+  params: Scalars["String"];
+  price: Scalars["String"];
+  signature: Scalars["String"];
+  signer: Scalars["String"];
+  startTime: Scalars["Int"];
+  strategy: Scalars["String"];
+  tokenId: Scalars["String"];
+};
+
 export type MarketConfig = {
   buyServiceFeeBps?: Maybe<ServiceFee>;
   data: Scalars["String"];
@@ -1058,8 +1110,9 @@ export type Mutation = {
   generateVerificationToken: Scalars["Int"];
   hideItem: Item;
   importCollection: ImportCollectionOutput;
-  indexCollection: Scalars["Boolean"];
+  indexCollections: Scalars["Boolean"];
   login: Auth;
+  looksrareListForSale: Scalars["String"];
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
   refreshCollection: Scalars["Boolean"];
@@ -1140,12 +1193,16 @@ export type MutationImportCollectionArgs = {
   input: ImportCollectionInput;
 };
 
-export type MutationIndexCollectionArgs = {
+export type MutationIndexCollectionsArgs = {
   input: IndexCollectionInput;
 };
 
 export type MutationLoginArgs = {
   data: LoginInput;
+};
+
+export type MutationLooksrareListForSaleArgs = {
+  input: LooksrareListForSaleInput;
 };
 
 export type MutationPlaceAuctionBidArgs = {
@@ -1408,6 +1465,7 @@ export type PurchaseSession = {
 export type Query = {
   activity: CollectionActivityResponse;
   activityStatistics: Array<ActivityStatistics>;
+  analytics: Analytics;
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
   collection?: Maybe<Collection>;
@@ -1453,6 +1511,10 @@ export type QueryActivityArgs = {
 
 export type QueryActivityStatisticsArgs = {
   filter?: InputMaybe<ActivityStatisticsInput>;
+};
+
+export type QueryAnalyticsArgs = {
+  filter: AnalyticsFilter;
 };
 
 export type QueryAuctionArgs = {
@@ -1916,7 +1978,7 @@ export type UpdateMintOfferInput = {
   description?: InputMaybe<Scalars["String"]>;
   launchpadDetails?: InputMaybe<LaunchpadDetailsInput>;
   name?: InputMaybe<Scalars["String"]>;
-  previewImage: Scalars["String"];
+  previewFile: Scalars["String"];
 };
 
 export type UpdateStore = {
@@ -2173,16 +2235,13 @@ export type RefinableContractQueryVariables = Exact<{
 }>;
 
 export type RefinableContractQuery = {
-  refinableContract?:
-    | {
-        contractAddress: string;
-        contractABI: string;
-        type: string;
-        tags: Array<ContractTag>;
-        chainId: number;
-      }
-    | null
-    | undefined;
+  refinableContract?: {
+    contractAddress: string;
+    contractABI: string;
+    type: string;
+    tags: Array<ContractTag>;
+    chainId: number;
+  } | null;
 };
 
 export type RefinableContractsQueryVariables = Exact<{
@@ -2221,25 +2280,20 @@ export type GetCollectionBySlugQueryVariables = Exact<{
   slug: Scalars["String"];
 }>;
 
-export type GetCollectionBySlugQuery = {
-  collection?: { slug: string } | null | undefined;
-};
+export type GetCollectionBySlugQuery = { collection?: { slug: string } | null };
 
 export type GetTokenContractQueryVariables = Exact<{
   input: FindContractInput;
 }>;
 
 export type GetTokenContractQuery = {
-  contract?:
-    | {
-        contractAddress: string;
-        contractABI: string;
-        type: string;
-        chainId: number;
-        tags: Array<ContractTag>;
-      }
-    | null
-    | undefined;
+  contract?: {
+    contractAddress: string;
+    contractABI: string;
+    type: string;
+    chainId: number;
+    tags: Array<ContractTag>;
+  } | null;
 };
 
 export type CreateContractMutationVariables = Exact<{
@@ -2259,46 +2313,34 @@ export type CreateContractMutation = {
 
 export type ItemSaleInfo_MintOffer_Fragment = {
   id: string;
-  createdAt?: any | null | undefined;
+  createdAt?: any | null;
   chainId: number;
   type: OfferType;
   supply: number;
   price: { amount: number; currency: PriceCurrency };
-  auction?:
-    | {
-        id: string;
-        startPrice?: number | null | undefined;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
-        highestBid?:
-          | { transactionHash: string; bidAmount: number }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
+  auction?: {
+    id: string;
+    startPrice?: number | null;
+    startTime?: any | null;
+    endTime?: any | null;
+    highestBid?: { transactionHash: string; bidAmount: number } | null;
+  } | null;
 };
 
 export type ItemSaleInfo_SaleOffer_Fragment = {
   id: string;
-  createdAt?: any | null | undefined;
+  createdAt?: any | null;
   chainId: number;
   type: OfferType;
   supply: number;
   price: { amount: number; currency: PriceCurrency };
-  auction?:
-    | {
-        id: string;
-        startPrice?: number | null | undefined;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
-        highestBid?:
-          | { transactionHash: string; bidAmount: number }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
+  auction?: {
+    id: string;
+    startPrice?: number | null;
+    startTime?: any | null;
+    endTime?: any | null;
+    highestBid?: { transactionHash: string; bidAmount: number } | null;
+  } | null;
 };
 
 export type ItemSaleInfoFragment =
@@ -2312,33 +2354,30 @@ export type ItemInfoFragment = {
   supply: number;
   totalSupply: number;
   name: string;
-  description?: string | null | undefined;
+  description?: string | null;
   chainId: number;
   creator: {
     id: string;
-    ethAddress?: string | null | undefined;
-    name?: string | null | undefined;
-    profileImage?: string | null | undefined;
-    verified?: boolean | null | undefined;
+    ethAddress?: string | null;
+    name?: string | null;
+    profileImage?: string | null;
+    verified?: boolean | null;
   };
-  collection?:
-    | {
-        slug: string;
-        name: string;
-        iconUrl?: string | null | undefined;
-        verified: boolean;
-      }
-    | null
-    | undefined;
+  collection?: {
+    slug: string;
+    name: string;
+    iconUrl?: string | null;
+    verified: boolean;
+  } | null;
   properties: {
     fileType: FileType;
-    imagePreview?: string | null | undefined;
-    fileUrl?: string | null | undefined;
-    originalFileUrl?: string | null | undefined;
-    thumbnailUrl?: string | null | undefined;
-    originalThumbnailUrl?: string | null | undefined;
+    imagePreview?: string | null;
+    fileUrl?: string | null;
+    originalFileUrl?: string | null;
+    thumbnailUrl?: string | null;
+    originalThumbnailUrl?: string | null;
   };
-  transcodings?: Array<{ url: string; mimeType: string }> | null | undefined;
+  transcodings?: Array<{ url: string; mimeType: string }> | null;
 };
 
 export type GetItemsWithOfferFragment = {
@@ -2350,79 +2389,63 @@ export type GetItemsWithOfferFragment = {
     supply: number;
     totalSupply: number;
     name: string;
-    description?: string | null | undefined;
+    description?: string | null;
     chainId: number;
     creator: {
       id: string;
-      ethAddress?: string | null | undefined;
-      name?: string | null | undefined;
-      profileImage?: string | null | undefined;
-      verified?: boolean | null | undefined;
+      ethAddress?: string | null;
+      name?: string | null;
+      profileImage?: string | null;
+      verified?: boolean | null;
     };
-    collection?:
-      | {
-          slug: string;
-          name: string;
-          iconUrl?: string | null | undefined;
-          verified: boolean;
-        }
-      | null
-      | undefined;
+    collection?: {
+      slug: string;
+      name: string;
+      iconUrl?: string | null;
+      verified: boolean;
+    } | null;
     properties: {
       fileType: FileType;
-      imagePreview?: string | null | undefined;
-      fileUrl?: string | null | undefined;
-      originalFileUrl?: string | null | undefined;
-      thumbnailUrl?: string | null | undefined;
-      originalThumbnailUrl?: string | null | undefined;
+      imagePreview?: string | null;
+      fileUrl?: string | null;
+      originalFileUrl?: string | null;
+      thumbnailUrl?: string | null;
+      originalThumbnailUrl?: string | null;
     };
-    transcodings?: Array<{ url: string; mimeType: string }> | null | undefined;
+    transcodings?: Array<{ url: string; mimeType: string }> | null;
   };
   nextEditionForSale?:
     | {
         id: string;
-        createdAt?: any | null | undefined;
+        createdAt?: any | null;
         chainId: number;
         type: OfferType;
         supply: number;
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              startPrice?: number | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              highestBid?:
-                | { transactionHash: string; bidAmount: number }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          startPrice?: number | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          highestBid?: { transactionHash: string; bidAmount: number } | null;
+        } | null;
       }
     | {
         id: string;
-        createdAt?: any | null | undefined;
+        createdAt?: any | null;
         chainId: number;
         type: OfferType;
         supply: number;
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              startPrice?: number | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              highestBid?:
-                | { transactionHash: string; bidAmount: number }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          startPrice?: number | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          highestBid?: { transactionHash: string; bidAmount: number } | null;
+        } | null;
       }
-    | null
-    | undefined;
+    | null;
 };
 
 export type UserItemsFragment = {
@@ -2433,118 +2456,93 @@ export type UserItemsFragment = {
   supply: number;
   totalSupply: number;
   name: string;
-  description?: string | null | undefined;
+  description?: string | null;
   chainId: number;
   nextEditionForSale?:
     | {
         id: string;
-        createdAt?: any | null | undefined;
+        createdAt?: any | null;
         chainId: number;
         type: OfferType;
         supply: number;
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              startPrice?: number | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              highestBid?:
-                | { transactionHash: string; bidAmount: number }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          startPrice?: number | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          highestBid?: { transactionHash: string; bidAmount: number } | null;
+        } | null;
       }
     | {
         id: string;
-        createdAt?: any | null | undefined;
+        createdAt?: any | null;
         chainId: number;
         type: OfferType;
         supply: number;
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              startPrice?: number | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              highestBid?:
-                | { transactionHash: string; bidAmount: number }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          startPrice?: number | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          highestBid?: { transactionHash: string; bidAmount: number } | null;
+        } | null;
       }
-    | null
-    | undefined;
+    | null;
   creator: {
     id: string;
-    ethAddress?: string | null | undefined;
-    name?: string | null | undefined;
-    profileImage?: string | null | undefined;
-    verified?: boolean | null | undefined;
+    ethAddress?: string | null;
+    name?: string | null;
+    profileImage?: string | null;
+    verified?: boolean | null;
   };
-  collection?:
-    | {
-        slug: string;
-        name: string;
-        iconUrl?: string | null | undefined;
-        verified: boolean;
-      }
-    | null
-    | undefined;
+  collection?: {
+    slug: string;
+    name: string;
+    iconUrl?: string | null;
+    verified: boolean;
+  } | null;
   properties: {
     fileType: FileType;
-    imagePreview?: string | null | undefined;
-    fileUrl?: string | null | undefined;
-    originalFileUrl?: string | null | undefined;
-    thumbnailUrl?: string | null | undefined;
-    originalThumbnailUrl?: string | null | undefined;
+    imagePreview?: string | null;
+    fileUrl?: string | null;
+    originalFileUrl?: string | null;
+    thumbnailUrl?: string | null;
+    originalThumbnailUrl?: string | null;
   };
-  transcodings?: Array<{ url: string; mimeType: string }> | null | undefined;
+  transcodings?: Array<{ url: string; mimeType: string }> | null;
 };
 
 export type AuctionFragment = {
   id: string;
-  auctionId?: string | null | undefined;
-  auctionContractAddress?: string | null | undefined;
-  startTime?: any | null | undefined;
-  endTime?: any | null | undefined;
-  startPrice?: number | null | undefined;
+  auctionId?: string | null;
+  auctionContractAddress?: string | null;
+  startTime?: any | null;
+  endTime?: any | null;
+  startPrice?: number | null;
   bids: Array<{
     transactionHash: string;
     bidAmount: number;
     bidTime: any;
-    bidder?:
-      | {
-          ethAddress?: string | null | undefined;
-          description?: string | null | undefined;
-          name?: string | null | undefined;
-          profileImage?: string | null | undefined;
-        }
-      | null
-      | undefined;
+    bidder?: {
+      ethAddress?: string | null;
+      description?: string | null;
+      name?: string | null;
+      profileImage?: string | null;
+    } | null;
   }>;
-  highestBid?:
-    | {
-        transactionHash: string;
-        bidAmount: number;
-        bidTime: any;
-        bidder?:
-          | {
-              ethAddress?: string | null | undefined;
-              description?: string | null | undefined;
-              name?: string | null | undefined;
-              profileImage?: string | null | undefined;
-            }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
+  highestBid?: {
+    transactionHash: string;
+    bidAmount: number;
+    bidTime: any;
+    bidder?: {
+      ethAddress?: string | null;
+      description?: string | null;
+      name?: string | null;
+      profileImage?: string | null;
+    } | null;
+  } | null;
 };
 
 export type Offer_MintOffer_Fragment = {
@@ -2554,84 +2552,65 @@ export type Offer_MintOffer_Fragment = {
   supply: number;
   chainId: number;
   totalSupply: number;
-  startTime?: any | null | undefined;
-  endTime?: any | null | undefined;
+  startTime?: any | null;
+  endTime?: any | null;
   contractAddress: string;
-  signature?: string | null | undefined;
-  blockchainId?: string | null | undefined;
-  orderParams?: any | null | undefined;
-  platform?: Platform | null | undefined;
+  signature?: string | null;
+  blockchainId?: string | null;
+  orderParams?: any | null;
+  platform?: Platform | null;
   whitelistStage: LaunchpadCountDownType;
-  user: { id: string; ethAddress?: string | null | undefined };
+  user: { id: string; ethAddress?: string | null };
   price: { amount: number; currency: PriceCurrency };
-  auction?:
-    | {
-        id: string;
-        auctionId?: string | null | undefined;
-        auctionContractAddress?: string | null | undefined;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
-        startPrice?: number | null | undefined;
-        bids: Array<{
-          transactionHash: string;
-          bidAmount: number;
-          bidTime: any;
-          bidder?:
-            | {
-                ethAddress?: string | null | undefined;
-                description?: string | null | undefined;
-                name?: string | null | undefined;
-                profileImage?: string | null | undefined;
-              }
-            | null
-            | undefined;
-        }>;
-        highestBid?:
-          | {
-              transactionHash: string;
-              bidAmount: number;
-              bidTime: any;
-              bidder?:
-                | {
-                    ethAddress?: string | null | undefined;
-                    description?: string | null | undefined;
-                    name?: string | null | undefined;
-                    profileImage?: string | null | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
-  launchpadDetails?:
-    | {
-        currentStage?:
-          | {
-              startTime?: any | null | undefined;
-              stage: WhitelistType;
-              price?: number | null | undefined;
-              isWhitelisted: boolean;
-            }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
+  auction?: {
+    id: string;
+    auctionId?: string | null;
+    auctionContractAddress?: string | null;
+    startTime?: any | null;
+    endTime?: any | null;
+    startPrice?: number | null;
+    bids: Array<{
+      transactionHash: string;
+      bidAmount: number;
+      bidTime: any;
+      bidder?: {
+        ethAddress?: string | null;
+        description?: string | null;
+        name?: string | null;
+        profileImage?: string | null;
+      } | null;
+    }>;
+    highestBid?: {
+      transactionHash: string;
+      bidAmount: number;
+      bidTime: any;
+      bidder?: {
+        ethAddress?: string | null;
+        description?: string | null;
+        name?: string | null;
+        profileImage?: string | null;
+      } | null;
+    } | null;
+  } | null;
+  launchpadDetails?: {
+    currentStage?: {
+      startTime?: any | null;
+      stage: WhitelistType;
+      price?: number | null;
+      isWhitelisted: boolean;
+    } | null;
+  } | null;
   marketConfig: {
     data: string;
     signature: string;
-    buyServiceFeeBps?:
-      | { type: ServiceFeeType; value: number }
-      | null
-      | undefined;
+    buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
   };
-  whitelistVoucher?:
-    | { limit: number; signature: string; startTime: any; price: number }
-    | null
-    | undefined;
+  whitelistVoucher?: {
+    limit: number;
+    signature: string;
+    startTime: any;
+    price: number;
+  } | null;
 };
 
 export type Offer_SaleOffer_Fragment = {
@@ -2641,100 +2620,78 @@ export type Offer_SaleOffer_Fragment = {
   supply: number;
   chainId: number;
   totalSupply: number;
-  startTime?: any | null | undefined;
-  endTime?: any | null | undefined;
+  startTime?: any | null;
+  endTime?: any | null;
   contractAddress: string;
-  signature?: string | null | undefined;
-  blockchainId?: string | null | undefined;
-  orderParams?: any | null | undefined;
-  platform?: Platform | null | undefined;
+  signature?: string | null;
+  blockchainId?: string | null;
+  orderParams?: any | null;
+  platform?: Platform | null;
   whitelistStage: LaunchpadCountDownType;
-  user: { id: string; ethAddress?: string | null | undefined };
+  user: { id: string; ethAddress?: string | null };
   price: { amount: number; currency: PriceCurrency };
-  auction?:
-    | {
-        id: string;
-        auctionId?: string | null | undefined;
-        auctionContractAddress?: string | null | undefined;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
-        startPrice?: number | null | undefined;
-        bids: Array<{
-          transactionHash: string;
-          bidAmount: number;
-          bidTime: any;
-          bidder?:
-            | {
-                ethAddress?: string | null | undefined;
-                description?: string | null | undefined;
-                name?: string | null | undefined;
-                profileImage?: string | null | undefined;
-              }
-            | null
-            | undefined;
-        }>;
-        highestBid?:
-          | {
-              transactionHash: string;
-              bidAmount: number;
-              bidTime: any;
-              bidder?:
-                | {
-                    ethAddress?: string | null | undefined;
-                    description?: string | null | undefined;
-                    name?: string | null | undefined;
-                    profileImage?: string | null | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
-  launchpadDetails?:
-    | {
-        currentStage?:
-          | {
-              startTime?: any | null | undefined;
-              stage: WhitelistType;
-              price?: number | null | undefined;
-              isWhitelisted: boolean;
-            }
-          | null
-          | undefined;
-      }
-    | null
-    | undefined;
+  auction?: {
+    id: string;
+    auctionId?: string | null;
+    auctionContractAddress?: string | null;
+    startTime?: any | null;
+    endTime?: any | null;
+    startPrice?: number | null;
+    bids: Array<{
+      transactionHash: string;
+      bidAmount: number;
+      bidTime: any;
+      bidder?: {
+        ethAddress?: string | null;
+        description?: string | null;
+        name?: string | null;
+        profileImage?: string | null;
+      } | null;
+    }>;
+    highestBid?: {
+      transactionHash: string;
+      bidAmount: number;
+      bidTime: any;
+      bidder?: {
+        ethAddress?: string | null;
+        description?: string | null;
+        name?: string | null;
+        profileImage?: string | null;
+      } | null;
+    } | null;
+  } | null;
+  launchpadDetails?: {
+    currentStage?: {
+      startTime?: any | null;
+      stage: WhitelistType;
+      price?: number | null;
+      isWhitelisted: boolean;
+    } | null;
+  } | null;
   marketConfig: {
     data: string;
     signature: string;
-    buyServiceFeeBps?:
-      | { type: ServiceFeeType; value: number }
-      | null
-      | undefined;
+    buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
   };
-  whitelistVoucher?:
-    | { limit: number; signature: string; startTime: any; price: number }
-    | null
-    | undefined;
+  whitelistVoucher?: {
+    limit: number;
+    signature: string;
+    startTime: any;
+    price: number;
+  } | null;
 };
 
 export type OfferFragment = Offer_MintOffer_Fragment | Offer_SaleOffer_Fragment;
 
 export type MintOfferFragment = {
-  name?: string | null | undefined;
-  description?: string | null | undefined;
+  name?: string | null;
+  description?: string | null;
   chainId: number;
   payee: string;
-  previewFile?:
-    | {
-        fileUrl?: string | null | undefined;
-        imagePreview?: string | null | undefined;
-      }
-    | null
-    | undefined;
+  previewFile?: {
+    fileUrl?: string | null;
+    imagePreview?: string | null;
+  } | null;
 };
 
 export type GetUserOfferItemsQueryVariables = Exact<{
@@ -2745,116 +2702,94 @@ export type GetUserOfferItemsQueryVariables = Exact<{
 }>;
 
 export type GetUserOfferItemsQuery = {
-  user?:
-    | {
-        id: string;
-        itemsOnOffer: {
-          totalCount?: number | null | undefined;
-          edges?:
-            | Array<{
-                cursor: string;
-                node: {
-                  id: string;
-                  item: {
-                    id: string;
-                    tokenId: string;
-                    contractAddress: string;
-                    supply: number;
-                    totalSupply: number;
-                    name: string;
-                    description?: string | null | undefined;
-                    chainId: number;
-                    creator: {
-                      id: string;
-                      ethAddress?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                      verified?: boolean | null | undefined;
-                    };
-                    collection?:
-                      | {
-                          slug: string;
-                          name: string;
-                          iconUrl?: string | null | undefined;
-                          verified: boolean;
-                        }
-                      | null
-                      | undefined;
-                    properties: {
-                      fileType: FileType;
-                      imagePreview?: string | null | undefined;
-                      fileUrl?: string | null | undefined;
-                      originalFileUrl?: string | null | undefined;
-                      thumbnailUrl?: string | null | undefined;
-                      originalThumbnailUrl?: string | null | undefined;
-                    };
-                    transcodings?:
-                      | Array<{ url: string; mimeType: string }>
-                      | null
-                      | undefined;
-                  };
-                  nextEditionForSale?:
-                    | {
-                        id: string;
-                        createdAt?: any | null | undefined;
-                        chainId: number;
-                        type: OfferType;
-                        supply: number;
-                        price: { amount: number; currency: PriceCurrency };
-                        auction?:
-                          | {
-                              id: string;
-                              startPrice?: number | null | undefined;
-                              startTime?: any | null | undefined;
-                              endTime?: any | null | undefined;
-                              highestBid?:
-                                | { transactionHash: string; bidAmount: number }
-                                | null
-                                | undefined;
-                            }
-                          | null
-                          | undefined;
-                      }
-                    | {
-                        id: string;
-                        createdAt?: any | null | undefined;
-                        chainId: number;
-                        type: OfferType;
-                        supply: number;
-                        price: { amount: number; currency: PriceCurrency };
-                        auction?:
-                          | {
-                              id: string;
-                              startPrice?: number | null | undefined;
-                              startTime?: any | null | undefined;
-                              endTime?: any | null | undefined;
-                              highestBid?:
-                                | { transactionHash: string; bidAmount: number }
-                                | null
-                                | undefined;
-                            }
-                          | null
-                          | undefined;
-                      }
-                    | null
-                    | undefined;
-                };
-              }>
-            | null
-            | undefined;
-          pageInfo?:
+  user?: {
+    id: string;
+    itemsOnOffer: {
+      totalCount?: number | null;
+      edges?: Array<{
+        cursor: string;
+        node: {
+          id: string;
+          item: {
+            id: string;
+            tokenId: string;
+            contractAddress: string;
+            supply: number;
+            totalSupply: number;
+            name: string;
+            description?: string | null;
+            chainId: number;
+            creator: {
+              id: string;
+              ethAddress?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+              verified?: boolean | null;
+            };
+            collection?: {
+              slug: string;
+              name: string;
+              iconUrl?: string | null;
+              verified: boolean;
+            } | null;
+            properties: {
+              fileType: FileType;
+              imagePreview?: string | null;
+              fileUrl?: string | null;
+              originalFileUrl?: string | null;
+              thumbnailUrl?: string | null;
+              originalThumbnailUrl?: string | null;
+            };
+            transcodings?: Array<{ url: string; mimeType: string }> | null;
+          };
+          nextEditionForSale?:
             | {
-                startCursor?: string | null | undefined;
-                endCursor?: string | null | undefined;
-                hasNextPage: boolean;
-                hasPreviousPage: boolean;
+                id: string;
+                createdAt?: any | null;
+                chainId: number;
+                type: OfferType;
+                supply: number;
+                price: { amount: number; currency: PriceCurrency };
+                auction?: {
+                  id: string;
+                  startPrice?: number | null;
+                  startTime?: any | null;
+                  endTime?: any | null;
+                  highestBid?: {
+                    transactionHash: string;
+                    bidAmount: number;
+                  } | null;
+                } | null;
               }
-            | null
-            | undefined;
+            | {
+                id: string;
+                createdAt?: any | null;
+                chainId: number;
+                type: OfferType;
+                supply: number;
+                price: { amount: number; currency: PriceCurrency };
+                auction?: {
+                  id: string;
+                  startPrice?: number | null;
+                  startTime?: any | null;
+                  endTime?: any | null;
+                  highestBid?: {
+                    transactionHash: string;
+                    bidAmount: number;
+                  } | null;
+                } | null;
+              }
+            | null;
         };
-      }
-    | null
-    | undefined;
+      }> | null;
+      pageInfo?: {
+        startCursor?: string | null;
+        endCursor?: string | null;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+      } | null;
+    };
+  } | null;
 };
 
 export type GetOfferQueryVariables = Exact<{
@@ -2866,8 +2801,8 @@ export type GetOfferQuery = {
   offer?:
     | {
         __typename: "MintOffer";
-        name?: string | null | undefined;
-        description?: string | null | undefined;
+        name?: string | null;
+        description?: string | null;
         chainId: number;
         payee: string;
         id: string;
@@ -2875,103 +2810,78 @@ export type GetOfferQuery = {
         active: boolean;
         supply: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        item?:
-          | {
-              id: string;
-              type: TokenType;
-              tokenId: string;
-              contractAddress: string;
-              supply: number;
-              totalSupply: number;
-              chainId: number;
-            }
-          | null
-          | undefined;
-        previewFile?:
-          | {
-              fileUrl?: string | null | undefined;
-              imagePreview?: string | null | undefined;
-            }
-          | null
-          | undefined;
-        user: { id: string; ethAddress?: string | null | undefined };
+        item?: {
+          id: string;
+          type: TokenType;
+          tokenId: string;
+          contractAddress: string;
+          supply: number;
+          totalSupply: number;
+          chainId: number;
+        } | null;
+        previewFile?: {
+          fileUrl?: string | null;
+          imagePreview?: string | null;
+        } | null;
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
       }
     | {
         __typename: "SaleOffer";
@@ -2981,99 +2891,76 @@ export type GetOfferQuery = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        item?:
-          | {
-              id: string;
-              type: TokenType;
-              tokenId: string;
-              contractAddress: string;
-              supply: number;
-              totalSupply: number;
-              chainId: number;
-            }
-          | null
-          | undefined;
-        user: { id: string; ethAddress?: string | null | undefined };
+        item?: {
+          id: string;
+          type: TokenType;
+          tokenId: string;
+          contractAddress: string;
+          supply: number;
+          totalSupply: number;
+          chainId: number;
+        } | null;
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
       }
-    | null
-    | undefined;
+    | null;
 };
 
 export type GetUserItemsQueryVariables = Exact<{
@@ -3083,114 +2970,92 @@ export type GetUserItemsQueryVariables = Exact<{
 }>;
 
 export type GetUserItemsQuery = {
-  user?:
-    | {
-        id: string;
-        items: {
-          totalCount?: number | null | undefined;
-          edges?:
-            | Array<{
-                cursor: string;
-                node: {
-                  userSupply: number;
-                  id: string;
-                  tokenId: string;
-                  contractAddress: string;
-                  supply: number;
-                  totalSupply: number;
-                  name: string;
-                  description?: string | null | undefined;
-                  chainId: number;
-                  nextEditionForSale?:
-                    | {
-                        id: string;
-                        createdAt?: any | null | undefined;
-                        chainId: number;
-                        type: OfferType;
-                        supply: number;
-                        price: { amount: number; currency: PriceCurrency };
-                        auction?:
-                          | {
-                              id: string;
-                              startPrice?: number | null | undefined;
-                              startTime?: any | null | undefined;
-                              endTime?: any | null | undefined;
-                              highestBid?:
-                                | { transactionHash: string; bidAmount: number }
-                                | null
-                                | undefined;
-                            }
-                          | null
-                          | undefined;
-                      }
-                    | {
-                        id: string;
-                        createdAt?: any | null | undefined;
-                        chainId: number;
-                        type: OfferType;
-                        supply: number;
-                        price: { amount: number; currency: PriceCurrency };
-                        auction?:
-                          | {
-                              id: string;
-                              startPrice?: number | null | undefined;
-                              startTime?: any | null | undefined;
-                              endTime?: any | null | undefined;
-                              highestBid?:
-                                | { transactionHash: string; bidAmount: number }
-                                | null
-                                | undefined;
-                            }
-                          | null
-                          | undefined;
-                      }
-                    | null
-                    | undefined;
-                  creator: {
-                    id: string;
-                    ethAddress?: string | null | undefined;
-                    name?: string | null | undefined;
-                    profileImage?: string | null | undefined;
-                    verified?: boolean | null | undefined;
-                  };
-                  collection?:
-                    | {
-                        slug: string;
-                        name: string;
-                        iconUrl?: string | null | undefined;
-                        verified: boolean;
-                      }
-                    | null
-                    | undefined;
-                  properties: {
-                    fileType: FileType;
-                    imagePreview?: string | null | undefined;
-                    fileUrl?: string | null | undefined;
-                    originalFileUrl?: string | null | undefined;
-                    thumbnailUrl?: string | null | undefined;
-                    originalThumbnailUrl?: string | null | undefined;
-                  };
-                  transcodings?:
-                    | Array<{ url: string; mimeType: string }>
-                    | null
-                    | undefined;
-                };
-              }>
-            | null
-            | undefined;
-          pageInfo?:
+  user?: {
+    id: string;
+    items: {
+      totalCount?: number | null;
+      edges?: Array<{
+        cursor: string;
+        node: {
+          userSupply: number;
+          id: string;
+          tokenId: string;
+          contractAddress: string;
+          supply: number;
+          totalSupply: number;
+          name: string;
+          description?: string | null;
+          chainId: number;
+          nextEditionForSale?:
             | {
-                startCursor?: string | null | undefined;
-                endCursor?: string | null | undefined;
-                hasNextPage: boolean;
-                hasPreviousPage: boolean;
+                id: string;
+                createdAt?: any | null;
+                chainId: number;
+                type: OfferType;
+                supply: number;
+                price: { amount: number; currency: PriceCurrency };
+                auction?: {
+                  id: string;
+                  startPrice?: number | null;
+                  startTime?: any | null;
+                  endTime?: any | null;
+                  highestBid?: {
+                    transactionHash: string;
+                    bidAmount: number;
+                  } | null;
+                } | null;
               }
-            | null
-            | undefined;
+            | {
+                id: string;
+                createdAt?: any | null;
+                chainId: number;
+                type: OfferType;
+                supply: number;
+                price: { amount: number; currency: PriceCurrency };
+                auction?: {
+                  id: string;
+                  startPrice?: number | null;
+                  startTime?: any | null;
+                  endTime?: any | null;
+                  highestBid?: {
+                    transactionHash: string;
+                    bidAmount: number;
+                  } | null;
+                } | null;
+              }
+            | null;
+          creator: {
+            id: string;
+            ethAddress?: string | null;
+            name?: string | null;
+            profileImage?: string | null;
+            verified?: boolean | null;
+          };
+          collection?: {
+            slug: string;
+            name: string;
+            iconUrl?: string | null;
+            verified: boolean;
+          } | null;
+          properties: {
+            fileType: FileType;
+            imagePreview?: string | null;
+            fileUrl?: string | null;
+            originalFileUrl?: string | null;
+            thumbnailUrl?: string | null;
+            originalThumbnailUrl?: string | null;
+          };
+          transcodings?: Array<{ url: string; mimeType: string }> | null;
         };
-      }
-    | null
-    | undefined;
+      }> | null;
+      pageInfo?: {
+        startCursor?: string | null;
+        endCursor?: string | null;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+      } | null;
+    };
+  } | null;
 };
 
 export type RefreshMetadataMutationVariables = Exact<{
@@ -3211,7 +3076,7 @@ export type CreateItemMutationVariables = Exact<{
 
 export type CreateItemMutation = {
   createItem: {
-    signature?: string | null | undefined;
+    signature?: string | null;
     item: {
       id: string;
       tokenId: string;
@@ -3222,10 +3087,10 @@ export type CreateItemMutation = {
       type: TokenType;
       properties: {
         fileType: FileType;
-        imagePreview?: string | null | undefined;
-        fileUrl?: string | null | undefined;
-        ipfsUrl?: string | null | undefined;
-        ipfsDocument?: string | null | undefined;
+        imagePreview?: string | null;
+        fileUrl?: string | null;
+        ipfsUrl?: string | null;
+        ipfsDocument?: string | null;
       };
     };
   };
@@ -3247,10 +3112,10 @@ export type FinishMintMutation = {
       type: TokenType;
       properties: {
         fileType: FileType;
-        imagePreview?: string | null | undefined;
-        fileUrl?: string | null | undefined;
-        ipfsUrl?: string | null | undefined;
-        ipfsDocument?: string | null | undefined;
+        imagePreview?: string | null;
+        fileUrl?: string | null;
+        ipfsUrl?: string | null;
+        ipfsDocument?: string | null;
       };
     };
   };
@@ -3270,84 +3135,65 @@ export type CreateOfferForEditionsMutation = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        user: { id: string; ethAddress?: string | null | undefined };
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
       }
     | {
         id: string;
@@ -3356,84 +3202,65 @@ export type CreateOfferForEditionsMutation = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        user: { id: string; ethAddress?: string | null | undefined };
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
       };
 };
 
@@ -3451,94 +3278,72 @@ export type CreateMintOfferMutation = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        name?: string | null | undefined;
-        description?: string | null | undefined;
+        name?: string | null;
+        description?: string | null;
         payee: string;
-        user: { id: string; ethAddress?: string | null | undefined };
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
-        previewFile?:
-          | {
-              fileUrl?: string | null | undefined;
-              imagePreview?: string | null | undefined;
-            }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
+        previewFile?: {
+          fileUrl?: string | null;
+          imagePreview?: string | null;
+        } | null;
       }
     | {
         id: string;
@@ -3547,84 +3352,65 @@ export type CreateMintOfferMutation = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        user: { id: string; ethAddress?: string | null | undefined };
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
       };
 };
 
@@ -3643,94 +3429,72 @@ export type UpdateMintOfferMutation = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        name?: string | null | undefined;
-        description?: string | null | undefined;
+        name?: string | null;
+        description?: string | null;
         payee: string;
-        user: { id: string; ethAddress?: string | null | undefined };
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
-        previewFile?:
-          | {
-              fileUrl?: string | null | undefined;
-              imagePreview?: string | null | undefined;
-            }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
+        previewFile?: {
+          fileUrl?: string | null;
+          imagePreview?: string | null;
+        } | null;
       }
     | {
         id: string;
@@ -3739,84 +3503,65 @@ export type UpdateMintOfferMutation = {
         supply: number;
         chainId: number;
         totalSupply: number;
-        startTime?: any | null | undefined;
-        endTime?: any | null | undefined;
+        startTime?: any | null;
+        endTime?: any | null;
         contractAddress: string;
-        signature?: string | null | undefined;
-        blockchainId?: string | null | undefined;
-        orderParams?: any | null | undefined;
-        platform?: Platform | null | undefined;
+        signature?: string | null;
+        blockchainId?: string | null;
+        orderParams?: any | null;
+        platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
-        user: { id: string; ethAddress?: string | null | undefined };
+        user: { id: string; ethAddress?: string | null };
         price: { amount: number; currency: PriceCurrency };
-        auction?:
-          | {
-              id: string;
-              auctionId?: string | null | undefined;
-              auctionContractAddress?: string | null | undefined;
-              startTime?: any | null | undefined;
-              endTime?: any | null | undefined;
-              startPrice?: number | null | undefined;
-              bids: Array<{
-                transactionHash: string;
-                bidAmount: number;
-                bidTime: any;
-                bidder?:
-                  | {
-                      ethAddress?: string | null | undefined;
-                      description?: string | null | undefined;
-                      name?: string | null | undefined;
-                      profileImage?: string | null | undefined;
-                    }
-                  | null
-                  | undefined;
-              }>;
-              highestBid?:
-                | {
-                    transactionHash: string;
-                    bidAmount: number;
-                    bidTime: any;
-                    bidder?:
-                      | {
-                          ethAddress?: string | null | undefined;
-                          description?: string | null | undefined;
-                          name?: string | null | undefined;
-                          profileImage?: string | null | undefined;
-                        }
-                      | null
-                      | undefined;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
-        launchpadDetails?:
-          | {
-              currentStage?:
-                | {
-                    startTime?: any | null | undefined;
-                    stage: WhitelistType;
-                    price?: number | null | undefined;
-                    isWhitelisted: boolean;
-                  }
-                | null
-                | undefined;
-            }
-          | null
-          | undefined;
+        auction?: {
+          id: string;
+          auctionId?: string | null;
+          auctionContractAddress?: string | null;
+          startTime?: any | null;
+          endTime?: any | null;
+          startPrice?: number | null;
+          bids: Array<{
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          }>;
+          highestBid?: {
+            transactionHash: string;
+            bidAmount: number;
+            bidTime: any;
+            bidder?: {
+              ethAddress?: string | null;
+              description?: string | null;
+              name?: string | null;
+              profileImage?: string | null;
+            } | null;
+          } | null;
+        } | null;
+        launchpadDetails?: {
+          currentStage?: {
+            startTime?: any | null;
+            stage: WhitelistType;
+            price?: number | null;
+            isWhitelisted: boolean;
+          } | null;
+        } | null;
         marketConfig: {
           data: string;
           signature: string;
-          buyServiceFeeBps?:
-            | { type: ServiceFeeType; value: number }
-            | null
-            | undefined;
+          buyServiceFeeBps?: { type: ServiceFeeType; value: number } | null;
         };
-        whitelistVoucher?:
-          | { limit: number; signature: string; startTime: any; price: number }
-          | null
-          | undefined;
+        whitelistVoucher?: {
+          limit: number;
+          signature: string;
+          startTime: any;
+          price: number;
+        } | null;
       };
 };
 
@@ -3838,7 +3583,7 @@ export type X2y2Query = {
       from: string;
       to: string;
       data: string;
-      value?: string | null | undefined;
+      value?: string | null;
     };
   };
 };

@@ -70,28 +70,36 @@ export class Erc721LazyMintContract extends Contract {
   }
 
   async maxTokens(): Promise<number> {
-    const maxTokens = await this.contractWrapper.contract.MAX_TOKENS();
+    const maxTokens = await this.contractWrapper.read.MAX_TOKENS();
 
     return maxTokens.toNumber();
   }
 
   async totalSupply(): Promise<number> {
-    const totalSupply = await this.contractWrapper.contract.totalSupply();
+    const totalSupply = await this.contractWrapper.read.totalSupply();
 
     return totalSupply.toNumber();
   }
 
   isRevealed(): Promise<boolean> {
-    return this.contractWrapper.contract._revealed();
+    return this.contractWrapper.read._revealed();
   }
 
-  getSaleSettings(): Promise<SaleSettings> {
-    return this.contractWrapper.contract.saleSettings();
+  async getSaleSettings(): Promise<SaleSettings> {
+    const settings = await this.contractWrapper.read.saleSettings();
+
+    return {
+      ...settings,
+      maxPerMint: settings.maxPerMint.toNumber(),
+      maxPerWallet: settings.maxPerWallet.toNumber(),
+    };
   }
 
   async getNonce(seller: string): Promise<number> {
-    return (await this.contractWrapper.contract.getNonce(seller))?.toNumber();
+    return (await this.contractWrapper.read.getNonce(seller))?.toNumber();
   }
+
+  // **** TX ****
 
   updateSaleSettings(saleSettings: Partial<SaleSettings>) {
     const settings: SaleSettings = {
@@ -103,7 +111,7 @@ export class Erc721LazyMintContract extends Contract {
     return this.contractWrapper.sendTransaction("updateParams", [settings]);
   }
 
-  setRoyaltyInfo(royalties: LibPart[]) {
+  setRoyaltyInfo(royalties: LibPart) {
     return this.contractWrapper.sendTransaction("setRoyaltyInfo", [royalties]);
   }
 

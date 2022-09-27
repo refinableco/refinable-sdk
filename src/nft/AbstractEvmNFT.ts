@@ -9,6 +9,7 @@ import {
   OfferType,
   Price,
   TokenType,
+  Platform,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -35,6 +36,7 @@ import {
 } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
+import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
@@ -175,6 +177,15 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   abstract putForSale(params: {
     price: Price;
     supply?: number;
+    platforms?: Platform[];
+    onInitialize?: (
+      steps: { step: LIST_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends ListStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: LIST_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
   }): Promise<SaleOffer>;
   abstract transfer(
     ownerEthAddress: string,
@@ -219,7 +230,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     const fees: LibPart[] = await serviceFeeContract
       .connect(this.refinable.provider)
-      .contractWrapper.contract.getServiceFees(
+      .contractWrapper.read.getServiceFees(
         FeeType.BUY,
         this.refinable.accountAddress,
         contractAddress,
@@ -424,7 +435,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       auctionContractAddress
     );
 
-    return contractWrapper.contract.getAuctionId(
+    return contractWrapper.read.getAuctionId(
       this.item.contractAddress,
       this.item.tokenId,
       this.refinable.accountAddress
@@ -440,7 +451,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       return 0;
     }
     const minBidIncrementBps: BigNumber =
-      await contractWrapper.contract.minBidIncrementBps();
+      await contractWrapper.read.minBidIncrementBps();
 
     return parseBPS(minBidIncrementBps) / 100;
   }
@@ -553,7 +564,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       [
         auctionIdOrFetch,
         ...optionalParam(
-          contract.hasTag(ContractTag.AuctionV5_0_0),
+          contract.hasTagSemver("AUCTION", ">=5.0.0"),
           bidAmount, // uint256 bidAmount
           marketConfig.data ?? "0x",
           marketConfig.signature ?? "0x"
@@ -601,7 +612,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     return await contractWrapper.sendTransaction("endAuction", [
       auctionIdOrFetch,
       ...optionalParam(
-        contract.hasTag(ContractTag.AuctionV5_0_0),
+        contract.hasTagSemver("AUCTION", ">=5.0.0"),
         marketConfig.data ?? "0x",
         marketConfig.signature ?? "0x"
       ),
@@ -668,20 +679,24 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
    */
 
   public async approveIfNeeded(
-    operatorAddress: string
+    operatorAddress: string,
+    approvingCallback?: () => void
   ): Promise<Transaction | null> {
     const isContractDeployed =
       await this.refinable.evm.contracts.isContractDeployed(operatorAddress);
 
     if (!isContractDeployed) {
       throw new Error(
-        `OperatContract at address ${operatorAddress} is not deployed`
+        `Operator Contract at address ${operatorAddress} is not deployed`
       );
     }
 
     const isApproved = await this.isApproved(operatorAddress);
 
     if (!isApproved) {
+      if (approvingCallback) {
+        approvingCallback();
+      }
       const approvalResult = await this.approve(operatorAddress);
 
       return approvalResult;
