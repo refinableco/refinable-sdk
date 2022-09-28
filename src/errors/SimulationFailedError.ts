@@ -1,8 +1,8 @@
 export class SimulationFailedError extends Error {
   public _isSimulationFailedError = true;
 
-  constructor() {
-    super("Simulation Failed");
+  constructor(message: string = "") {
+    super(`Simulation Failed: ${message}`);
     this.name = this.constructor.name;
 
     // Not supported in some browsers
