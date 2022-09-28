@@ -99,6 +99,18 @@ export const chainMap: Record<Chain, IChainConfig> = {
         decimals: 0,
         address: "0x46d502fac9aea7c5bc7b13c8ec9d02378c33d36f",
       },
+      {
+        name: "PFI",
+        symbol: "PFI",
+        decimals: 18,
+        address: "0xc9dbcff0448d330aaf1dd78fc204370e5e54a797",
+      },
+      {
+        name: "GART",
+        symbol: "GART",
+        decimals: 9,
+        address: "0xd1ecfdd45c49057479c4ca95e045855370bc4f5b",
+      },
     ],
   },
   [Chain.BscTestnet]: {

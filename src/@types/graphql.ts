@@ -63,6 +63,8 @@ export type AnalyticsMostTraded = {
 
 export type AnalyticsStats = {
   date: Scalars["DateTime"];
+  fees: Scalars["Float"];
+  royalties: Scalars["Float"];
   trades: Scalars["Float"];
   volume: Scalars["Float"];
 };
@@ -1429,8 +1431,10 @@ export enum PriceCurrency {
   Busd = "BUSD",
   Eth = "ETH",
   Fine = "FINE",
+  Gart = "GART",
   High = "HIGH",
   Matic = "MATIC",
+  Pfi = "PFI",
   Pst = "PST",
   Usdc = "USDC",
   Usdt = "USDT",
@@ -1681,8 +1685,7 @@ export type RefinableContractInput = {
 };
 
 export type RefreshCollectionInput = {
-  chainId: Scalars["Int"];
-  contractAddress: Scalars["String"];
+  collectionId: Scalars["String"];
 };
 
 export type RefreshMetadataInput = {
@@ -2023,6 +2026,7 @@ export type UpdateStoreInput = {
   facebook?: InputMaybe<Scalars["String"]>;
   favicon?: InputMaybe<Scalars["String"]>;
   fees?: InputMaybe<FeesInput>;
+  fontFamily?: InputMaybe<Scalars["String"]>;
   heroSection?: InputMaybe<HeroSectionInput>;
   instagram?: InputMaybe<Scalars["String"]>;
   logo?: InputMaybe<Scalars["String"]>;
