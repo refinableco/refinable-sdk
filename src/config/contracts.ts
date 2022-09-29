@@ -61,8 +61,8 @@ export const getContractsTags = (environment: Environment): ContractTag[] => {
     case Environment.Mainnet:
       return [
         ContractTag.ServiceFeeV1_0_0,
-        ContractTag.SaleV4_1_2,
-        ContractTag.AuctionV5_0_1,
+        ContractTag.SaleV4_1_3,
+        ContractTag.AuctionV5_0_2,
         ContractTag.SaleNonceHolderV1_0_0,
         ContractTag.TransferProxyV1_0_0,
         ContractTag.AirdropV1_0_0,
