@@ -93,6 +93,24 @@ export const chainMap: Record<Chain, IChainConfig> = {
         decimals: 9,
         address: "0xc9210963b831095c35740A9Ec943CdC35995c467",
       },
+      {
+        name: "WSPP",
+        symbol: "WSPP",
+        decimals: 0,
+        address: "0x46d502fac9aea7c5bc7b13c8ec9d02378c33d36f",
+      },
+      {
+        name: "PFI",
+        symbol: "PFI",
+        decimals: 18,
+        address: "0xc9dbcff0448d330aaf1dd78fc204370e5e54a797",
+      },
+      {
+        name: "GART",
+        symbol: "GART",
+        decimals: 9,
+        address: "0xd1ecfdd45c49057479c4ca95e045855370bc4f5b",
+      },
     ],
   },
   [Chain.BscTestnet]: {
@@ -243,6 +261,12 @@ export const chainMap: Record<Chain, IChainConfig> = {
         symbol: "APE",
         decimals: 18,
         address: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
+      },
+      {
+        name: "HIGH",
+        symbol: "HIGH",
+        decimals: 18,
+        address: "0x71ab77b7dbb4fa7e017bc15090b2163221420282",
       },
     ],
   },

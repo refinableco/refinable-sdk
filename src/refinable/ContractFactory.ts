@@ -10,6 +10,7 @@ import {
 } from "../@types/graphql";
 import { getContractAddress } from "../config/contracts";
 import { ipfsUrl, SIGNERS } from "../config/sdk";
+import { TransactionError } from "../errors";
 import { CREATE_COLLECTION } from "../graphql/collections";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { RefinableEvmOptions } from "../types/RefinableOptions";
@@ -169,11 +170,15 @@ export class ContractFactory {
 
     const deployArgs = this.getDeployArgs(type, contractArguments, chainId);
 
-    const contract = await factory.deploy(...deployArgs);
+    try {
+      const contract = await factory.deploy(...deployArgs);
 
-    await contract.deployed();
+      await contract.deployed();
 
-    return { contract, contractAbi: artifacts.abi };
+      return { contract, contractAbi: artifacts.abi };
+    } catch (err) {
+      throw new TransactionError(err);
+    }
   }
 
   private getDeployArgs<C extends DeployableContractsClasses>(
