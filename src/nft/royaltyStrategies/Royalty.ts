@@ -15,7 +15,7 @@ export type RoyaltySettingsInput = {
 };
 
 export type SerializedRoyaltySettings = {
-  shares?: (string | number)[][];
+  shares?: (string | number)[][] | (string | number)[];
   royaltyStrategy: number;
   royaltyBps?: number;
 };
@@ -39,5 +39,5 @@ export interface IRoyalty {
   royaltyStrategy: RoyaltyStrategy;
   royaltyBps?: number;
 
-  serialize: () => SerializedRoyaltySettings;
+  serialize: (useEip2981?: boolean) => SerializedRoyaltySettings;
 }
