@@ -128,6 +128,26 @@ export class LooksrarePlatform extends AbstractPlatform {
     // sign
     const nonce = await this.getNonce(orderParams.signer);
 
+    // -- LOOKSRARE
+    // EX.
+    // https://docs.looksrare.org/developers/maker-orders#breakdown-of-parameters
+    // {
+    //   "signature": "0xca048086170d030e223f36f21d329636dc163775ee4130c3f4d62cad8748bd5250cd0aacec582c73d0c53b555ae7661065ed9e16ff4fbfd5bb6e53688e4c807b1c",
+    //   "tokenId": null,
+    //   "collection": "0xA8Bf4A0993108454aBB4EBb4f5E3400AbB94282D",
+    //   "strategy": "0x86F909F70813CdB1Bc733f4D97Dc6b03B8e7E8F3",
+    //   "currency": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+    //   "signer": "0x72c0e50be0f76863F708619784Ea4ff48D8587bE",
+    //   "isOrderAsk": true,
+    //   "nonce": "20",
+    //   "amount": "1",
+    //   "price": "10201020023",
+    //   "startTime": "1645470906",
+    //   "endTime": "1645471906",
+    //   "minPercentageToAsk": 8500,
+    //   "params": ""
+    // }
+
     const order = new LooksRare.Order(1, {
       // looksrare params
       ...orderParams,

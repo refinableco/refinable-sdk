@@ -42,6 +42,7 @@ export class Refinable {
   protected _accountAddress: string;
   protected _account?: AccountSigner;
   protected _provider: any;
+  protected _chainId: number;
 
   // Clients
   public evm: RefinableEvmClient;
@@ -82,6 +83,12 @@ export class Refinable {
     if (!this._account)
       throw new Error("Account not set, please connect() provider first");
     return this._account;
+  }
+
+  get chainId() {
+    if (!this._chainId)
+      throw new Error("ChainId not set, please connect() provider first");
+    return this._chainId;
   }
 
   get accountAddress() {
@@ -128,6 +135,8 @@ export class Refinable {
   }
 
   async init() {
+    const { chainId } = await this.evm.provider.getNetwork();
+    this._chainId = chainId;
     await this.evm.init();
   }
 

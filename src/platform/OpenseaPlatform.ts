@@ -24,8 +24,8 @@ import { ContractWrapper } from "../refinable/contract/ContractWrapper";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { Chain as ValidChains } from "../interfaces/Network";
 
-import ExchangeAbi from "./abis/OpenseaExchange.abi.json";
-import ConduitControllerAbi from "./abis/OpenseaConduitController.abi.json";
+import ExchangeAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/Exchange.json";
+import ConduitControllerAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/ConduitController.json";
 import { Chain } from "../refinable/Chain";
 import {
   ItemType,
@@ -112,13 +112,22 @@ export class OpenseaPlatform extends AbstractPlatform {
   private exchangeContractWrapper: ContractWrapper;
   private chainId: 1 | 5;
 
-  constructor(protected readonly refinable: Refinable, chainId: 1 | 5) {
+  constructor(protected readonly refinable: Refinable) {
     super(refinable);
-    this.chainId = chainId;
+
+    if (
+      refinable.chainId !== ValidChains.Ethereum &&
+      refinable.chainId !== ValidChains.EthereumGoerli
+    ) {
+      throw new Error(`Opensea does not support chain ${refinable.chainId}`);
+    }
+
+    this.chainId = refinable.chainId;
+
     this.exchangeContractWrapper = new ContractWrapper(
       {
-        address: Addresses[chainId].Exchange,
-        chainId,
+        address: Addresses[this.chainId].Exchange,
+        chainId: this.chainId,
         abi: JSON.stringify(ExchangeAbi),
       },
       refinable.provider,
