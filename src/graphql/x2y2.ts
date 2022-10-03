@@ -1,6 +1,6 @@
 import { gql } from "graphql-request";
 
-export const GET_UNSGINED_TX = gql`
+export const GET_UNSIGNED_TX = gql`
     query x2y2($data: GetUnsignedTxInput!) {
         x2y2 {
             getUnsignedTx(data: $data) {
@@ -9,6 +9,14 @@ export const GET_UNSGINED_TX = gql`
                 data
                 value
             }
+        }
+    }
+`;
+
+export const POST_ORDER = gql`
+    query x2y2PostOrder($data: LocalOrder!) {
+        x2y2 {
+            postOrder(data: $data)
         }
     }
 `;

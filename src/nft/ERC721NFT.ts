@@ -357,26 +357,53 @@ export class ERC721NFT extends AbstractEvmNFT {
         //   "params": ""
         // }
         const now = Math.floor(Date.now() / 1000);
-        await platformInstance.listForSale(
-          this,
-          {
-            tokenId: this._item.tokenId,
-            collection: this._item.contractAddress,
-            strategy: StrategyStandardSaleForFixedPrice[1],
-            currency: Common.Addresses.Weth[1],
-            signer: this.refinable.accountAddress,
-            isOrderAsk: true, // side === "sell"
-            amount: "1",
-            price: parseEther(price.amount.toString()).toString(),
-            startTime: now,
-            endTime: now + 86400 * 14, // 2-w validity
-            params: BytesEmpty,
-            minPercentageToAsk: 8500,
-          },
-          {
-            onProgress,
-          }
-        );
+
+        if (platform === Platform.X2Y2) {
+          await platformInstance.listForSale(
+            this,
+            {
+              kind: 'single-token',
+              id: 0,
+              type: 'fixed-price',
+              currency: Common.Addresses.Eth[1],
+              price: parseEther(price.amount.toString()).toString(),
+              maker: this.refinable.accountAddress,
+              taker: '',
+              deadline: now + 86400 * 14,  // 2-w validity
+              itemHash: '0x',
+              nft: {
+                token: this.item.contractAddress,
+                tokenId: this.item.tokenId,
+              },
+            },
+            {
+              onProgress,
+            }
+          );  
+        }
+
+        if (platform === Platform.Looksrare) {
+          await platformInstance.listForSale(
+            this,
+            {
+              tokenId: this._item.tokenId,
+              collection: this._item.contractAddress,
+              strategy: StrategyStandardSaleForFixedPrice[1],
+              currency: Common.Addresses.Weth[1],
+              signer: this.refinable.accountAddress,
+              isOrderAsk: true, // side === "sell"
+              amount: "1",
+              price: parseEther(price.amount.toString()).toString(),
+              startTime: now,
+              endTime: now + 86400 * 14, // 2-w validity
+              params: BytesEmpty,
+              minPercentageToAsk: 8500,
+            },
+            {
+              onProgress,
+            }
+          );
+        }
       }
     }
 
