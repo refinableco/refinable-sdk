@@ -14,7 +14,7 @@ export const platforms = {
 export class PlatformFactory {
   constructor(private readonly refinable: Refinable) {}
 
-  createPlatform(platform: Platform, chainId: number): AbstractPlatform {
+  createPlatform(platform: Platform, chainId: 1 | 5): AbstractPlatform {
     switch (platform) {
       case Platform.Looksrare:
         return new LooksrarePlatform(this.refinable);

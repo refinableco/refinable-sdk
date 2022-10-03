@@ -25,27 +25,31 @@ import { Chain as ValidChains } from "../interfaces/Network";
 
 import ExchangeAbi from "./abis/OpenseaExchange.abi.json";
 import ConduitControllerAbi from "./abis/OpenseaConduitController.abi.json";
-import { CONTRACT_MAP } from "../config/contracts";
 import { Chain } from "../refinable/Chain";
 import {
   OrderComponents,
   OrderKind,
 } from "@refinableco/reservoir-sdk/dist/seaport/types";
 
-export const Addresses = {
+const Addresses = {
   [ValidChains.Ethereum]: {
-    Exchange: "0x00000000006c3852cbef3e08e8df289169ede581",
-    ConduitController: "0x00000000f9490004c11cef243f5400493c00ad63",
-    ServiceFee: CONTRACT_MAP[ValidChains.Ethereum].SERVICE_FEE_V2,
+    Exchange: Seaport.Addresses.Exchange[ValidChains.Ethereum],
+    ConduitController:
+      Seaport.Addresses.ConduitController[ValidChains.Ethereum],
+    ConduitKey: Seaport.Addresses.OpenseaConduitKey[ValidChains.Ethereum],
+    Zone: Seaport.Addresses.PausableZone[ValidChains.Ethereum],
+    FeeRecipient: "0x0000a26b00c1f0df003000390027140000faa719",
   },
   [ValidChains.EthereumGoerli]: {
-    Exchange: "0x00000000006c3852cbef3e08e8df289169ede581",
-    ConduitController: "0x00000000f9490004c11cef243f5400493c00ad63",
-    ServiceFee: CONTRACT_MAP[ValidChains.EthereumGoerli].SERVICE_FEE_V2,
+    Exchange: Seaport.Addresses.Exchange[ValidChains.Ethereum],
+    ConduitController:
+      Seaport.Addresses.ConduitController[ValidChains.Ethereum],
+    ConduitKey: Seaport.Addresses.OpenseaConduitKey[ValidChains.Ethereum],
+    // Zone is missing in Addresses config for Goerli, but is same address
+    Zone: "0x00000000e88fe2628ebc5da81d2b3cead633e89e",
+    FeeRecipient: "0x0000a26b00c1f0df003000390027140000faa719",
   },
-  // [ValidChains.PolygonMainnet]: "0x00000000006c3852cbef3e08e8df289169ede581",
-  // [ValidChains.PolygonTestnet]: "0x00000000006c3852cbef3e08e8df289169ede581",
-};
+} as const;
 
 export enum ItemType {
   NATIVE,
@@ -114,9 +118,9 @@ export class OpenseaPlatform extends AbstractPlatform {
   // os supports contract-wide, token-list, bundle-ask as well
   private readonly kindOfSale = "single-token";
   private exchangeContractWrapper: ContractWrapper;
-  private chainId: ValidChains;
+  private chainId: 1 | 5;
 
-  constructor(protected readonly refinable: Refinable, chainId: ValidChains) {
+  constructor(protected readonly refinable: Refinable, chainId: 1 | 5) {
     super(refinable);
     this.chainId = chainId;
     this.exchangeContractWrapper = new ContractWrapper(
@@ -199,7 +203,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       //     endAmount: s(endAmount ?? amount),
       //     recipient,
       //   })),
-      orderType: 0, // FULL_OPEN
+      orderType: 2, // FULL_RESTRICTED
       startTime: offer.startTime,
       endTime: offer.endTime,
       zoneHash: constants.HashZero,
@@ -245,18 +249,13 @@ export class OpenseaPlatform extends AbstractPlatform {
       },
     });
 
-    const openseaConduitKey =
-      "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000";
-    const openseaZone = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
-    const openseaFeeRecipient = "0x0000a26b00c1f0df003000390027140000faa719";
-
-    await this.approveIfNeeded(nft, openseaConduitKey);
+    await this.approveIfNeeded(nft);
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
     const price = BigNumber.from(orderParams.price);
 
-    const openseaFee = price.mul(25).div(1000);
+    const openseaFee = price.mul(250).div(10000);
 
     // {
     //     "signature": "0x",
@@ -290,6 +289,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     //           "recipient": "0x0000a26b00c1f0df003000390027140000faa719"
     //         }
     //       ],
+    //       ->>> Prop below added by backend, has to be signed though
     //       "totalOriginalConsiderationItems": 2,
     //       "orderType": 2,
     //       "startTime": 1664689246,
@@ -299,6 +299,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     //       "conduitKey": "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
     //       "counter": "0"
     //     },
+    //     ->>> Prop below added by backend
     //     "value": "0x2386f26fc10000"
     //   }
 
@@ -307,7 +308,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     } = {
       kind: this.kindOfSale as OrderKind,
       offerer: this.refinable.accountAddress,
-      zone: openseaZone, // OS zone
+      zone: Addresses[this.chainId].Zone,
       zoneHash: randomHex(32),
       offer: [
         {
@@ -328,7 +329,7 @@ export class OpenseaPlatform extends AbstractPlatform {
             orderParams.currency === constants.AddressZero
               ? ItemType.NATIVE
               : ItemType.ERC20,
-          token: "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6",
+          token: orderParams.currency,
           identifierOrCriteria: "0",
           startAmount: price.sub(openseaFee).toString(),
           endAmount: price.sub(openseaFee).toString(),
@@ -339,31 +340,19 @@ export class OpenseaPlatform extends AbstractPlatform {
             orderParams.currency === constants.AddressZero
               ? ItemType.NATIVE
               : ItemType.ERC20,
-          token: "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6",
+          token: orderParams.currency,
           identifierOrCriteria: "0",
           startAmount: openseaFee.toString(),
           endAmount: openseaFee.toString(),
-          recipient: openseaFeeRecipient,
+          recipient: Addresses[this.chainId].FeeRecipient,
         },
       ],
       totalOriginalConsiderationItems: 2,
-      // NO FEES FOR NOW TO GET IT WORKING
-      //   ...(params.fees || []).map(({ amount, endAmount, recipient }) => ({
-      //     itemType:
-      //       params.paymentToken === AddressZero
-      //         ? Types.ItemType.NATIVE
-      //         : Types.ItemType.ERC20,
-      //     token: params.paymentToken,
-      //     identifierOrCriteria: "0",
-      //     startAmount: s(amount),
-      //     endAmount: s(endAmount ?? amount),
-      //     recipient,
-      //   })),
       orderType: 2, // FULL_RESTRICTED ON OPENSEA
       startTime: orderParams.startTime,
       endTime: orderParams.endTime,
       salt: randomHex(16),
-      conduitKey: openseaConduitKey, // OS CONDUITKEY
+      conduitKey: Addresses[this.chainId].ConduitKey,
       counter: nonce,
     };
 
@@ -395,10 +384,8 @@ export class OpenseaPlatform extends AbstractPlatform {
       ...strippedOrderParams
     } = order.params;
 
-    // create
     const input = { ...strippedOrderParams, signature };
 
-    console.log(input);
     options.onProgress<ListCreateStatus>({
       platform: Platform.Opensea,
       step: LIST_STATUS_STEP.CREATE,
@@ -422,7 +409,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     );
   }
 
-  private async approveIfNeeded(nft: AbstractEvmNFT, conduitKey: string) {
+  private async approveIfNeeded(nft: AbstractEvmNFT) {
     const conduitWrapper = new ContractWrapper(
       {
         chainId: this.chainId,
@@ -432,7 +419,9 @@ export class OpenseaPlatform extends AbstractPlatform {
       this.refinable.provider
     );
 
-    const makerConduit = await conduitWrapper.contract.getConduit(conduitKey);
+    const makerConduit = await conduitWrapper.contract.getConduit(
+      Addresses[this.chainId].ConduitKey
+    );
 
     await nft.approveIfNeeded(makerConduit.conduit);
   }
