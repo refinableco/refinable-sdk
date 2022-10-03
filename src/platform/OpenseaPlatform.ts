@@ -16,6 +16,7 @@ import {
   Platform,
   PriceCurrency,
   TokenType,
+  OpenseaItemType,
 } from "../@types/graphql";
 import { gql } from "graphql-request";
 import { Refinable } from "../refinable/Refinable";
@@ -27,6 +28,7 @@ import ExchangeAbi from "./abis/OpenseaExchange.abi.json";
 import ConduitControllerAbi from "./abis/OpenseaConduitController.abi.json";
 import { Chain } from "../refinable/Chain";
 import {
+  ItemType,
   OrderComponents,
   OrderKind,
 } from "@refinableco/reservoir-sdk/dist/seaport/types";
@@ -50,16 +52,6 @@ const Addresses = {
     FeeRecipient: "0x0000a26b00c1f0df003000390027140000faa719",
   },
 } as const;
-
-export enum ItemType {
-  NATIVE,
-  ERC20,
-  ERC721,
-  ERC1155,
-  // not supported by us
-  // ERC721_WITH_CRITERIA,
-  // ERC1155_WITH_CRITERIA,
-}
 
 export type SpentItem = {
   itemType: ItemType;
@@ -109,7 +101,7 @@ export const ORDER_EIP712_TYPES = {
 };
 
 export const OPENSEA_LIST_FOR_SALE = gql`
-  mutation openseaListForSale($input: String!) {
+  mutation openseaListForSale($input: OpenseaListForSaleInput!) {
     openseaListForSale(input: $input)
   }
 `;
@@ -381,10 +373,27 @@ export class OpenseaPlatform extends AbstractPlatform {
     const {
       signature: completeSignature,
       kind,
+      offer,
+      consideration,
       ...strippedOrderParams
     } = order.params;
 
-    const input = { ...strippedOrderParams, signature };
+    const input = {
+      parameters: {
+        ...strippedOrderParams,
+        offer: offer.map(({ itemType, ...restOfOffer }) => {
+          const mappedItemType = this.getMappedItemType(itemType);
+          return { ...restOfOffer, itemType: mappedItemType };
+        }),
+        consideration: consideration.map(
+          ({ itemType, ...restOfConsideration }) => {
+            const mappedItemType = this.getMappedItemType(itemType);
+            return { ...restOfConsideration, itemType: mappedItemType };
+          }
+        ),
+      },
+      signature,
+    };
 
     options.onProgress<ListCreateStatus>({
       platform: Platform.Opensea,
@@ -395,7 +404,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       string,
       MutationOpenseaListForSaleArgs
     >(OPENSEA_LIST_FOR_SALE, {
-      input: JSON.stringify(input),
+      input,
     });
 
     return response;
@@ -424,6 +433,13 @@ export class OpenseaPlatform extends AbstractPlatform {
     );
 
     await nft.approveIfNeeded(makerConduit.conduit);
+  }
+
+  private getMappedItemType(itemType: ItemType): OpenseaItemType {
+    const enumKey =
+      Object.keys(ItemType)[Object.values(ItemType).indexOf(itemType)];
+
+    return enumKey as OpenseaItemType;
   }
 
   //   private async checkFillability(params: OrderComponents) {
