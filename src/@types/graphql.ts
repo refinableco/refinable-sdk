@@ -1160,6 +1160,7 @@ export type Mutation = {
   login: Auth;
   looksrareListForSale: Scalars["String"];
   markAllNotificationsAsSeen: Scalars["Boolean"];
+  openseaListForSale: Scalars["String"];
   placeAuctionBid: Scalars["Boolean"];
   refreshCollection: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
@@ -1250,6 +1251,10 @@ export type MutationLoginArgs = {
 
 export type MutationLooksrareListForSaleArgs = {
   input: LooksrareListForSaleInput;
+};
+
+export type MutationOpenseaListForSaleArgs = {
+  input: Scalars["String"];
 };
 
 export type MutationPlaceAuctionBidArgs = {

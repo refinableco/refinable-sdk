@@ -336,13 +336,9 @@ export class ERC721NFT extends AbstractEvmNFT {
       const platformFactory = new PlatformFactory(this.refinable);
       for (const platform of platforms) {
         const platformInstance = platformFactory.createPlatform(platform);
-          await platformInstance.listForSale(
-            this,
-            price,
-            {
-              onProgress,
-            }
-          );  
+        await platformInstance.listForSale(this, price, {
+          onProgress,
+        });
       }
     }
 
