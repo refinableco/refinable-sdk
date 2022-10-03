@@ -14,14 +14,14 @@ export const platforms = {
 export class PlatformFactory {
   constructor(private readonly refinable: Refinable) {}
 
-  createPlatform(platform: Platform, chainId: 1 | 5): AbstractPlatform {
+  createPlatform(platform: Platform): AbstractPlatform {
     switch (platform) {
       case Platform.Looksrare:
         return new LooksrarePlatform(this.refinable);
       case Platform.X2Y2:
         return new X2Y2Platform(this.refinable);
       case Platform.Opensea:
-        return new OpenseaPlatform(this.refinable, chainId);
+        return new OpenseaPlatform(this.refinable);
       default:
         throw new Error("Platform not supported");
     }

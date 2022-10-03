@@ -146,6 +146,9 @@ export class Refinable {
     this.evm.connect(providerOrSigner);
     this._account = new EvmSigner(providerOrSigner, this.evm.options);
 
+    const { chainId } = await this.evm.provider.getNetwork();
+    this._chainId = chainId;
+
     this._accountAddress = await this.account.getAddress();
 
     return this;
@@ -154,6 +157,7 @@ export class Refinable {
   disconnect() {
     this._provider = null;
     this._accountAddress = null;
+    this._chainId = null;
 
     this.evm.disconnect();
   }
