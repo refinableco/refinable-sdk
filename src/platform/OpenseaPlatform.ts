@@ -140,6 +140,8 @@ export class OpenseaPlatform extends AbstractPlatform {
   }
 
   async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
+    throw new Error("Buy method not implemented yet");
+
     const chainId = offer.chainId;
     const fixedSignature = this.fixSignature(offer.orderParams.signature);
 
