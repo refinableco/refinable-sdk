@@ -122,6 +122,6 @@ export class X2Y2Platform extends AbstractPlatform {
       }
     );
 
-    return queryResponse.postOrder;
+    return queryResponse.x2y2ListForSale;
   }
 }

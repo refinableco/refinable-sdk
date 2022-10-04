@@ -15,6 +15,6 @@ export const GET_UNSIGNED_TX = gql`
 
 export const POST_ORDER = gql`
     mutation x2y2PostOrder($data: LocalOrder!) {
-        postOrder(data: $data)
+        x2y2ListForSale(data: $data)
     }
 `;

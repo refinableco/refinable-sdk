@@ -1161,7 +1161,6 @@ export type Mutation = {
   looksrareListForSale: Scalars["String"];
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
-  postOrder: Scalars["Boolean"];
   refreshCollection: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
@@ -1178,6 +1177,7 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
+  x2y2ListForSale: Scalars["Boolean"];
 };
 
 export type MutationCreateCollectionArgs = {
@@ -1256,10 +1256,6 @@ export type MutationPlaceAuctionBidArgs = {
   input: AuctionPlaceBidInput;
 };
 
-export type MutationPostOrderArgs = {
-  data: LocalOrder;
-};
-
 export type MutationRefreshCollectionArgs = {
   input: RefreshCollectionInput;
 };
@@ -1326,6 +1322,10 @@ export type MutationUploadFileArgs = {
 
 export type MutationUserImportCollectionArgs = {
   input: UserImportCollectionInput;
+};
+
+export type MutationX2y2ListForSaleArgs = {
+  data: LocalOrder;
 };
 
 export type Nft = {
@@ -3690,4 +3690,4 @@ export type X2y2PostOrderMutationVariables = Exact<{
   data: LocalOrder;
 }>;
 
-export type X2y2PostOrderMutation = { postOrder: boolean };
+export type X2y2PostOrderMutation = { x2y2ListForSale: boolean };
