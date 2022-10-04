@@ -1,7 +1,7 @@
-import { splitSignature } from "ethers/lib/utils";
+import { parseEther, splitSignature } from "ethers/lib/utils";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
-import { LooksRare } from "@refinableco/reservoir-sdk";
+import { Common, LooksRare } from "@refinableco/reservoir-sdk";
 import { Types as LookrareTypes } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
 import { Types } from "@refinableco/reservoir-sdk/dist/looks-rare";
@@ -12,9 +12,11 @@ import {
   ListStatus,
   LIST_STATUS_STEP,
 } from "../nft/interfaces/SaleStatusStep";
-import { MutationLooksrareListForSaleArgs, Platform } from "../@types/graphql";
+import { MutationLooksrareListForSaleArgs, Platform, Price } from "../@types/graphql";
 import axios from "axios";
 import { gql } from "graphql-request";
+import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
+import { StrategyStandardSaleForFixedPrice } from "@refinableco/reservoir-sdk/dist/looks-rare/addresses";
 
 export const LOOKSRARE_LIST_FOR_SALE = gql`
   mutation looksrareListForSale($input: LooksrareListForSaleInput!) {
@@ -59,9 +61,30 @@ export class LooksrarePlatform extends AbstractPlatform {
   /**
    * 1: stands for chain id (Ethereum)
    */
+
+  // -- LOOKSRARE
+        // EX.
+        // https://docs.looksrare.org/developers/maker-orders#breakdown-of-parameters
+        // {
+        //   "signature": "0xca048086170d030e223f36f21d329636dc163775ee4130c3f4d62cad8748bd5250cd0aacec582c73d0c53b555ae7661065ed9e16ff4fbfd5bb6e53688e4c807b1c",
+        //   "tokenId": null,
+        //   "collection": "0xA8Bf4A0993108454aBB4EBb4f5E3400AbB94282D",
+        //   "strategy": "0x86F909F70813CdB1Bc733f4D97Dc6b03B8e7E8F3",
+        //   "currency": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+        //   "signer": "0x72c0e50be0f76863F708619784Ea4ff48D8587bE",
+        //   "isOrderAsk": true,
+        //   "nonce": "20",
+        //   "amount": "1",
+        //   "price": "10201020023",
+        //   "startTime": "1645470906",
+        //   "endTime": "1645471906",
+        //   "minPercentageToAsk": 8500,
+        //   "params": ""
+        // }
+
   async listForSale(
-    nft,
-    orderParams: Types.MakerOrderParams,
+    nft: AbstractEvmNFT,
+    price: Price,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (
@@ -73,6 +96,24 @@ export class LooksrarePlatform extends AbstractPlatform {
       ) => void;
     }
   ) {
+    const now = Math.floor(Date.now() / 1000);
+
+    const orderParams: Types.MakerOrderParams = {
+      tokenId: nft.getItem().tokenId,
+      collection: nft.getItem().contractAddress,
+      strategy: StrategyStandardSaleForFixedPrice[1],
+      currency: Common.Addresses.Weth[1],
+      signer: this.refinable.accountAddress,
+      isOrderAsk: true, // side === "sell"
+      amount: "1",
+      price: parseEther(price.amount.toString()).toString(),
+      startTime: now,
+      endTime: now + 86400 * 14, // 2-w validity
+      params: BytesEmpty,
+      minPercentageToAsk: 8500,
+      nonce: '', // filled later
+    };
+
     // approve
     options.onProgress<ListApproveStatus>({
       platform: Platform.Looksrare,
