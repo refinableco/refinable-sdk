@@ -14,8 +14,8 @@ export const GET_UNSIGNED_TX = gql`
 `;
 
 export const POST_ORDER = gql`
-    query x2y2PostOrder($data: LocalOrder!) {
-        x2y2 {
+    mutation x2y2PostOrder($data: LocalOrder!) {
+        x2y2Mutation {
             postOrder(data: $data)
         }
     }

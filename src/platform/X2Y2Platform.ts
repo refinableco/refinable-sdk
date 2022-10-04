@@ -1,13 +1,14 @@
 import { AbstractPlatform } from "./AbstractPlatform";
 import { GET_UNSIGNED_TX, POST_ORDER } from "../graphql/x2y2";
-import { GetUnsignedTxInput, Platform, X2Y2PostOrderArgs, X2y2PostOrderQuery } from "../@types/graphql";
+import { GetUnsignedTxInput, Platform, Price, X2Y2PostOrderArgs, X2y2PostOrderMutation } from "../@types/graphql";
 import { Refinable } from "../refinable/Refinable";
 import { PartialOffer } from "../offer/Offer";
 import { ListApproveStatus, ListSignStatus, ListStatus, LIST_STATUS_STEP } from "../nft/interfaces/SaleStatusStep";
-import { X2Y2 } from "@refinableco/reservoir-sdk";
+import { Common, X2Y2 } from "@refinableco/reservoir-sdk";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { BigNumberish } from 'ethers'
 import { BaseBuildParams } from "@refinableco/reservoir-sdk/dist/x2y2/builders/base";
+import { parseEther } from "ethers/lib/utils";
 
 interface BuildParams extends BaseBuildParams {
   tokenId: BigNumberish;
@@ -48,7 +49,7 @@ export class X2Y2Platform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    orderParams: X2Y2.Types.Order,
+    price: Price,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (
@@ -57,6 +58,25 @@ export class X2Y2Platform extends AbstractPlatform {
       ) => void;
     }
   ) {
+
+    
+    const now = Math.floor(Date.now() / 1000);
+
+    const orderParams: X2Y2.Types.Order = {
+      kind: 'single-token',
+      id: 0,
+      type: 'fixed-price',
+      currency: Common.Addresses.Eth[1],
+      price: parseEther(price.amount.toString()).toString(),
+      maker: this.refinable.accountAddress,
+      taker: '',
+      deadline: now + 86400 * 14,  // 2-w validity
+      itemHash: '0x',
+      nft: {
+        token: nft.getItem().contractAddress,
+        tokenId: nft.getItem().tokenId,
+      },
+    };
 
     options.onProgress<ListApproveStatus>({
       platform: Platform.X2Y2,
@@ -93,7 +113,7 @@ export class X2Y2Platform extends AbstractPlatform {
     const exchange = new X2Y2.Exchange(1, process.env.X2Y2_API_KEY);
     await exchange.signOrder(this.refinable.provider, localOrder);
 
-    const queryResponse = await this.refinable.graphqlClient.request<X2y2PostOrderQuery, X2Y2PostOrderArgs>(
+    const queryResponse = await this.refinable.graphqlClient.request<X2y2PostOrderMutation, X2Y2PostOrderArgs>(
       POST_ORDER,
       {
         data: {
@@ -102,6 +122,6 @@ export class X2Y2Platform extends AbstractPlatform {
       }
     );
 
-    return queryResponse.x2y2.postOrder;
+    return queryResponse.x2y2Mutation.postOrder;
   }
 }

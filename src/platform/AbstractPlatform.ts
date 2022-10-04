@@ -1,6 +1,6 @@
 import { Types as LookrareTypes } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import { Types as X2Y2Types } from "@refinableco/reservoir-sdk/dist/x2y2";
-import { Platform } from "../@types/graphql";
+import { Platform, Price } from "../@types/graphql";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { ListStatus, LIST_STATUS_STEP } from "../nft/interfaces/SaleStatusStep";
 import { PartialOffer } from "../offer/Offer";
@@ -13,9 +13,7 @@ export abstract class AbstractPlatform {
   abstract buy(offer: PartialOffer, contractAddress: string, tokenId: string);
   abstract listForSale(
     nft: AbstractEvmNFT,
-    orderParams:
-      | Omit<LookrareTypes.MakerOrderParams, "nonce"> // nonce will be fetched in this step
-      | X2Y2Types.Order,
+    price: Price,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (

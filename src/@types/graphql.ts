@@ -58,7 +58,7 @@ export type AnalyticsFilter = {
 export type AnalyticsMostTraded = {
   item: Item;
   trades: Scalars["Float"];
-  volume: Scalars["Float"];
+  volume: Price;
 };
 
 export type AnalyticsStats = {
@@ -1177,6 +1177,7 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
+  x2y2Mutation: X2Y2;
 };
 
 export type MutationCreateCollectionArgs = {
@@ -3686,8 +3687,8 @@ export type X2y2Query = {
   };
 };
 
-export type X2y2PostOrderQueryVariables = Exact<{
+export type X2y2PostOrderMutationVariables = Exact<{
   data: LocalOrder;
 }>;
 
-export type X2y2PostOrderQuery = { x2y2: { postOrder: boolean } };
+export type X2y2PostOrderMutation = { x2y2Mutation: { postOrder: boolean } };
