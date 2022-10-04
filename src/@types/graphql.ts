@@ -1161,6 +1161,7 @@ export type Mutation = {
   looksrareListForSale: Scalars["String"];
   markAllNotificationsAsSeen: Scalars["Boolean"];
   placeAuctionBid: Scalars["Boolean"];
+  postOrder: Scalars["Boolean"];
   refreshCollection: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
   reportItem: ItemReport;
@@ -1177,7 +1178,6 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
-  x2y2Mutation: X2Y2;
 };
 
 export type MutationCreateCollectionArgs = {
@@ -1254,6 +1254,10 @@ export type MutationLooksrareListForSaleArgs = {
 
 export type MutationPlaceAuctionBidArgs = {
   input: AuctionPlaceBidInput;
+};
+
+export type MutationPostOrderArgs = {
+  data: LocalOrder;
 };
 
 export type MutationRefreshCollectionArgs = {
@@ -2284,15 +2288,10 @@ export type WhitelistVoucher = {
 
 export type X2Y2 = {
   getUnsignedTx: TxDataResponse;
-  postOrder: Scalars["Boolean"];
 };
 
 export type X2Y2GetUnsignedTxArgs = {
   data: GetUnsignedTxInput;
-};
-
-export type X2Y2PostOrderArgs = {
-  data: LocalOrder;
 };
 
 export type UndefinedEdge = {
@@ -3691,4 +3690,4 @@ export type X2y2PostOrderMutationVariables = Exact<{
   data: LocalOrder;
 }>;
 
-export type X2y2PostOrderMutation = { x2y2Mutation: { postOrder: boolean } };
+export type X2y2PostOrderMutation = { postOrder: boolean };

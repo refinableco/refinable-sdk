@@ -1,6 +1,6 @@
 import { AbstractPlatform } from "./AbstractPlatform";
 import { GET_UNSIGNED_TX, POST_ORDER } from "../graphql/x2y2";
-import { GetUnsignedTxInput, Platform, Price, X2Y2PostOrderArgs, X2y2PostOrderMutation } from "../@types/graphql";
+import { GetUnsignedTxInput, Platform, Price, X2y2PostOrderMutationVariables, X2y2PostOrderMutation } from "../@types/graphql";
 import { Refinable } from "../refinable/Refinable";
 import { PartialOffer } from "../offer/Offer";
 import { ListApproveStatus, ListSignStatus, ListStatus, LIST_STATUS_STEP } from "../nft/interfaces/SaleStatusStep";
@@ -113,7 +113,7 @@ export class X2Y2Platform extends AbstractPlatform {
     const exchange = new X2Y2.Exchange(1, process.env.X2Y2_API_KEY);
     await exchange.signOrder(this.refinable.provider, localOrder);
 
-    const queryResponse = await this.refinable.graphqlClient.request<X2y2PostOrderMutation, X2Y2PostOrderArgs>(
+    const queryResponse = await this.refinable.graphqlClient.request<X2y2PostOrderMutation, X2y2PostOrderMutationVariables>(
       POST_ORDER,
       {
         data: {
@@ -122,6 +122,6 @@ export class X2Y2Platform extends AbstractPlatform {
       }
     );
 
-    return queryResponse.x2y2Mutation.postOrder;
+    return queryResponse.postOrder;
   }
 }
