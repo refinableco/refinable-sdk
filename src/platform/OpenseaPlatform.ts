@@ -3,7 +3,6 @@ import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
 import { Seaport } from "@refinableco/reservoir-sdk";
 import { randomHex } from "web3-utils";
-import { Types } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import {
   ListApproveStatus,
   ListCreateStatus,
@@ -257,12 +256,16 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
-    const price = BigNumber.from(offerPrice.amount);
+    const currency = new Chain(this.chainId).getCurrency(offerPrice.currency);
+    const price = utils.parseUnits(
+      offerPrice.amount.toString(),
+      currency.decimals
+    );
     const item = nft.getItem();
 
+    // OS fee is 2.5%
     const openseaFee = price.mul(250).div(10000);
 
-    const currency = new Chain(this.chainId).getCurrency(offerPrice.currency);
     const now = Math.floor(Date.now() / 1000);
 
     /**
