@@ -135,8 +135,6 @@ export class Refinable {
   }
 
   async init() {
-    const { chainId } = await this.evm.provider.getNetwork();
-    this._chainId = chainId;
     await this.evm.init();
   }
 

@@ -17,6 +17,7 @@ import {
   PriceCurrency,
   TokenType,
   OpenseaItemType,
+  Price,
 } from "../@types/graphql";
 import { gql } from "graphql-request";
 import { Refinable } from "../refinable/Refinable";
@@ -218,6 +219,7 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const order = new Seaport.Order(this.chainId, params);
 
+    // chanches are we should checkFillability before
     const unsignedTx = exchange.fillOrderTx(
       this.refinable.accountAddress,
       order,
@@ -231,7 +233,7 @@ export class OpenseaPlatform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    orderParams: Types.MakerOrderParams,
+    offerPrice: Price,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (
@@ -243,7 +245,6 @@ export class OpenseaPlatform extends AbstractPlatform {
       ) => void;
     }
   ) {
-    // approve
     options.onProgress<ListApproveStatus>({
       platform: Platform.Opensea,
       step: LIST_STATUS_STEP.APPROVE,
@@ -256,56 +257,18 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
-    const price = BigNumber.from(orderParams.price);
+    const price = BigNumber.from(offerPrice.amount);
+    const item = nft.getItem();
 
     const openseaFee = price.mul(250).div(10000);
 
-    // {
-    //     "signature": "0x",
-    //     "parameters": {
-    //       "offerer": "0x9fe893f7fc9a46825d4449fef0811ab00eb5b759",
-    //       "zone": "0x00000000e88fe2628ebc5da81d2b3cead633e89e",
-    //       "offer": [
-    //         {
-    //           "itemType": 2,
-    //           "token": "0x306d717d109e0995e0f56027eb93d9c1d5686de1",
-    //           "identifierOrCriteria": "31",
-    //           "startAmount": "1",
-    //           "endAmount": "1"
-    //         }
-    //       ],
-    //       "consideration": [
-    //         {
-    //           "itemType": 1,
-    //           "token": "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6",
-    //           "identifierOrCriteria": "0",
-    //           "startAmount": "9750000000000000",
-    //           "endAmount": "9750000000000000",
-    //           "recipient": "0x9fe893f7fc9a46825d4449fef0811ab00eb5b759"
-    //         },
-    //         {
-    //           "itemType": 1,
-    //           "token": "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6",
-    //           "identifierOrCriteria": "0",
-    //           "startAmount": "250000000000000",
-    //           "endAmount": "250000000000000",
-    //           "recipient": "0x0000a26b00c1f0df003000390027140000faa719"
-    //         }
-    //       ],
-    //       ->>> Prop below added by backend, has to be signed though
-    //       "totalOriginalConsiderationItems": 2,
-    //       "orderType": 2,
-    //       "startTime": 1664689246,
-    //       "endTime": 1665898846,
-    //       "zoneHash": "0x2ffeca829f4ed0599af3b88ffbd0e45e6d20e99525468739204bbde5d848d7f7",
-    //       "salt": "0xe98c87161777ac6a6a6b4f69f55df9a1",
-    //       "conduitKey": "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-    //       "counter": "0"
-    //     },
-    //     ->>> Prop below added by backend
-    //     "value": "0x2386f26fc10000"
-    //   }
+    const currency = new Chain(this.chainId).getCurrency(offerPrice.currency);
+    const now = Math.floor(Date.now() / 1000);
 
+    /**
+     * `msg.properties.totalOriginalConsiderationItems`: missing when sending req, re-added by backend
+     * `msg.value`: added by backend, hex of total price
+     */
     const params: OrderComponents & {
       totalOriginalConsiderationItems: number;
     } = {
@@ -316,23 +279,23 @@ export class OpenseaPlatform extends AbstractPlatform {
       offer: [
         {
           itemType:
-            nft.type === TokenType.Erc1155 ? ItemType.ERC1155 : ItemType.ERC721,
-          token: orderParams.collection,
-          identifierOrCriteria: orderParams.tokenId,
-          startAmount:
-            nft.type === TokenType.Erc1155 ? orderParams.amount ?? "1" : "1",
-          endAmount:
-            nft.type === TokenType.Erc1155 ? orderParams.amount ?? "1" : "1",
+            item.type === TokenType.Erc1155
+              ? ItemType.ERC1155
+              : ItemType.ERC721,
+          token: item.contractAddress,
+          identifierOrCriteria: item.tokenId,
+          startAmount: "1",
+          endAmount: "1",
         },
       ],
       // BETWEEN 2 and 7 considerations (price + fees)
       consideration: [
         {
           itemType:
-            orderParams.currency === constants.AddressZero
+            currency.address === constants.AddressZero
               ? ItemType.NATIVE
               : ItemType.ERC20,
-          token: orderParams.currency,
+          token: currency.address,
           identifierOrCriteria: "0",
           startAmount: price.sub(openseaFee).toString(),
           endAmount: price.sub(openseaFee).toString(),
@@ -340,10 +303,10 @@ export class OpenseaPlatform extends AbstractPlatform {
         },
         {
           itemType:
-            orderParams.currency === constants.AddressZero
+            currency.address === constants.AddressZero
               ? ItemType.NATIVE
               : ItemType.ERC20,
-          token: orderParams.currency,
+          token: currency.address,
           identifierOrCriteria: "0",
           startAmount: openseaFee.toString(),
           endAmount: openseaFee.toString(),
@@ -352,8 +315,8 @@ export class OpenseaPlatform extends AbstractPlatform {
       ],
       totalOriginalConsiderationItems: 2,
       orderType: 2, // FULL_RESTRICTED ON OPENSEA
-      startTime: orderParams.startTime,
-      endTime: orderParams.endTime,
+      startTime: now,
+      endTime: now + 86400 * 14,
       salt: randomHex(16),
       conduitKey: Addresses[this.chainId].ConduitKey,
       counter: nonce,
@@ -452,77 +415,6 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     return enumKey as OpenseaItemType;
   }
-
-  //   private async checkFillability(params: OrderComponents) {
-  //     const status = await this.exchangeContractWrapper.contract.getOrderStatus();
-  //     if (status.isCancelled) {
-  //       throw new Error("not-fillable");
-  //     }
-  //     if (status.isValidated && BigNumber.from(status.totalFilled).gte(status.totalSize)) {
-  //       throw new Error("not-fillable");
-  //     }
-
-  //     const makerConduit = Addresses[this.chainId].Exchange
-
-  //     const info = this.getInfo() as BaseOrderInfo;
-  //     if (info.side === "buy") {
-  //       // Check that maker has enough balance to cover the payment
-  //       // and the approval to the corresponding conduit is set
-  //       const erc20 = new Common.Helpers.Erc20(provider, info.paymentToken);
-  //       const balance = await erc20.getBalance(this.params.offerer);
-  //       if (bn(balance).lt(info.price)) {
-  //         throw new Error("no-balance");
-  //       }
-
-  //       // Check allowance
-  //       const allowance = await erc20.getAllowance(
-  //         this.params.offerer,
-  //         makerConduit
-  //       );
-  //       if (bn(allowance).lt(info.price)) {
-  //         throw new Error("no-approval");
-  //       }
-  //     } else {
-  //       if (info.tokenKind === "erc721") {
-  //         const erc721 = new Common.Helpers.Erc721(provider, info.contract);
-
-  //         // Check ownership
-  //         const owner = await erc721.getOwner(info.tokenId!);
-  //         if (lc(owner) !== lc(this.params.offerer)) {
-  //           throw new Error("no-balance");
-  //         }
-
-  //         // Check approval
-  //         const isApproved = await erc721.isApproved(
-  //           this.params.offerer,
-  //           makerConduit
-  //         );
-  //         if (!isApproved) {
-  //           throw new Error("no-approval");
-  //         }
-  //       } else {
-  //         const erc1155 = new Common.Helpers.Erc1155(provider, info.contract);
-
-  //         // Check balance
-  //         const balance = await erc1155.getBalance(
-  //           this.params.offerer,
-  //           info.tokenId!
-  //         );
-  //         if (bn(balance).lt(info.amount)) {
-  //           throw new Error("no-balance");
-  //         }
-
-  //         // Check approval
-  //         const isApproved = await erc1155.isApproved(
-  //           this.params.offerer,
-  //           makerConduit
-  //         );
-  //         if (!isApproved) {
-  //           throw new Error("no-approval");
-  //         }
-  //       }
-  //     }
-  //   }
 
   private fixSignature(signature: string) {
     // Ensure `v` is always 27 or 28 (Seaport will revert otherwise)
