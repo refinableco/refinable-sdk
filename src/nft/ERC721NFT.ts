@@ -15,6 +15,7 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { PlatformFactory } from "../platform";
+import { Chain } from "../interfaces/Network";
 import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
@@ -336,13 +337,9 @@ export class ERC721NFT extends AbstractEvmNFT {
       const platformFactory = new PlatformFactory(this.refinable);
       for (const platform of platforms) {
         const platformInstance = platformFactory.createPlatform(platform);
-          await platformInstance.listForSale(
-            this,
-            price,
-            {
-              onProgress,
-            }
-          );  
+        await platformInstance.listForSale(this, price, {
+          onProgress,
+        });
       }
     }
 

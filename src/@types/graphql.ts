@@ -1160,6 +1160,7 @@ export type Mutation = {
   login: Auth;
   looksrareListForSale: Scalars["String"];
   markAllNotificationsAsSeen: Scalars["Boolean"];
+  openseaListForSale: Scalars["String"];
   placeAuctionBid: Scalars["Boolean"];
   refreshCollection: Scalars["Boolean"];
   refreshMetadata: Scalars["Boolean"];
@@ -1250,6 +1251,10 @@ export type MutationLoginArgs = {
 
 export type MutationLooksrareListForSaleArgs = {
   input: LooksrareListForSaleInput;
+};
+
+export type MutationOpenseaListForSaleArgs = {
+  input: OpenseaListForSaleInput;
 };
 
 export type MutationPlaceAuctionBidArgs = {
@@ -1424,6 +1429,49 @@ export enum OfferType {
   Mint = "MINT",
   Sale = "SALE",
 }
+
+export type OpenseaConsiderationItemInput = {
+  endAmount: Scalars["String"];
+  identifierOrCriteria: Scalars["String"];
+  itemType: OpenseaItemType;
+  recipient: Scalars["String"];
+  startAmount: Scalars["String"];
+  token: Scalars["String"];
+};
+
+export enum OpenseaItemType {
+  Erc20 = "ERC20",
+  Erc721 = "ERC721",
+  Erc1155 = "ERC1155",
+  Native = "NATIVE",
+}
+
+export type OpenseaListForSaleInput = {
+  parameters: OpenseaListForSaleParametersInput;
+  signature: Scalars["String"];
+};
+
+export type OpenseaListForSaleParametersInput = {
+  conduitKey: Scalars["String"];
+  consideration: Array<OpenseaConsiderationItemInput>;
+  counter: Scalars["String"];
+  endTime: Scalars["Int"];
+  offer: Array<OpenseaOfferItemInput>;
+  offerer: Scalars["String"];
+  orderType?: InputMaybe<Scalars["Int"]>;
+  salt: Scalars["String"];
+  startTime: Scalars["Int"];
+  zone: Scalars["String"];
+  zoneHash: Scalars["String"];
+};
+
+export type OpenseaOfferItemInput = {
+  endAmount: Scalars["String"];
+  identifierOrCriteria: Scalars["String"];
+  itemType: OpenseaItemType;
+  startAmount: Scalars["String"];
+  token: Scalars["String"];
+};
 
 export type PagingInput = {
   /** Paginate after opaque cursor */
