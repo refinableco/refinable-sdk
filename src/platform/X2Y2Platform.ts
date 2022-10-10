@@ -8,7 +8,7 @@ import { Common, X2Y2 } from "@refinableco/reservoir-sdk";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { BigNumberish } from 'ethers'
 import { BaseBuildParams } from "@refinableco/reservoir-sdk/dist/x2y2/builders/base";
-import { parseEther } from "ethers/lib/utils";
+import { parseEther, splitSignature } from "ethers/lib/utils";
 
 interface BuildParams extends BaseBuildParams {
   tokenId: BigNumberish;
@@ -111,16 +111,23 @@ export class X2Y2Platform extends AbstractPlatform {
     const localOrder = X2Y2.Builders.SingleTokenBuilder.buildOrder(buildParams);
 
     const exchange = new X2Y2.Exchange(1, process.env.X2Y2_API_KEY);
-    await exchange.signOrder(this.refinable.provider, localOrder);
 
-    const queryResponse = await this.refinable.graphqlClient.request<X2y2PostOrderMutation, X2y2PostOrderMutationVariables>(
-      POST_ORDER,
-      {
-        data: {
-          ...localOrder,
-        },
-      }
+    const { message } = exchange.getOrderSignatureData(localOrder);
+    const { r, s, v } = splitSignature(
+      await this.refinable.account.sign(message)
     );
+
+    const queryResponse = await this.refinable.graphqlClient.request<
+      X2y2PostOrderMutation,
+      X2y2PostOrderMutationVariables
+    >(POST_ORDER, {
+      data: {
+        ...localOrder,
+        r,
+        s,
+        v,
+      },
+    });
 
     return queryResponse.x2y2ListForSale;
   }
