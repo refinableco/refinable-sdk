@@ -42,3 +42,14 @@ export const PURCHASE_ITEM = gql`
     }
   }
 `;
+
+export const GET_UNSIGNED_PURCHASE_TX = gql`
+  query unsignedTx($data: GetUnsignedTxInput!) {
+    getUnsignedTx(data: $data) {
+      from
+      to
+      data
+      value
+    }
+  }
+`;
