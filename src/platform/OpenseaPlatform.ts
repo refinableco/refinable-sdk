@@ -1,8 +1,7 @@
 import { BigNumber, constants, utils } from "ethers/lib/ethers";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
-import { Seaport } from "@refinableco/reservoir-sdk";
-import { randomHex } from "web3-utils";
+import { Router, Seaport } from "@refinableco/reservoir-sdk";
 import {
   ListApproveStatus,
   ListCreateStatus,
@@ -13,8 +12,6 @@ import {
 import {
   MutationOpenseaListForSaleArgs,
   Platform,
-  PriceCurrency,
-  TokenType,
   OpenseaItemType,
   Price,
 } from "../@types/graphql";
@@ -27,11 +24,7 @@ import { Chain as ValidChains } from "../interfaces/Network";
 import ExchangeAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/Exchange.json";
 import ConduitControllerAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/ConduitController.json";
 import { Chain } from "../refinable/Chain";
-import {
-  ItemType,
-  OrderComponents,
-  OrderKind,
-} from "@refinableco/reservoir-sdk/dist/seaport/types";
+import { ItemType } from "@refinableco/reservoir-sdk/dist/seaport/types";
 
 const Addresses = {
   [ValidChains.Ethereum]: {
@@ -107,8 +100,6 @@ export const OPENSEA_LIST_FOR_SALE = gql`
 `;
 
 export class OpenseaPlatform extends AbstractPlatform {
-  // os supports contract-wide, token-list, bundle-ask as well
-  private readonly kindOfSale = "single-token";
   private exchangeContractWrapper: ContractWrapper;
   private chainId: 1 | 5;
 
@@ -136,98 +127,59 @@ export class OpenseaPlatform extends AbstractPlatform {
   }
 
   getApprovalAddress(): string {
-    return Seaport.Addresses.Exchange[this.chainId];
+    // needed for token payment (buy)
+    return Addresses[this.chainId].Exchange;
   }
 
   async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
-    throw new Error("Buy method not implemented yet");
-
     const chainId = offer.chainId;
-    const fixedSignature = this.fixSignature(offer.orderParams.signature);
-
-    const exchange = new Seaport.Exchange(chainId);
-
     const chainConfig = new Chain(chainId);
 
     const currency = chainConfig.getCurrency(offer.price.currency);
 
-    const tokenContractWrapper = new ContractWrapper(
-      { address: contractAddress, abi: "", chainId },
-      this.refinable.provider
-    );
+    const nonce = await this.getNonce(this.refinable.accountAddress);
 
-    const tokenType = Object.keys(
-      tokenContractWrapper.contract.functions
-    ).includes("ownerOf")
-      ? ItemType.ERC721
-      : ItemType.ERC1155;
+    const builder = new Seaport.Builders.SingleToken(this.refinable.chainId);
 
-    const params: OrderComponents = {
-      kind: this.kindOfSale as OrderKind,
-      offerer: offer.user.ethAddress,
-      zone: constants.AddressZero,
-      offer: [
+    const { orderParams } = offer;
+
+    // THIS HAS TO BE A 1:1 MATCH TO order.orderParams
+    const builtOrder = builder.build({
+      side: "sell",
+      tokenKind: "erc721",
+      offerer: orderParams.parameters.offerer,
+      contract: contractAddress,
+      tokenId: tokenId,
+      paymentToken: currency.address,
+      price: orderParams.parameters.consideration[0].startAmount,
+      counter: nonce,
+      startTime: orderParams.parameters.startTime,
+      endTime: orderParams.parameters.endTime,
+      fees: orderParams.parameters.consideration
+        .slice(1)
+        .map(({ recipient, startAmount }) => ({
+          recipient,
+          amount: startAmount,
+        })),
+      signature: orderParams.signature,
+      conduitKey: Addresses[this.chainId].ConduitKey,
+      salt: orderParams.parameters.salt,
+    });
+
+    const router = new Router.Router(this.chainId, this.refinable.evm.provider);
+    return await router.fillListingsTx(
+      [
         {
-          itemType:
-            PriceCurrency.Eth === offer.price.currency
-              ? ItemType.NATIVE
-              : ItemType.ERC20,
-          token: currency.address,
-          identifierOrCriteria: tokenId,
-          startAmount: offer.price.amount.toString(),
-          endAmount: offer.price.amount.toString(),
+          kind: "seaport",
+          contractKind: "erc721",
+          contract: contractAddress,
+          tokenId: tokenId,
+          currency: currency.address,
+          order: builtOrder,
         },
       ],
-      consideration: [
-        {
-          itemType: tokenType,
-          token: contractAddress,
-          identifierOrCriteria: tokenId,
-          startAmount:
-            tokenType === ItemType.ERC1155
-              ? offer.supply.toString() ?? "1"
-              : "1",
-          endAmount:
-            tokenType === ItemType.ERC1155
-              ? offer.supply.toString() ?? "1"
-              : "1",
-          recipient: this.refinable.accountAddress,
-        },
-      ],
-      // NO FEES FOR NOW TO GET IT WORKING
-      //   ...(params.fees || []).map(({ amount, endAmount, recipient }) => ({
-      //     itemType:
-      //       params.paymentToken === AddressZero
-      //         ? Types.ItemType.NATIVE
-      //         : Types.ItemType.ERC20,
-      //     token: params.paymentToken,
-      //     identifierOrCriteria: "0",
-      //     startAmount: s(amount),
-      //     endAmount: s(endAmount ?? amount),
-      //     recipient,
-      //   })),
-      orderType: 2, // FULL_RESTRICTED
-      startTime: offer.startTime,
-      endTime: offer.endTime,
-      zoneHash: constants.HashZero,
-      salt: randomHex(16),
-      conduitKey: constants.HashZero,
-      counter: await this.getNonce(this.refinable.accountAddress),
-      signature: fixedSignature,
-    };
-
-    const order = new Seaport.Order(this.chainId, params);
-
-    // chanches are we should checkFillability before
-    const unsignedTx = exchange.fillOrderTx(
-      this.refinable.accountAddress,
-      order,
-      {
-        amount: offer.supply.toString(),
-      }
+      this.refinable.accountAddress
     );
-
-    return unsignedTx;
   }
 
   async listForSale(
@@ -252,7 +204,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       },
     });
 
-    await this.approveIfNeeded(nft);
+    await nft.approveIfNeeded(await this.getTokenConduitKeyAddress());
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
@@ -268,84 +220,42 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const now = Math.floor(Date.now() / 1000);
 
+    const builder = new Seaport.Builders.SingleToken(this.refinable.chainId);
+
     /**
      * `msg.properties.totalOriginalConsiderationItems`: missing when sending req, re-added by backend
      * `msg.value`: added by backend, hex of total price
      */
-    const params: OrderComponents & {
-      totalOriginalConsiderationItems: number;
-    } = {
-      kind: this.kindOfSale as OrderKind,
+    const builtOrder = builder.build({
+      side: "sell",
+      tokenKind: "erc721",
       offerer: this.refinable.accountAddress,
-      zone: Addresses[this.chainId].Zone,
-      zoneHash: randomHex(32),
-      offer: [
-        {
-          itemType:
-            item.type === TokenType.Erc1155
-              ? ItemType.ERC1155
-              : ItemType.ERC721,
-          token: item.contractAddress,
-          identifierOrCriteria: item.tokenId,
-          startAmount: "1",
-          endAmount: "1",
-        },
-      ],
-      // BETWEEN 2 and 7 considerations (price + fees)
-      consideration: [
-        {
-          itemType:
-            currency.address === constants.AddressZero
-              ? ItemType.NATIVE
-              : ItemType.ERC20,
-          token: currency.address,
-          identifierOrCriteria: "0",
-          startAmount: price.sub(openseaFee).toString(),
-          endAmount: price.sub(openseaFee).toString(),
-          recipient: this.refinable.accountAddress,
-        },
-        {
-          itemType:
-            currency.address === constants.AddressZero
-              ? ItemType.NATIVE
-              : ItemType.ERC20,
-          token: currency.address,
-          identifierOrCriteria: "0",
-          startAmount: openseaFee.toString(),
-          endAmount: openseaFee.toString(),
-          recipient: Addresses[this.chainId].FeeRecipient,
-        },
-      ],
-      totalOriginalConsiderationItems: 2,
-      orderType: 2, // FULL_RESTRICTED ON OPENSEA
-      startTime: now,
-      endTime: now + 86400 * 14,
-      salt: randomHex(16),
-      conduitKey: Addresses[this.chainId].ConduitKey,
+      contract: item.contractAddress,
+      tokenId: item.tokenId,
+      paymentToken: currency.address,
+      price: price.sub(openseaFee).toString(),
       counter: nonce,
-    };
-
-    const hash = this.hash(params);
+      startTime: now,
+      endTime: now + 3600 * 24,
+      conduitKey: Addresses[this.chainId].ConduitKey,
+      fees: [
+        {
+          recipient: Addresses[this.chainId].FeeRecipient,
+          amount: openseaFee.toString(),
+        },
+      ],
+    });
 
     options.onProgress<ListSignStatus>({
       platform: Platform.Opensea,
       step: LIST_STATUS_STEP.SIGN,
       data: {
-        hash,
+        hash: "",
         what: "Opensea order",
       },
     });
 
-    const paramsSignature = await this.refinable.account.sign(hash);
-
-    const order = new Seaport.Order(this.chainId, {
-      ...params,
-      signature: paramsSignature,
-    });
-
-    const signature = await this.refinable.account.sign(
-      order.getSignatureData()
-    );
+    await builtOrder.sign(this.refinable.evm.signer as any);
 
     const {
       signature: completeSignature,
@@ -353,7 +263,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offer,
       consideration,
       ...strippedOrderParams
-    } = order.params;
+    } = builtOrder.params;
 
     const input = {
       parameters: {
@@ -369,13 +279,15 @@ export class OpenseaPlatform extends AbstractPlatform {
           }
         ),
       },
-      signature,
+      signature: completeSignature,
     };
 
     options.onProgress<ListCreateStatus>({
       platform: Platform.Opensea,
       step: LIST_STATUS_STEP.CREATE,
     });
+
+    console.log(input);
 
     const response = await this.refinable.graphqlClient.request<
       string,
@@ -387,15 +299,21 @@ export class OpenseaPlatform extends AbstractPlatform {
     return response;
   }
 
-  private hash(params: OrderComponents) {
-    return utils._TypedDataEncoder.hashStruct(
-      "OrderComponents",
-      ORDER_EIP712_TYPES,
-      params
-    );
+  private getMappedItemType(itemType: ItemType): OpenseaItemType {
+    const enumKey =
+      Object.keys(ItemType)[Object.values(ItemType).indexOf(itemType)];
+
+    return enumKey as OpenseaItemType;
   }
 
-  private async approveIfNeeded(nft: AbstractEvmNFT) {
+  private async getNonce(makerAddress: string): Promise<string> {
+    return (
+      await this.exchangeContractWrapper.contract.getCounter(makerAddress)
+    ).toString();
+  }
+
+  private async getTokenConduitKeyAddress(): Promise<string> {
+    // needed for token transfer (sale)
     const conduitWrapper = new ContractWrapper(
       {
         chainId: this.chainId,
@@ -409,37 +327,6 @@ export class OpenseaPlatform extends AbstractPlatform {
       Addresses[this.chainId].ConduitKey
     );
 
-    await nft.approveIfNeeded(makerConduit.conduit);
-  }
-
-  private getMappedItemType(itemType: ItemType): OpenseaItemType {
-    const enumKey =
-      Object.keys(ItemType)[Object.values(ItemType).indexOf(itemType)];
-
-    return enumKey as OpenseaItemType;
-  }
-
-  private fixSignature(signature: string) {
-    // Ensure `v` is always 27 or 28 (Seaport will revert otherwise)
-    if (signature?.length === 132) {
-      let lastByte = parseInt(signature.slice(-2), 16);
-      if (lastByte < 27) {
-        if (lastByte === 0 || lastByte === 1) {
-          lastByte += 27;
-        } else {
-          throw new Error("Invalid `v` byte");
-        }
-
-        return signature.slice(0, -2) + lastByte.toString(16);
-      }
-    }
-
-    return signature;
-  }
-
-  private async getNonce(makerAddress: string): Promise<string> {
-    return (
-      await this.exchangeContractWrapper.contract.getCounter(makerAddress)
-    ).toString();
+    return makerConduit.conduit;
   }
 }

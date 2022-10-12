@@ -93,7 +93,7 @@ export class SaleOffer extends Offer {
     await this.refinable.evm.account.approveTokenContractAllowance(
       this.chain.getCurrency(this._offer.price.currency),
       this._offer.price.amount,
-      externalPlatform.getApprovalAddress(this._offer.chainId)
+      await externalPlatform.getApprovalAddress(this._offer.chainId)
     );
 
     // 2. Simulate tx
@@ -103,15 +103,20 @@ export class SaleOffer extends Offer {
       this.nft.getItem().tokenId
     );
 
-    const resp = await simulateUnsignedTx({
-      refinable: this.refinable,
-      data: unsignedTx.data,
-      to: unsignedTx.to,
-      value:
-        this._offer.price.currency != PriceCurrency.Eth
-          ? "0"
-          : unsignedTx.value,
-    });
+    const opts = { chainId: this._offer.chainId };
+
+    const resp = await simulateUnsignedTx(
+      {
+        refinable: this.refinable,
+        data: unsignedTx.data,
+        to: unsignedTx.to,
+        value:
+          this._offer.price.currency != PriceCurrency.Eth
+            ? "0"
+            : unsignedTx.value,
+      },
+      opts
+    );
 
     if (resp.data.success === false) {
       throw new SimulationFailedError(resp.data.error?.message);

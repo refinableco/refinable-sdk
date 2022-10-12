@@ -9,7 +9,7 @@ import { Refinable } from "../refinable/Refinable";
 export abstract class AbstractPlatform {
   constructor(protected readonly refinable: Refinable) {}
 
-  abstract getApprovalAddress(chainId: number): string;
+  abstract getApprovalAddress(chainId: number): Promise<string> | string;
   abstract buy(offer: PartialOffer, contractAddress: string, tokenId: string);
   abstract listForSale(
     nft: AbstractEvmNFT,
