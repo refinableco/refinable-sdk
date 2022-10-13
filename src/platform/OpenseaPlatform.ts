@@ -1,4 +1,4 @@
-import { BigNumber, constants, utils } from "ethers/lib/ethers";
+import { utils, constants } from "ethers/lib/ethers";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
 import { Router, Seaport } from "@refinableco/reservoir-sdk";
@@ -166,20 +166,38 @@ export class OpenseaPlatform extends AbstractPlatform {
       salt: orderParams.parameters.salt,
     });
 
-    const router = new Router.Router(this.chainId, this.refinable.evm.provider);
-    return await router.fillListingsTx(
-      [
+    // Router supports only ETH transactions
+    if (currency.address === constants.AddressZero) {
+      const router = new Router.Router(
+        this.chainId,
+        this.refinable.evm.provider
+      );
+      return await router.fillListingsTx(
+        [
+          {
+            kind: "seaport",
+            contractKind: "erc721",
+            contract: contractAddress,
+            tokenId: tokenId,
+            currency: currency.address,
+            order: builtOrder,
+          },
+        ],
+        this.refinable.accountAddress
+      );
+    } else {
+      const exchange = new Seaport.Exchange(this.chainId);
+      return exchange.fillOrderTx(
+        this.refinable.accountAddress,
+        builtOrder,
+        { amount: "1" },
         {
-          kind: "seaport",
-          contractKind: "erc721",
-          contract: contractAddress,
-          tokenId: tokenId,
-          currency: currency.address,
-          order: builtOrder,
-        },
-      ],
-      this.refinable.accountAddress
-    );
+          referrer: "refinable.com",
+          conduitKey: Addresses[this.chainId].ConduitKey,
+          recipient: this.refinable.accountAddress,
+        }
+      );
+    }
   }
 
   async listForSale(

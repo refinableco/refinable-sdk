@@ -1,7 +1,7 @@
 import { parseEther, splitSignature } from "ethers/lib/utils";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
-import { Common, LooksRare } from "@refinableco/reservoir-sdk";
+import { Common, LooksRare, Router } from "@refinableco/reservoir-sdk";
 import { Types as LookrareTypes } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
 import { Types } from "@refinableco/reservoir-sdk/dist/looks-rare";
@@ -12,11 +12,16 @@ import {
   ListStatus,
   LIST_STATUS_STEP,
 } from "../nft/interfaces/SaleStatusStep";
-import { MutationLooksrareListForSaleArgs, Platform, Price } from "../@types/graphql";
+import {
+  MutationLooksrareListForSaleArgs,
+  Platform,
+  Price,
+} from "../@types/graphql";
 import axios from "axios";
 import { gql } from "graphql-request";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { StrategyStandardSaleForFixedPrice } from "@refinableco/reservoir-sdk/dist/looks-rare/addresses";
+import { ethers } from "ethers";
 
 export const LOOKSRARE_LIST_FOR_SALE = gql`
   mutation looksrareListForSale($input: LooksrareListForSaleInput!) {
@@ -28,11 +33,12 @@ export class LooksrarePlatform extends AbstractPlatform {
   getApprovalAddress(chainId: number): string {
     return LooksRare.Addresses.Exchange[chainId];
   }
-  buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
+  async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
     const { v, r, s } = splitSignature(offer.orderParams.signature);
 
-    const exchange = new LooksRare.Exchange(1);
-    const order = new LooksRare.Order(1, {
+    const builder = new LooksRare.Builders.SingleToken(this.refinable.chainId);
+
+    const builtOrder = builder.build({
       ...offer.orderParams,
       collection: contractAddress,
       tokenId: tokenId,
@@ -42,20 +48,41 @@ export class LooksrarePlatform extends AbstractPlatform {
       kind: "single-token",
       params: BytesEmpty,
     });
-    const unsignedTx = exchange.fillOrderTx(
-      this.refinable.accountAddress,
-      order,
-      {
+
+    // Router supports only ETH transactions
+    if (offer.orderParams?.currency === ethers.constants.AddressZero) {
+      const router = new Router.Router(1, this.refinable.evm.provider);
+
+      return await router.fillListingsTx(
+        [
+          {
+            kind: "looks-rare",
+            contractKind: "erc721",
+            contract: contractAddress,
+            tokenId,
+            order: builtOrder,
+            currency: offer.orderParams.currency,
+          },
+        ],
+        offer.orderParams.signer,
+        {
+          referrer: "refinable.com",
+        }
+      );
+    } else {
+      const exchange = new LooksRare.Exchange(1);
+
+      const order = new LooksRare.Order(1, builtOrder.params);
+
+      return exchange.fillOrderTx(this.refinable.accountAddress, order, {
         isOrderAsk: false,
         taker: this.refinable.accountAddress,
         price: offer.orderParams.price,
         tokenId: tokenId,
         minPercentageToAsk: offer.orderParams.minPercentageToAsk,
         params: BytesEmpty,
-      }
-    );
-
-    return unsignedTx;
+      });
+    }
   }
 
   /**
@@ -63,24 +90,24 @@ export class LooksrarePlatform extends AbstractPlatform {
    */
 
   // -- LOOKSRARE
-        // EX.
-        // https://docs.looksrare.org/developers/maker-orders#breakdown-of-parameters
-        // {
-        //   "signature": "0xca048086170d030e223f36f21d329636dc163775ee4130c3f4d62cad8748bd5250cd0aacec582c73d0c53b555ae7661065ed9e16ff4fbfd5bb6e53688e4c807b1c",
-        //   "tokenId": null,
-        //   "collection": "0xA8Bf4A0993108454aBB4EBb4f5E3400AbB94282D",
-        //   "strategy": "0x86F909F70813CdB1Bc733f4D97Dc6b03B8e7E8F3",
-        //   "currency": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
-        //   "signer": "0x72c0e50be0f76863F708619784Ea4ff48D8587bE",
-        //   "isOrderAsk": true,
-        //   "nonce": "20",
-        //   "amount": "1",
-        //   "price": "10201020023",
-        //   "startTime": "1645470906",
-        //   "endTime": "1645471906",
-        //   "minPercentageToAsk": 8500,
-        //   "params": ""
-        // }
+  // EX.
+  // https://docs.looksrare.org/developers/maker-orders#breakdown-of-parameters
+  // {
+  //   "signature": "0xca048086170d030e223f36f21d329636dc163775ee4130c3f4d62cad8748bd5250cd0aacec582c73d0c53b555ae7661065ed9e16ff4fbfd5bb6e53688e4c807b1c",
+  //   "tokenId": null,
+  //   "collection": "0xA8Bf4A0993108454aBB4EBb4f5E3400AbB94282D",
+  //   "strategy": "0x86F909F70813CdB1Bc733f4D97Dc6b03B8e7E8F3",
+  //   "currency": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+  //   "signer": "0x72c0e50be0f76863F708619784Ea4ff48D8587bE",
+  //   "isOrderAsk": true,
+  //   "nonce": "20",
+  //   "amount": "1",
+  //   "price": "10201020023",
+  //   "startTime": "1645470906",
+  //   "endTime": "1645471906",
+  //   "minPercentageToAsk": 8500,
+  //   "params": ""
+  // }
 
   async listForSale(
     nft: AbstractEvmNFT,
@@ -111,7 +138,7 @@ export class LooksrarePlatform extends AbstractPlatform {
       endTime: now + 86400 * 14, // 2-w validity
       params: BytesEmpty,
       minPercentageToAsk: 8500,
-      nonce: '', // filled later
+      nonce: "", // filled later
     };
 
     // approve

@@ -40,7 +40,7 @@ export class X2Y2Platform extends AbstractPlatform {
     return X2Y2.Addresses.Exchange[chainId];
   }
 
-  async buy(offer: PartialOffer, tokenId: string) {
+  async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
     const input = {
       id: offer.orderParams.id,
       type: offer.orderParams.type,
@@ -51,7 +51,7 @@ export class X2Y2Platform extends AbstractPlatform {
       deadline: offer.orderParams.end_at,
       itemHash: offer.orderParams.item_hash,
       nft: {
-        token: offer.orderParams.token.contract,
+        token: contractAddress,
         tokenId,
       },
     };
