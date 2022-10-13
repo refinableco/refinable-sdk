@@ -289,8 +289,8 @@ export type CollectionMetadataFilterInput = {
 
 export type CollectionMetadataValues = {
   displayType?: Maybe<Scalars["String"]>;
-  max: Scalars["String"];
-  min: Scalars["String"];
+  max?: Maybe<Scalars["String"]>;
+  min?: Maybe<Scalars["String"]>;
   possibilities: Array<MetadataValuePossibility>;
   traitType: Scalars["String"];
   type: Scalars["String"];
@@ -677,15 +677,15 @@ export type GetRefinableContractsInput = {
 };
 
 export type GetUnsignedTxInput = {
-  currency: Scalars["String"];
-  deadline: Scalars["Float"];
-  id: Scalars["Float"];
-  itemHash: Scalars["String"];
-  maker: Scalars["String"];
-  nft: Nft;
-  price: Scalars["String"];
-  taker: Scalars["String"];
-  type: Scalars["String"];
+  platform: Platform;
+  x2y2Data?: InputMaybe<X2Y2InputData>;
+};
+
+export type GetUnsignedTxOutput = {
+  data: Scalars["String"];
+  from: Scalars["String"];
+  to: Scalars["String"];
+  value?: Maybe<Scalars["String"]>;
 };
 
 export type GetUploadUrlOutput = {
@@ -1034,22 +1034,6 @@ export type LazyCollectionInfoOutput = {
   maxSupply: Scalars["Float"];
 };
 
-export type LocalOrder = {
-  currency: Scalars["String"];
-  dataMask: Scalars["String"];
-  deadline: Scalars["Float"];
-  delegateType: Scalars["Float"];
-  intent: Scalars["Float"];
-  items: Array<LocalOrderItem>;
-  network: Scalars["Float"];
-  r?: InputMaybe<Scalars["String"]>;
-  s?: InputMaybe<Scalars["String"]>;
-  salt: Scalars["String"];
-  signVersion: Scalars["Float"];
-  user: Scalars["String"];
-  v?: InputMaybe<Scalars["Float"]>;
-};
-
 export type LocalOrderItem = {
   data: Scalars["String"];
   price: Scalars["String"];
@@ -1178,7 +1162,7 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
-  x2y2ListForSale: Scalars["Boolean"];
+  x2y2ListForSale: Scalars["String"];
 };
 
 export type MutationCreateCollectionArgs = {
@@ -1330,12 +1314,7 @@ export type MutationUserImportCollectionArgs = {
 };
 
 export type MutationX2y2ListForSaleArgs = {
-  data: LocalOrder;
-};
-
-export type Nft = {
-  token: Scalars["String"];
-  tokenId: Scalars["String"];
+  input: X2Y2ListForSaleInput;
 };
 
 export type Notification = {
@@ -1609,6 +1588,7 @@ export type Query = {
   contract?: Maybe<ContractOutput>;
   contractCount: ContractCount;
   getMetadata?: Maybe<GetMetadataOutput>;
+  getUnsignedTx: GetUnsignedTxOutput;
   getUploadUrl: GetUploadUrlOutput;
   history: ItemHistoryResponse;
   hotCollections: CollectionsResponse;
@@ -1636,7 +1616,6 @@ export type Query = {
   topUsers: Array<TopUser>;
   user?: Maybe<User>;
   userSortedCollections: UserSortedCollectionsResponse;
-  x2y2: X2Y2;
 };
 
 export type QueryActivityArgs = {
@@ -1688,6 +1667,10 @@ export type QueryContractCountArgs = {
 
 export type QueryGetMetadataArgs = {
   input: GetMetadataInput;
+};
+
+export type QueryGetUnsignedTxArgs = {
+  data: GetUnsignedTxInput;
 };
 
 export type QueryGetUploadUrlArgs = {
@@ -2088,13 +2071,6 @@ export type Transcoding = {
   url: Scalars["String"];
 };
 
-export type TxDataResponse = {
-  data: Scalars["String"];
-  from: Scalars["String"];
-  to: Scalars["String"];
-  value?: Maybe<Scalars["String"]>;
-};
-
 export type UpdateCollectionInput = {
   bannerUrl?: InputMaybe<Scalars["String"]>;
   discord?: InputMaybe<Scalars["String"]>;
@@ -2334,12 +2310,37 @@ export type WhitelistVoucher = {
   whitelistType: WhitelistType;
 };
 
-export type X2Y2 = {
-  getUnsignedTx: TxDataResponse;
+export type X2Y2InputData = {
+  currency: Scalars["String"];
+  deadline: Scalars["Float"];
+  id: Scalars["Float"];
+  itemHash: Scalars["String"];
+  maker: Scalars["String"];
+  nft: X2Y2Nft;
+  price: Scalars["String"];
+  taker: Scalars["String"];
+  type: Scalars["String"];
 };
 
-export type X2Y2GetUnsignedTxArgs = {
-  data: GetUnsignedTxInput;
+export type X2Y2ListForSaleInput = {
+  currency: Scalars["String"];
+  dataMask: Scalars["String"];
+  deadline: Scalars["Float"];
+  delegateType: Scalars["Float"];
+  intent: Scalars["Float"];
+  items: Array<LocalOrderItem>;
+  network: Scalars["Float"];
+  r?: InputMaybe<Scalars["String"]>;
+  s?: InputMaybe<Scalars["String"]>;
+  salt: Scalars["String"];
+  signVersion: Scalars["Float"];
+  user: Scalars["String"];
+  v?: InputMaybe<Scalars["Float"]>;
+};
+
+export type X2Y2Nft = {
+  token: Scalars["String"];
+  tokenId: Scalars["String"];
 };
 
 export type UndefinedEdge = {
@@ -3719,23 +3720,15 @@ export type PurchaseItemMutation = {
   createPurchase: { transactionHash: string };
 };
 
-export type X2y2QueryVariables = Exact<{
+export type UnsignedTxQueryVariables = Exact<{
   data: GetUnsignedTxInput;
 }>;
 
-export type X2y2Query = {
-  x2y2: {
-    getUnsignedTx: {
-      from: string;
-      to: string;
-      data: string;
-      value?: string | null;
-    };
+export type UnsignedTxQuery = {
+  getUnsignedTx: {
+    from: string;
+    to: string;
+    data: string;
+    value?: string | null;
   };
 };
-
-export type X2y2PostOrderMutationVariables = Exact<{
-  data: LocalOrder;
-}>;
-
-export type X2y2PostOrderMutation = { x2y2ListForSale: boolean };

@@ -1,18 +1,21 @@
 import { Refinable } from "../refinable/Refinable";
 
-export const simulateUnsignedTx = async ({
-  refinable,
-  data,
-  to,
-  value,
-}: {
-  refinable: Refinable;
-  data: string;
-  to: string;
-  value: string;
-}) => {
+export const simulateUnsignedTx = async (
+  {
+    refinable,
+    data,
+    to,
+    value,
+  }: {
+    refinable: Refinable;
+    data: string;
+    to: string;
+    value: string;
+  },
+  { chainId = 1 }: { chainId?: number } = {}
+) => {
   const body = {
-    network_id: "1",
+    network_id: chainId ? String(chainId) : "1",
     from: refinable.accountAddress,
     to: to,
     input: data,
