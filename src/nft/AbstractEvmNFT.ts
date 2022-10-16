@@ -699,6 +699,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       }
       const approvalResult = await this.approve(operatorAddress);
 
+      await approvalResult.wait(2);
       return approvalResult;
     }
   }
