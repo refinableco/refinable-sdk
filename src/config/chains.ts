@@ -332,6 +332,12 @@ export const chainMap: Record<Chain, IChainConfig> = {
         native: true,
         address: "0x0000000000000000000000000000000000000000",
       },
+      {
+        name: "WETH",
+        symbol: "WETH",
+        decimals: 18,
+        address: "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6",
+      },
     ],
   },
 };

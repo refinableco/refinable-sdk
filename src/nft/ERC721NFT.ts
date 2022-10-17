@@ -1,7 +1,3 @@
-import { Common } from "@refinableco/reservoir-sdk";
-import { StrategyStandardSaleForFixedPrice } from "@refinableco/reservoir-sdk/dist/looks-rare/addresses";
-import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
-import { parseEther } from "ethers/lib/utils";
 import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
@@ -15,6 +11,7 @@ import {
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
 import { PlatformFactory } from "../platform";
+import { Chain } from "../interfaces/Network";
 import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
@@ -44,9 +41,9 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     // for some custom contracts it fails to estimate the gas correctly
     try {
-      setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
-        operatorAddress,
-        true
+      setApprovalForAllTx = await nftTokenContract.sendTransaction(
+        "setApprovalForAll",
+        [operatorAddress, true]
       );
     } catch (ex) {
       if (ex.code === "UNPREDICTABLE_GAS_LIMIT") {
@@ -58,9 +55,9 @@ export class ERC721NFT extends AbstractEvmNFT {
 
         const fee = await this.refinable.provider.getFeeData();
 
-        setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
-          operatorAddress,
-          true,
+        setApprovalForAllTx = await nftTokenContract.sendTransaction(
+          "setApprovalForAll",
+          [operatorAddress, true],
           {
             gasLimit: gasLimit,
             gasPrice: fee.gasPrice,
@@ -336,47 +333,9 @@ export class ERC721NFT extends AbstractEvmNFT {
       const platformFactory = new PlatformFactory(this.refinable);
       for (const platform of platforms) {
         const platformInstance = platformFactory.createPlatform(platform);
-
-        // -- LOOKSRARE
-        // EX.
-        // https://docs.looksrare.org/developers/maker-orders#breakdown-of-parameters
-        // {
-        //   "signature": "0xca048086170d030e223f36f21d329636dc163775ee4130c3f4d62cad8748bd5250cd0aacec582c73d0c53b555ae7661065ed9e16ff4fbfd5bb6e53688e4c807b1c",
-        //   "tokenId": null,
-        //   "collection": "0xA8Bf4A0993108454aBB4EBb4f5E3400AbB94282D",
-        //   "strategy": "0x86F909F70813CdB1Bc733f4D97Dc6b03B8e7E8F3",
-        //   "currency": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
-        //   "signer": "0x72c0e50be0f76863F708619784Ea4ff48D8587bE",
-        //   "isOrderAsk": true,
-        //   "nonce": "20",
-        //   "amount": "1",
-        //   "price": "10201020023",
-        //   "startTime": "1645470906",
-        //   "endTime": "1645471906",
-        //   "minPercentageToAsk": 8500,
-        //   "params": ""
-        // }
-        const now = Math.floor(Date.now() / 1000);
-        await platformInstance.listForSale(
-          this,
-          {
-            tokenId: this._item.tokenId,
-            collection: this._item.contractAddress,
-            strategy: StrategyStandardSaleForFixedPrice[1],
-            currency: Common.Addresses.Weth[1],
-            signer: this.refinable.accountAddress,
-            isOrderAsk: true, // side === "sell"
-            amount: "1",
-            price: parseEther(price.amount.toString()).toString(),
-            startTime: now,
-            endTime: now + 86400 * 14, // 2-w validity
-            params: BytesEmpty,
-            minPercentageToAsk: 8500,
-          },
-          {
-            onProgress,
-          }
-        );
+        await platformInstance.listForSale(this, price, {
+          onProgress,
+        });
       }
     }
 

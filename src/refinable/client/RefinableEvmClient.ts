@@ -10,6 +10,7 @@ import {
 import { getSignerAndProvider } from "../../utils/singer";
 import EvmAccount from "../account/EvmAccount";
 import { Erc721LazyMintContract } from "../contract/Erc721LazyMintContract";
+import { Erc721WhitelistContract } from "../contract/Erc721WhitelistContract";
 import { ContractFactory } from "../ContractFactory";
 import { Contracts } from "../Contracts";
 import { Refinable } from "../Refinable";
@@ -109,6 +110,13 @@ export class RefinableEvmClient {
 
   async getErc721LazyMintContract(contractAddress: string, chainId?: number) {
     return this.contracts.findAndConnectContract<Erc721LazyMintContract>({
+      contractAddress,
+      chainId: chainId ?? (await this.signer.getChainId()),
+    });
+  }
+
+  async getErc721WhitelistContract(contractAddress: string, chainId?: number) {
+    return this.contracts.findAndConnectContract<Erc721WhitelistContract>({
       contractAddress,
       chainId: chainId ?? (await this.signer.getChainId()),
     });

@@ -250,7 +250,7 @@ export class Contracts {
       [contract.contractAddress.toLowerCase()]: contract,
     };
 
-    return contract as C;
+    return contract as unknown as C;
   }
 
   public async registerContract(
