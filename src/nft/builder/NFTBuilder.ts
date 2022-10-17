@@ -131,6 +131,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
         this.item.chainId,
         this.item.contractAddress
       );
+    const isV4 = tokenContract.hasTagSemver("TOKEN", ">=4.0.0");
 
     const mintArgs: any = [
       // uint256 _tokenId
@@ -138,14 +139,14 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       // bytes memory _signature
       this.signature,
       // RoyaltyLibrary.RoyaltyShareDetails[] memory _royaltyShares
-      this.royaltySettings?.shares,
+      this.buildData.royalty.serialize(isV4).shares,
       // uint256 _supply - Only for ERC1155
       ...optionalParam(isERC1155Item(this.item), this.item.supply.toString()),
       // string memory _uri,
       this.item.properties.ipfsDocument,
     ];
 
-    if (tokenContract.hasTagSemver("TOKEN", ">=2.0.0")) {
+    if (tokenContract.hasTagSemver("TOKEN", ">=2.0.0 <=3.0.0")) {
       mintArgs.push(
         // uint256 _royaltyBps
         this.royaltySettings.royaltyBps,
