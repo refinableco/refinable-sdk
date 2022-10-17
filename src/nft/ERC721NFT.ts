@@ -1,7 +1,3 @@
-import { Common } from "@refinableco/reservoir-sdk";
-import { StrategyStandardSaleForFixedPrice } from "@refinableco/reservoir-sdk/dist/looks-rare/addresses";
-import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
-import { parseEther } from "ethers/lib/utils";
 import {
   CreateOfferForEditionsMutation,
   CreateOfferForEditionsMutationVariables,
@@ -45,9 +41,9 @@ export class ERC721NFT extends AbstractEvmNFT {
 
     // for some custom contracts it fails to estimate the gas correctly
     try {
-      setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
-        operatorAddress,
-        true
+      setApprovalForAllTx = await nftTokenContract.sendTransaction(
+        "setApprovalForAll",
+        [operatorAddress, true]
       );
     } catch (ex) {
       if (ex.code === "UNPREDICTABLE_GAS_LIMIT") {
@@ -59,9 +55,9 @@ export class ERC721NFT extends AbstractEvmNFT {
 
         const fee = await this.refinable.provider.getFeeData();
 
-        setApprovalForAllTx = await nftTokenContract.contract.setApprovalForAll(
-          operatorAddress,
-          true,
+        setApprovalForAllTx = await nftTokenContract.sendTransaction(
+          "setApprovalForAll",
+          [operatorAddress, true],
           {
             gasLimit: gasLimit,
             gasPrice: fee.gasPrice,

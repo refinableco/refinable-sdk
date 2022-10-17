@@ -305,8 +305,6 @@ export class OpenseaPlatform extends AbstractPlatform {
       step: LIST_STATUS_STEP.CREATE,
     });
 
-    console.log(input);
-
     const response = await this.refinable.graphqlClient.request<
       string,
       MutationOpenseaListForSaleArgs
