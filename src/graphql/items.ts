@@ -38,27 +38,27 @@ export const GET_USER_OFFER_ITEMS = gql`
 `;
 
 export const GET_OFFER = gql`
-query getOffer($id: ID!, $storeId: ID) {
-  offer(id: $id) {
-    __typename
-    ...Offer
-    item {
-      id
-      type
-      tokenId
-      contractAddress
-      supply
-      totalSupply
-      chainId
-    }
-    ... on MintOffer {
-      ...MintOffer
+  query getOffer($id: ID!, $chainId: Int!, $storeId: ID) {
+    offer(id: $id) {
+      __typename
+      ...Offer
+      item {
+        id
+        type
+        tokenId
+        contractAddress
+        supply
+        totalSupply
+        chainId
+      }
+      ... on MintOffer {
+        ...MintOffer
+      }
     }
   }
-}
 
-${OfferFragment}
-${MintOfferFragment}
+  ${OfferFragment}
+  ${MintOfferFragment}
 `;
 
 export const GET_USER_ITEMS = gql`

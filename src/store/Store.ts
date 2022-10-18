@@ -7,16 +7,14 @@ export interface PartialStore extends Pick<IStore, "id"> {}
 export class Store implements PartialStore {
   id: string;
 
-  constructor(
-    protected readonly refinable: Refinable,
-    store: PartialStore
-  ) {
+  constructor(protected readonly refinable: Refinable, store: PartialStore) {
     Object.assign(this, store);
   }
 
   async getOffer<O extends BasicOffer = BasicOffer>(
-    offerId: string
+    offerId: string,
+    chainId: number
   ): Promise<O> {
-    return this.refinable.offer.getOffer<O>(offerId, this.id);
+    return this.refinable.offer.getOffer<O>(offerId, chainId, this.id);
   }
 }

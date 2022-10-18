@@ -310,6 +310,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           launchpadDetails,
           blockchainId,
         },
+        chainId: this.item.chainId,
       });
     } catch (ex) {
       onError(

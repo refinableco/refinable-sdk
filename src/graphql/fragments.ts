@@ -144,6 +144,21 @@ export const OfferFragment = gql`
       currency {
         id
         ticker
+        priceInUSD
+        coingeckoId
+        name
+        contract(chainId: $chainId) {
+          isNative
+          decimals
+          address
+          chainId
+        }
+        contracts {
+          chainId
+          isNative
+          decimals
+          address
+        }
       }
     }
     signature

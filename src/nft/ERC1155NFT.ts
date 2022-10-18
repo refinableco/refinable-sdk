@@ -158,6 +158,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
         launchpadDetails,
         blockchainId,
       },
+      chainId: this.item.chainId,
     });
 
     return this.refinable.offer.createOffer<SaleOffer>(

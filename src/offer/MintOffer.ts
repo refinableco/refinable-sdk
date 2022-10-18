@@ -143,6 +143,7 @@ export class MintOffer extends BasicOffer {
         description,
         payee,
       },
+      chainId: this.chainId,
     });
 
     this._offer = response?.createMintOffer;
@@ -181,6 +182,7 @@ export class MintOffer extends BasicOffer {
         name,
         description,
       },
+      chainId: this._offer.chainId,
     });
 
     this._offer = response?.updateMintOffer;

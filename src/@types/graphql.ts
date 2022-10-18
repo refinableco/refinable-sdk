@@ -200,7 +200,7 @@ export type Coin = {
 };
 
 export type CoinContractArgs = {
-  chainId: Scalars["Int"];
+  chainId?: InputMaybe<Scalars["Int"]>;
 };
 
 export type CoinContract = {
@@ -2800,7 +2800,28 @@ export type Offer_MintOffer_Fragment = {
   platform?: Platform | null;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null };
-  price: { amount: number; currency: { id: string; ticker: string } };
+  price: {
+    amount: number;
+    currency: {
+      id: string;
+      ticker: string;
+      priceInUSD: number;
+      coingeckoId: string;
+      name: string;
+      contract?: {
+        isNative: boolean;
+        decimals: number;
+        address: string;
+        chainId: number;
+      } | null;
+      contracts: Array<{
+        chainId: number;
+        isNative: boolean;
+        decimals: number;
+        address: string;
+      }>;
+    };
+  };
   auction?: {
     id: string;
     auctionId?: string | null;
@@ -2868,7 +2889,28 @@ export type Offer_SaleOffer_Fragment = {
   platform?: Platform | null;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null };
-  price: { amount: number; currency: { id: string; ticker: string } };
+  price: {
+    amount: number;
+    currency: {
+      id: string;
+      ticker: string;
+      priceInUSD: number;
+      coingeckoId: string;
+      name: string;
+      contract?: {
+        isNative: boolean;
+        decimals: number;
+        address: string;
+        chainId: number;
+      } | null;
+      contracts: Array<{
+        chainId: number;
+        isNative: boolean;
+        decimals: number;
+        address: string;
+      }>;
+    };
+  };
   auction?: {
     id: string;
     auctionId?: string | null;
@@ -3039,6 +3081,7 @@ export type GetUserOfferItemsQuery = {
 
 export type GetOfferQueryVariables = Exact<{
   id: Scalars["ID"];
+  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3077,7 +3120,28 @@ export type GetOfferQuery = {
           imagePreview?: string | null;
         } | null;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3154,7 +3218,28 @@ export type GetOfferQuery = {
           chainId: number;
         } | null;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3374,6 +3459,7 @@ export type FinishMintMutation = {
 
 export type CreateOfferForEditionsMutationVariables = Exact<{
   input: CreateOfferInput;
+  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3395,7 +3481,28 @@ export type CreateOfferForEditionsMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3462,7 +3569,28 @@ export type CreateOfferForEditionsMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3517,6 +3645,7 @@ export type CreateOfferForEditionsMutation = {
 
 export type CreateMintOfferMutationVariables = Exact<{
   input: CreateMintOfferInput;
+  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3541,7 +3670,28 @@ export type CreateMintOfferMutation = {
         description?: string | null;
         payee: string;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3612,7 +3762,28 @@ export type CreateMintOfferMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3668,6 +3839,7 @@ export type CreateMintOfferMutation = {
 export type UpdateMintOfferMutationVariables = Exact<{
   id: Scalars["ID"];
   input: UpdateMintOfferInput;
+  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3692,7 +3864,28 @@ export type UpdateMintOfferMutation = {
         description?: string | null;
         payee: string;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3763,7 +3956,28 @@ export type UpdateMintOfferMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: { id: string; ticker: string } };
+        price: {
+          amount: number;
+          currency: {
+            id: string;
+            ticker: string;
+            priceInUSD: number;
+            coingeckoId: string;
+            name: string;
+            contract?: {
+              isNative: boolean;
+              decimals: number;
+              address: string;
+              chainId: number;
+            } | null;
+            contracts: Array<{
+              chainId: number;
+              isNative: boolean;
+              decimals: number;
+              address: string;
+            }>;
+          };
+        };
         auction?: {
           id: string;
           auctionId?: string | null;

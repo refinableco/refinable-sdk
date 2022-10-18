@@ -68,6 +68,7 @@ export class OfferClient {
 
   async getOffer<O extends BasicOffer = BasicOffer>(
     id: string,
+    chainId: number,
     storeId?: string
   ): Promise<O> {
     const queryResponse = await this.refinable.graphqlClient.request<
@@ -75,6 +76,7 @@ export class OfferClient {
       GetOfferQueryVariables
     >(GET_OFFER, {
       id,
+      chainId,
       storeId,
     });
 
