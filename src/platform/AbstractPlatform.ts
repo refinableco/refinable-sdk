@@ -29,7 +29,7 @@ export abstract class AbstractPlatform {
   ): Promise<EvmTransaction>;
   abstract listForSale(
     nft: AbstractEvmNFT,
-    price: Price,
+    price: PriceInput,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (

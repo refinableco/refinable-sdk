@@ -14,6 +14,7 @@ import {
   Platform,
   OpenseaItemType,
   Price,
+  PriceInput,
 } from "../@types/graphql";
 import { gql } from "graphql-request";
 import { Refinable } from "../refinable/Refinable";
@@ -143,14 +144,11 @@ export class OpenseaPlatform extends AbstractPlatform {
   }
 
   async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
-    const chainId = offer.chainId;
-    const chainConfig = new Chain(chainId);
-
-    const currency = chainConfig.getCurrency(offer.price.currency);
-
     const nonce = await this.getNonce(this.refinable.accountAddress);
+    const builder = new Seaport.Builders.SingleToken(offer.chainId);
 
-    const builder = new Seaport.Builders.SingleToken(this.refinable.chainId);
+    const chain = new Chain(offer.chainId, this.refinable.coin);
+    const coin = await chain.getCoin({ id: offer.price.currency.id });
 
     const { orderParams } = offer;
 
@@ -161,7 +159,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offerer: orderParams.parameters.offerer,
       contract: contractAddress,
       tokenId: tokenId,
-      paymentToken: currency.address,
+      paymentToken: coin.contract.address,
       price: orderParams.parameters.consideration[0].startAmount,
       counter: nonce,
       startTime: orderParams.parameters.startTime,
@@ -178,7 +176,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     });
 
     // Router supports only ETH transactions
-    if (currency.address === constants.AddressZero) {
+    if (coin.contract.isNative) {
       const router = new Router.Router(
         this.chainId,
         this.refinable.evm.provider
@@ -190,7 +188,7 @@ export class OpenseaPlatform extends AbstractPlatform {
             contractKind: "erc721",
             contract: contractAddress,
             tokenId: tokenId,
-            currency: currency.address,
+            currency: coin.contract.address,
             order: builtOrder,
           },
         ],
@@ -213,7 +211,7 @@ export class OpenseaPlatform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    offerPrice: Price,
+    offerPrice: PriceInput,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (
@@ -237,7 +235,10 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
-    const currency = new Chain(this.chainId).getCurrency(offerPrice.currency);
+    const currency = await new Chain(
+      this.chainId,
+      this.refinable.coin
+    ).getCurrency(offerPrice.currency);
     const price = utils.parseUnits(
       offerPrice.amount.toString(),
       currency.decimals
@@ -249,7 +250,7 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const now = Math.floor(Date.now() / 1000);
 
-    const builder = new Seaport.Builders.SingleToken(this.refinable.chainId);
+    const builder = new Seaport.Builders.SingleToken(this.chainId);
 
     /**
      * `msg.properties.totalOriginalConsiderationItems`: missing when sending req, re-added by backend

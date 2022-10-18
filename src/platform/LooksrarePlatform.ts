@@ -19,6 +19,7 @@ import {
   MutationLooksrareListForSaleArgs,
   Platform,
   Price,
+  PriceInput,
 } from "../@types/graphql";
 import axios from "axios";
 import { gql } from "graphql-request";
@@ -64,7 +65,7 @@ export class LooksrarePlatform extends AbstractPlatform {
   async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
     const { v, r, s } = splitSignature(offer.orderParams.signature);
 
-    const builder = new LooksRare.Builders.SingleToken(this.refinable.chainId);
+    const builder = new LooksRare.Builders.SingleToken(offer.chainId);
 
     const builtOrder = builder.build({
       ...offer.orderParams,
@@ -139,7 +140,7 @@ export class LooksrarePlatform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    price: Price,
+    price: PriceInput,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (

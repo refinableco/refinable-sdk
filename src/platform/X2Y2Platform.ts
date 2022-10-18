@@ -4,6 +4,7 @@ import {
   MutationX2y2ListForSaleArgs,
   Platform,
   Price,
+  PriceInput,
   QueryGetUnsignedTxArgs,
 } from "../@types/graphql";
 import { Refinable } from "../refinable/Refinable";
@@ -168,7 +169,7 @@ export class X2Y2Platform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    price: Price,
+    price: PriceInput,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (
