@@ -25,6 +25,7 @@ import {
 } from "../types/RefinableOptions";
 import { limit } from "../utils/limitItems";
 import { CheckoutClient } from "./checkout/CheckoutClient";
+import { CoinClient } from "./coin/CoinClient";
 import { OfferClient } from "./offer/OfferClient";
 import EvmSigner from "./signer/EvmSigner";
 
@@ -228,6 +229,10 @@ export class Refinable {
 
   get offer(): OfferClient {
     return new OfferClient(this);
+  }
+
+  get coin(): CoinClient {
+    return new CoinClient(this);
   }
 
   platform(platform: Platform): AbstractPlatform {

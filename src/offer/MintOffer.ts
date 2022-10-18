@@ -6,8 +6,7 @@ import {
   LaunchpadDetailsInput,
   MintOfferFragment,
   OfferType,
-  Price,
-  PriceCurrency,
+  PriceInput,
   UpdateMintOfferMutation,
   UpdateMintOfferMutationVariables,
 } from "../@types/graphql";
@@ -31,7 +30,7 @@ interface BuyParams {
 
 export interface PutForSaleParams {
   contractAddress: string;
-  price: Price;
+  price: PriceInput;
   startTime?: Date;
   endTime?: Date;
   launchpadDetails?: LaunchpadDetailsInput;
@@ -57,7 +56,7 @@ export class MintOffer extends BasicOffer {
     protected readonly offer?: PartialOffer & MintOfferFragment
   ) {
     super(refinable, offer);
-    this._chain = new Chain(chainId);
+    this._chain = new Chain(chainId, this.refinable.coin);
   }
 
   get chainId() {
@@ -92,9 +91,7 @@ export class MintOffer extends BasicOffer {
     // upload image if there is one
     let previewFile = params.previewFile;
     if (params.previewFile && typeof params.previewFile !== "string") {
-      previewFile = await this.refinable.uploadFile(
-        params.previewFile
-      );
+      previewFile = await this.refinable.uploadFile(params.previewFile);
     }
 
     const contract = await this.getContract(contractAddress);
@@ -170,9 +167,7 @@ export class MintOffer extends BasicOffer {
     // upload image if there is one
     let previewFile = params.previewFile;
     if (params.previewFile && typeof params.previewFile !== "string") {
-      previewFile = await this.refinable.uploadFile(
-        params.previewFile
-      );
+      previewFile = await this.refinable.uploadFile(params.previewFile);
     }
 
     const response = await this.refinable.graphqlClient.request<
@@ -197,8 +192,11 @@ export class MintOffer extends BasicOffer {
 
     return contract.buy({
       ...params,
-      mintVoucher: this.getMintVoucher(),
-      price: this._offer.price,
+      mintVoucher: await this.getMintVoucher(),
+      price: {
+        amount: this._offer.price.amount,
+        currency: this._offer.price.currency.id,
+      },
       whitelistVoucher: this.whitelistVoucher,
       recipient: params.recipient || this.refinable.accountAddress,
     });
@@ -209,8 +207,11 @@ export class MintOffer extends BasicOffer {
 
     return contract.estimateGasBuy({
       ...params,
-      mintVoucher: this.getMintVoucher(),
-      price: this._offer.price,
+      mintVoucher: await this.getMintVoucher(),
+      price: {
+        amount: this._offer.price.amount,
+        currency: this._offer.price.currency.id,
+      },
       whitelistVoucher: this.whitelistVoucher,
       recipient: params.recipient || this.refinable.accountAddress,
     });
@@ -222,16 +223,19 @@ export class MintOffer extends BasicOffer {
     return contract.endSale(this.seller?.ethAddress);
   }
 
-  private getMintVoucher(): MintVoucher {
-    const paymentToken = this._chain.getPaymentToken(this.offer.price.currency);
+  private async getMintVoucher(): Promise<MintVoucher> {
+    const coin = await this._chain.getCoin({
+      id: this.offer.price.currency.id,
+    });
 
-    const offerPrice = this._chain.parseCurrency(
-      this.offer.price.currency,
+    const offerPrice = this._chain.parseUnits(
+      coin.contract.decimals,
       this.offer.price.amount
     );
 
     return {
-      currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
+      currency:
+        coin.contract.address ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
       price: offerPrice ?? "0",
       supply: this.offer.totalSupply.toString() ?? "0",
       payee: this.offer.payee,
@@ -275,7 +279,7 @@ export class MintOffer extends BasicOffer {
     seller: string;
     chainId: number;
     message: {
-      currency: PriceCurrency;
+      currency: string;
       price: number;
       supply: number;
       startTime: number;
@@ -285,8 +289,8 @@ export class MintOffer extends BasicOffer {
     };
     signer: EvmSigner;
   }) {
-    const paymentToken = this._chain.getPaymentToken(message.currency);
-    const value = this._chain.parseCurrency(message.currency, message.price);
+    const coin = await this._chain.getCoin({ id: message.currency });
+    const value = this._chain.parseUnits(coin.contract.decimals, message.price);
 
     const signedData = {
       EIP712Version: "4",
@@ -313,7 +317,8 @@ export class MintOffer extends BasicOffer {
       primaryType: "MintVoucher",
       message: {
         nonce: nonce,
-        currency: paymentToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
+        currency:
+          coin.contract.address ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
         price: value ?? "0",
         supply: message?.supply.toString() ?? "0",
         payee: message.payee,

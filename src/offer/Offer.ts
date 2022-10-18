@@ -123,6 +123,6 @@ export class Offer extends BasicOffer {
   ) {
     super(refinable, _offer);
 
-    this.chain = new Chain(_offer.chainId);
+    this.chain = new Chain(_offer.chainId, this.refinable.coin);
   }
 }

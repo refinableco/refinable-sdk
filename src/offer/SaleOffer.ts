@@ -2,7 +2,6 @@ import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
   Platform,
-  PriceCurrency,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
   PurchaseMetadata,
@@ -45,7 +44,10 @@ export class SaleOffer extends Offer {
 
     const buyParams: NFTBuyParams = {
       signature: this._offer.signature,
-      price: this._offer.price,
+      price: {
+        amount: this._offer.price.amount,
+        currency: this._offer.price.currency.id,
+      },
       ownerEthAddress: this._offer.user?.ethAddress,
       supply,
       blockchainId: this._offer.blockchainId,
@@ -91,7 +93,7 @@ export class SaleOffer extends Offer {
 
     // 1. Approve token if needed
     await this.refinable.evm.account.approveTokenContractAllowance(
-      this.chain.getCurrency(this._offer.price.currency),
+      await this.chain.getCurrency(this._offer.price.currency.id),
       this._offer.price.amount,
       await externalPlatform.getApprovalAddress(this._offer.chainId)
     );
@@ -111,15 +113,13 @@ export class SaleOffer extends Offer {
         data: unsignedTx.data,
         to: unsignedTx.to,
         value:
-          this._offer.price.currency != PriceCurrency.Eth
-            ? "0"
-            : unsignedTx.value,
+          this._offer.price.currency.ticker != "eth" ? "0" : unsignedTx.value,
       },
       opts
     );
 
-    if (resp.data.success === false) {
-      throw new SimulationFailedError(resp.data.error?.message);
+    if (resp.data.simulation.status === false) {
+      throw new SimulationFailedError();
     }
 
     try {
@@ -127,9 +127,7 @@ export class SaleOffer extends Offer {
       const response = await this.refinable.evm.signer.sendTransaction({
         ...unsignedTx,
         value:
-          this._offer.price.currency != PriceCurrency.Eth
-            ? "0"
-            : unsignedTx.value,
+          this._offer.price.currency.ticker != "eth" ? "0" : unsignedTx.value,
       });
 
       const receipt = await response.wait();
@@ -143,7 +141,10 @@ export class SaleOffer extends Offer {
     const selling = await this.getSupplyOnSale();
 
     return this.nft.cancelSale({
-      price: this.price,
+      price: {
+        amount: this.price.amount,
+        currency: this.price.currency.id,
+      },
       signature: this._offer.signature,
       selling,
       blockchainId: this._offer.blockchainId,
@@ -158,7 +159,10 @@ export class SaleOffer extends Offer {
       const saleID = ERCSaleID.fromBlockchainId(this._offer.blockchainId);
 
       const saleParamsWithOfferSupply = await this.nft.getSaleParamsHash({
-        price: this.price,
+        price: {
+          amount: this.price.amount,
+          currency: this.price.currency.id,
+        },
         ethAddress: this._offer.user?.ethAddress,
         supply: this._offer.totalSupply,
         endTime: this._offer.endTime,

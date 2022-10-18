@@ -188,6 +188,36 @@ export type CheckCollectionInput = {
   contractAddress: Scalars["String"];
 };
 
+export type Coin = {
+  coingeckoId: Scalars["String"];
+  contract?: Maybe<CoinContract>;
+  contracts: Array<CoinContract>;
+  id: Scalars["String"];
+  image?: Maybe<Scalars["String"]>;
+  name: Scalars["String"];
+  priceInUSD: Scalars["Float"];
+  ticker: Scalars["String"];
+};
+
+export type CoinContractArgs = {
+  chainId: Scalars["Int"];
+};
+
+export type CoinContract = {
+  address: Scalars["String"];
+  chainId: Scalars["Int"];
+  decimals: Scalars["Int"];
+  isNative: Scalars["Boolean"];
+};
+
+export type CoinsFilter = {
+  nameOrSymbol: Scalars["String"];
+};
+
+export type CoinsInput = {
+  filter: CoinsFilter;
+};
+
 export type Collection = {
   bannerUrl?: Maybe<Scalars["String"]>;
   chainIds: Array<Scalars["Float"]>;
@@ -635,6 +665,12 @@ export type FinishMintInput = {
 
 export type FinishMintOutput = {
   item: Item;
+};
+
+export type GetCoinInput = {
+  coingeckoId?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
 };
 
 export type GetItemsOutput = {
@@ -1527,7 +1563,7 @@ export type PreviewFileProperties = {
 
 export type Price = {
   amount: Scalars["Float"];
-  currency: PriceCurrency;
+  currency: Coin;
   priceInUSD?: Maybe<Scalars["Float"]>;
 };
 
@@ -1550,7 +1586,7 @@ export enum PriceCurrency {
 
 export type PriceInput = {
   amount: Scalars["Float"];
-  currency: PriceCurrency;
+  currency: Scalars["String"];
 };
 
 export type Properties = {
@@ -1596,6 +1632,7 @@ export type Query = {
   analytics: Analytics;
   auction?: Maybe<Auction>;
   brands: Array<Brand>;
+  coin: Coin;
   collection?: Maybe<Collection>;
   collectionExist?: Maybe<Scalars["String"]>;
   collectionMetadataValues: Array<CollectionMetadataValues>;
@@ -1626,6 +1663,7 @@ export type Query = {
   refinableContracts: Array<ContractOutput>;
   reports: ItemReportResponse;
   search: SearchResponse;
+  searchCoins: Array<Coin>;
   store?: Maybe<Store>;
   storeWithFallback?: Maybe<Store>;
   stores?: Maybe<Array<Store>>;
@@ -1649,6 +1687,10 @@ export type QueryAnalyticsArgs = {
 
 export type QueryAuctionArgs = {
   id?: InputMaybe<Scalars["ID"]>;
+};
+
+export type QueryCoinArgs = {
+  input: GetCoinInput;
 };
 
 export type QueryCollectionArgs = {
@@ -1774,6 +1816,10 @@ export type QuerySearchArgs = {
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
   type: AssetType;
+};
+
+export type QuerySearchCoinsArgs = {
+  input: CoinsInput;
 };
 
 export type QueryStoreArgs = {
@@ -1917,6 +1963,7 @@ export type Store = {
   backgroundColor: Scalars["String"];
   backgroundImage?: Maybe<Scalars["String"]>;
   banner?: Maybe<Scalars["String"]>;
+  coins: Array<Coin>;
   /** @deprecated Use contract.collectionId */
   collectionIds: Array<Scalars["String"]>;
   contracts: Array<StoreContract>;
@@ -1938,6 +1985,7 @@ export type Store = {
   id: Scalars["String"];
   instagram?: Maybe<Scalars["String"]>;
   isCreator: Scalars["Boolean"];
+  isRefinable: Scalars["Boolean"];
   items: ItemsWithOffersResponse;
   logo?: Maybe<Scalars["String"]>;
   logoHeight?: Maybe<Scalars["Float"]>;
@@ -2398,6 +2446,21 @@ export type CreatePurchaseSessionMutation = {
   createPurchaseSession: { id: string; url: string };
 };
 
+export type GetCoinQueryVariables = Exact<{
+  input: GetCoinInput;
+  chainId: Scalars["Int"];
+}>;
+
+export type GetCoinQuery = {
+  coin: {
+    id: string;
+    ticker: string;
+    priceInUSD: number;
+    name: string;
+    contract?: { address: string; decimals: number; isNative: boolean } | null;
+  };
+};
+
 export type CreateCollectionMutationVariables = Exact<{
   data: CreateCollectionInput;
 }>;
@@ -2493,7 +2556,7 @@ export type ItemSaleInfo_MintOffer_Fragment = {
   chainId: number;
   type: OfferType;
   supply: number;
-  price: { amount: number; currency: PriceCurrency };
+  price: { amount: number; currency: { id: string; ticker: string } };
   auction?: {
     id: string;
     startPrice?: number | null;
@@ -2509,7 +2572,7 @@ export type ItemSaleInfo_SaleOffer_Fragment = {
   chainId: number;
   type: OfferType;
   supply: number;
-  price: { amount: number; currency: PriceCurrency };
+  price: { amount: number; currency: { id: string; ticker: string } };
   auction?: {
     id: string;
     startPrice?: number | null;
@@ -2597,7 +2660,7 @@ export type GetItemsWithOfferFragment = {
         chainId: number;
         type: OfferType;
         supply: number;
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           startPrice?: number | null;
@@ -2612,7 +2675,7 @@ export type GetItemsWithOfferFragment = {
         chainId: number;
         type: OfferType;
         supply: number;
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           startPrice?: number | null;
@@ -2641,7 +2704,7 @@ export type UserItemsFragment = {
         chainId: number;
         type: OfferType;
         supply: number;
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           startPrice?: number | null;
@@ -2656,7 +2719,7 @@ export type UserItemsFragment = {
         chainId: number;
         type: OfferType;
         supply: number;
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           startPrice?: number | null;
@@ -2737,7 +2800,7 @@ export type Offer_MintOffer_Fragment = {
   platform?: Platform | null;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null };
-  price: { amount: number; currency: PriceCurrency };
+  price: { amount: number; currency: { id: string; ticker: string } };
   auction?: {
     id: string;
     auctionId?: string | null;
@@ -2805,7 +2868,7 @@ export type Offer_SaleOffer_Fragment = {
   platform?: Platform | null;
   whitelistStage: LaunchpadCountDownType;
   user: { id: string; ethAddress?: string | null };
-  price: { amount: number; currency: PriceCurrency };
+  price: { amount: number; currency: { id: string; ticker: string } };
   auction?: {
     id: string;
     auctionId?: string | null;
@@ -2925,7 +2988,10 @@ export type GetUserOfferItemsQuery = {
                 chainId: number;
                 type: OfferType;
                 supply: number;
-                price: { amount: number; currency: PriceCurrency };
+                price: {
+                  amount: number;
+                  currency: { id: string; ticker: string };
+                };
                 auction?: {
                   id: string;
                   startPrice?: number | null;
@@ -2943,7 +3009,10 @@ export type GetUserOfferItemsQuery = {
                 chainId: number;
                 type: OfferType;
                 supply: number;
-                price: { amount: number; currency: PriceCurrency };
+                price: {
+                  amount: number;
+                  currency: { id: string; ticker: string };
+                };
                 auction?: {
                   id: string;
                   startPrice?: number | null;
@@ -3008,7 +3077,7 @@ export type GetOfferQuery = {
           imagePreview?: string | null;
         } | null;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3085,7 +3154,7 @@ export type GetOfferQuery = {
           chainId: number;
         } | null;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3169,7 +3238,10 @@ export type GetUserItemsQuery = {
                 chainId: number;
                 type: OfferType;
                 supply: number;
-                price: { amount: number; currency: PriceCurrency };
+                price: {
+                  amount: number;
+                  currency: { id: string; ticker: string };
+                };
                 auction?: {
                   id: string;
                   startPrice?: number | null;
@@ -3187,7 +3259,10 @@ export type GetUserItemsQuery = {
                 chainId: number;
                 type: OfferType;
                 supply: number;
-                price: { amount: number; currency: PriceCurrency };
+                price: {
+                  amount: number;
+                  currency: { id: string; ticker: string };
+                };
                 auction?: {
                   id: string;
                   startPrice?: number | null;
@@ -3320,7 +3395,7 @@ export type CreateOfferForEditionsMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3387,7 +3462,7 @@ export type CreateOfferForEditionsMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3466,7 +3541,7 @@ export type CreateMintOfferMutation = {
         description?: string | null;
         payee: string;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3537,7 +3612,7 @@ export type CreateMintOfferMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3617,7 +3692,7 @@ export type UpdateMintOfferMutation = {
         description?: string | null;
         payee: string;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;
@@ -3688,7 +3763,7 @@ export type UpdateMintOfferMutation = {
         platform?: Platform | null;
         whitelistStage: LaunchpadCountDownType;
         user: { id: string; ethAddress?: string | null };
-        price: { amount: number; currency: PriceCurrency };
+        price: { amount: number; currency: { id: string; ticker: string } };
         auction?: {
           id: string;
           auctionId?: string | null;

@@ -9,7 +9,10 @@ const saleInfoFragment = gql`
     supply
     price {
       amount
-      currency
+      currency {
+        id
+        ticker
+      }
     }
     auction {
       id
@@ -138,7 +141,10 @@ export const OfferFragment = gql`
     }
     price {
       amount
-      currency
+      currency {
+        id
+        ticker
+      }
     }
     signature
     blockchainId

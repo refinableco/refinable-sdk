@@ -3,6 +3,7 @@ import {
   OfferType,
   Price,
   Platform,
+  PriceInput,
 } from "../../@types/graphql";
 
 export enum LIST_STATUS_STEP {
@@ -40,7 +41,7 @@ export interface ListCreateStatus extends ListStatus {
     signature: string;
     type: OfferType;
     contractAddress: string;
-    price: Price;
+    price: PriceInput;
     startTime?: Date;
     endTime?: Date;
     supply: number;

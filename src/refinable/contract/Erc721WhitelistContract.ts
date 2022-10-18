@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ContractTypes } from "../../@types/graphql";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { Refinable } from "../Refinable";
 import { WhitelistContract } from "./AbstractWhitelistContract";
 import { IContract } from "./Contract";
 
@@ -11,8 +12,11 @@ export class Erc721WhitelistContract extends WhitelistContract {
     symbol: z.string().min(1),
     uri: z.string().optional(),
   });
-
-  constructor(contract: IContract, evmOptions: RefinableEvmOptions) {
-    super(contract, evmOptions);
+  constructor(
+    refinable: Refinable,
+    contract: IContract,
+    evmOptions: RefinableEvmOptions
+  ) {
+    super(refinable, contract, evmOptions);
   }
 }

@@ -41,7 +41,11 @@ export class Contracts {
 
   private initializing = false;
 
-  constructor(private readonly refinable: Refinable) {}
+  private contractFactory;
+
+  constructor(private readonly refinable: Refinable) {
+    this.contractFactory = new ContractFactory(this.refinable);
+  }
 
   async initialize() {
     if (this.initializing) return;
@@ -174,7 +178,10 @@ export class Contracts {
     if (!contract)
       throw new Error("This contract cannot be minted through Refinable");
 
-    return ContractFactory.getContract(contract, this.refinable.evm.options);
+    return this.contractFactory.getContract(
+      contract,
+      this.refinable.evm.options
+    );
   }
 
   async isContractDeployed(contractAddress: string) {
@@ -240,7 +247,7 @@ export class Contracts {
   private cacheContract<C extends Contract = Contract>(
     contractOutput: IContract
   ) {
-    const contract = ContractFactory.getContract(
+    const contract = this.contractFactory.getContract(
       contractOutput,
       this.refinable.evm.options
     );

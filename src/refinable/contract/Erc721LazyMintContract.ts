@@ -1,6 +1,6 @@
 import { constants, ethers } from "ethers";
 import { z } from "zod";
-import { ContractTypes, Price } from "../../@types/graphql";
+import { ContractTypes, Price, PriceInput } from "../../@types/graphql";
 import { SaleSettings } from "../../interfaces/Contracts/Erc721Lazy";
 import { LibPart } from "../../interfaces/LibPart";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
@@ -10,11 +10,12 @@ import EvmTransaction from "../../transaction/EvmTransaction";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
 import { optionalParam } from "../../utils/utils";
 import EvmAccount from "../account/EvmAccount";
+import { Refinable } from "../Refinable";
 import { Contract, IContract } from "./Contract";
 
 interface BuyParams {
   mintVoucher: MintVoucher;
-  price: Price;
+  price: PriceInput;
   amount?: number;
   recipient: string;
   whitelistVoucher?: WhitelistVoucherParams;
@@ -49,8 +50,12 @@ export class Erc721LazyMintContract extends Contract {
   });
   private account: EvmAccount;
 
-  constructor(contract: IContract, evmOptions: RefinableEvmOptions) {
-    super(contract, evmOptions);
+  constructor(
+    refinable: Refinable,
+    contract: IContract,
+    evmOptions: RefinableEvmOptions
+  ) {
+    super(refinable, contract, evmOptions);
   }
 
   connect(signerOrProvider: ProviderSignerWallet) {
@@ -144,12 +149,12 @@ export class Erc721LazyMintContract extends Contract {
 
     // Add allows as much as the price requests
     await this.account.approveTokenContractAllowance(
-      this.chain.getCurrency(params.price.currency),
+      await this.chain.getCurrency(params.price.currency),
       priceTimesAmount,
       this.contractAddress
     );
 
-    const { method, args, callOverrides } = this.getBuyTxParams({
+    const { method, args, callOverrides } = await this.getBuyTxParams({
       recipient: params.recipient,
       amount: amountToClaim,
       price: params.price,
@@ -169,7 +174,7 @@ export class Erc721LazyMintContract extends Contract {
   public async estimateGasBuy(params: BuyParams) {
     const amountToClaim = params.amount ?? 1;
 
-    const { method, args, callOverrides } = this.getBuyTxParams({
+    const { method, args, callOverrides } = await this.getBuyTxParams({
       recipient: params.recipient,
       amount: amountToClaim,
       price: params.price,
@@ -185,10 +190,10 @@ export class Erc721LazyMintContract extends Contract {
     return await this.contractWrapper.contract.estimateGas[method](...args);
   }
 
-  private getBuyTxParams(params: {
+  private async getBuyTxParams(params: {
     mintVoucher: MintVoucher;
     recipient: string;
-    price: Price;
+    price: PriceInput;
     amount?: number;
     whitelistVoucher?: WhitelistVoucherParams;
   }) {
@@ -200,17 +205,19 @@ export class Erc721LazyMintContract extends Contract {
         : params.price.amount;
     const priceTimesAmount = price * amount;
 
-    const parsedPrice = this.chain.parseCurrency(
-      params.price.currency,
+    const coin = await this.chain.getCoin({
+      id: params.price.currency,
+    });
+
+    const parsedPrice = this.chain.parseUnits(
+      coin.contract.decimals,
       priceTimesAmount
     );
 
-    const voucherPrice = this.chain.parseCurrency(
-      params.price.currency,
+    const voucherPrice = this.chain.parseUnits(
+      coin.contract.decimals,
       params.whitelistVoucher?.price ?? 0
     );
-
-    const isNativeCurrency = this.chain.isNativeCurrency(params.price.currency);
 
     const args: unknown[] = [
       // LibMintVoucher.MintVoucher calldata mintVoucher
@@ -232,7 +239,7 @@ export class Erc721LazyMintContract extends Contract {
     return {
       args,
       method,
-      callOverrides: isNativeCurrency
+      callOverrides: coin.contract.isNative
         ? {
             value: parsedPrice,
           }

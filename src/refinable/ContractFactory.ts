@@ -46,7 +46,7 @@ export type ClassType<K, F extends Contract> = [K] extends (
 export class ContractFactory {
   constructor(private readonly refinable: Refinable) {}
 
-  static getContract<K extends ContractClassMapTypes>(
+  getContract<K extends ContractClassMapTypes>(
     contract: IContract & { type: SingleKeys<K> | string },
     evmOptions: RefinableEvmOptions
   ): ClassType<K, Contract> {
@@ -55,7 +55,7 @@ export class ContractFactory {
         ? (CONTRACTS_CLASSES_MAP as any)[contract.type]
         : Contract;
 
-    return new ContractClass(contract, evmOptions);
+    return new ContractClass(this.refinable, contract, evmOptions);
   }
 
   /**

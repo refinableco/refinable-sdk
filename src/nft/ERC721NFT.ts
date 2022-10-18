@@ -6,6 +6,7 @@ import {
   OfferType,
   Platform,
   Price,
+  PriceInput,
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -88,7 +89,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   async buy(params: {
     signature: string;
     blockchainId: string;
-    price: Price;
+    price: PriceInput;
     ownerEthAddress: string;
     startTime?: Date;
     endTime?: Date;
@@ -111,7 +112,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     params: {
       signature: string;
       blockchainId: string;
-      price: Price;
+      price: PriceInput;
       ownerEthAddress: string;
       startTime?: Date;
       endTime?: Date;
@@ -134,7 +135,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async putForSale(params: {
-    price: Price;
+    price: PriceInput;
     startTime?: Date;
     endTime?: Date;
     launchpadDetails?: LaunchpadDetailsInput;

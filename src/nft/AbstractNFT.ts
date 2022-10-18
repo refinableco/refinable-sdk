@@ -1,7 +1,7 @@
 import {
   MarketConfig,
   Price,
-  PriceCurrency,
+  PriceInput,
   RefreshMetadataMutation,
   TokenType,
 } from "../@types/graphql";
@@ -22,7 +22,7 @@ export interface PartialNFTItem {
 
 export interface NFTBuyParams {
   signature: string;
-  price: Price;
+  price: PriceInput;
   ownerEthAddress: string;
   supply: number;
   amount?: number;
@@ -34,7 +34,7 @@ export interface NFTBuyParams {
 
 export interface NFTPlaceBidParams {
   auctionContractAddress: string;
-  price: Price;
+  price: PriceInput;
   auctionId?: string;
   marketConfig?: MarketConfig;
 }
@@ -73,21 +73,18 @@ export abstract class AbstractNFT {
     if (!this.item) throw new Error("Unable to do this action, item required");
   }
 
-  abstract cancelSale(
-    params?: {
-      blockchainId?: string;
-      price?: Price;
-      signature?: string;
-      selling?: number;
-    },
-    callback?: () => void
-  ): Promise<Transaction>;
+  abstract cancelSale(params?: {
+    blockchainId?: string;
+    price?: PriceInput;
+    signature?: string;
+    selling?: number;
+  }): Promise<Transaction>;
   abstract burn(
     supply?: number,
     ownerEthAddress?: string
   ): Promise<Transaction>;
   abstract putForSale(params: {
-    price: Price;
+    price: PriceInput;
     supply?: number;
   }): Promise<SaleOffer>;
   abstract transfer(
@@ -102,7 +99,7 @@ export abstract class AbstractNFT {
     auctionStartDate,
     auctionEndDate,
   }: {
-    price: Price;
+    price: PriceInput;
     auctionStartDate: Date;
     auctionEndDate: Date;
   }): Promise<{
@@ -141,16 +138,7 @@ export abstract class AbstractNFT {
     return response.refreshMetadata;
   }
 
-  protected getPaymentToken(priceCurrency: PriceCurrency) {
-    return this._chain.getPaymentToken(priceCurrency);
-  }
-  protected getCurrency(priceCurrency: PriceCurrency) {
-    return this._chain.getCurrency(priceCurrency);
-  }
-  protected isNativeCurrency(priceCurrency: PriceCurrency) {
-    return this._chain.isNativeCurrency(priceCurrency);
-  }
-  protected parseCurrency(priceCurrency: PriceCurrency, amount: number) {
-    return this._chain.parseCurrency(priceCurrency, amount);
+  protected parseUnits(decimals: number, amount: number) {
+    return this._chain.parseUnits(decimals, amount);
   }
 }

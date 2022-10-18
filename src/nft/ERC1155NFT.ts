@@ -7,6 +7,7 @@ import {
   OfferType,
   Platform,
   Price,
+  PriceInput,
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -46,7 +47,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
 
   async buy(params: {
     signature: string;
-    price: Price;
+    price: PriceInput;
     ownerEthAddress: string;
     supply: number;
     amount?: number;
@@ -71,7 +72,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   async buyUsingVoucher(
     params: {
       signature: string;
-      price: Price;
+      price: PriceInput;
       ownerEthAddress: string;
       supply: number;
       amount?: number;
@@ -97,7 +98,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async putForSale(params: {
-    price: Price;
+    price: PriceInput;
     startTime?: Date;
     endTime?: Date;
     supply?: number;

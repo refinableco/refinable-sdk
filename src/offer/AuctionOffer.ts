@@ -1,7 +1,7 @@
 import {
   PlaceAuctionBidMutation,
   PlaceAuctionBidMutationVariables,
-  Price,
+  PriceInput,
 } from "../@types/graphql";
 import { PLACE_AUCTION_BID } from "../graphql/auction";
 import { AbstractNFT } from "../nft/AbstractNFT";
@@ -13,7 +13,7 @@ export class AuctionOffer extends Offer {
     super(refinable, offer, nft);
   }
 
-  public async placeBid(price: Price) {
+  public async placeBid(price: PriceInput) {
     const result = await this.nft.placeBid({
       auctionContractAddress: this._offer.auction.auctionContractAddress,
       price,
