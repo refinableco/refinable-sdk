@@ -590,6 +590,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
             startTime: auctionStartDate,
             endTime: auctionEndDate,
           },
+          chainId: this.item.chainId,
         }
       );
 
