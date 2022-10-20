@@ -352,13 +352,11 @@ export class ERC721NFT extends AbstractEvmNFT {
 
   async cancelSaleOffers({
     offers,
-    confirmations,
     onInitialize,
     onProgress,
     onError,
   }: {
     offers?: SaleOfferType[];
-    confirmations?: number;
     onInitialize?: (
       steps: { step: CANCEL_SALE_STATUS_STEP; platform: Platform }[]
     ) => void;
@@ -377,7 +375,7 @@ export class ERC721NFT extends AbstractEvmNFT {
         steps.push(
           {
             step: CANCEL_SALE_STATUS_STEP.SIGN,
-            platform: offer.platform,
+            platform: Platform.Refinable,
           },
           {
             step: CANCEL_SALE_STATUS_STEP.CANCELING,
