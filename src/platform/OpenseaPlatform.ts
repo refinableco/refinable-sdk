@@ -25,6 +25,13 @@ import ExchangeAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/Exchange.j
 import ConduitControllerAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/ConduitController.json";
 import { Chain } from "../refinable/Chain";
 import { ItemType } from "@refinableco/reservoir-sdk/dist/seaport/types";
+import {
+  CancelSaleSignStatus,
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "../nft/interfaces/CancelSaleStatusStep";
+import EvmTransaction from "../transaction/EvmTransaction";
+import { SingleTokenBuilder } from "@refinableco/reservoir-sdk/dist/seaport/builders/single-token";
 
 const Addresses = {
   [ValidChains.Ethereum]: {
@@ -313,6 +320,77 @@ export class OpenseaPlatform extends AbstractPlatform {
     });
 
     return response;
+  }
+
+  async cancelSale(
+    offer: PartialOffer,
+    options: {
+      onProgress?: <T extends CancelSaleStatus>(status: T) => void;
+      onError?: (
+        {
+          step,
+          platform,
+        }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
+        error: any
+      ) => void;
+      confirmations?: number;
+    }
+  ): Promise<EvmTransaction> {
+    options.onProgress<CancelSaleSignStatus>({
+      platform: Platform.Opensea,
+      step: CANCEL_SALE_STATUS_STEP.SIGN,
+      data: {
+        hash: "",
+        what: "OpenSea order",
+      },
+    });
+
+    const builder = new Seaport.Builders.SingleToken(this.refinable.chainId);
+
+    const { orderParams: { parameters, signature } = {} } = offer;
+
+    const nonce = await this.getNonce(this.refinable.accountAddress);
+
+    // THIS HAS TO BE A 1:1 MATCH TO order.orderParams
+    const builtOrder = builder.build({
+      side: "sell",
+      tokenKind: "erc721",
+      offerer: parameters?.offerer,
+      contract: parameters?.offer[0]?.token,
+      tokenId: parameters?.offer[0]?.identifierOrCriteria,
+      paymentToken: parameters?.consideration[0]?.token,
+      price: parameters?.consideration[0]?.startAmount,
+      counter: nonce,
+      startTime: parameters?.startTime,
+      endTime: parameters?.endTime,
+      fees: parameters?.consideration
+        .slice(1)
+        .map(({ recipient, startAmount }) => ({
+          recipient,
+          amount: startAmount,
+        })),
+      signature: signature,
+      conduitKey: parameters?.conduitKey,
+      salt: parameters?.salt,
+    });
+
+    const tx = await this.exchangeContractWrapper.sendTransaction(
+      "cancel",
+      [[builtOrder.params]],
+      {},
+      () =>
+        options.onProgress<CancelSaleStatus>({
+          platform: Platform.Opensea,
+          step: CANCEL_SALE_STATUS_STEP.CANCELING,
+        })
+    );
+
+    options.onProgress<CancelSaleStatus>({
+      platform: Platform.Opensea,
+      step: CANCEL_SALE_STATUS_STEP.DONE,
+    });
+
+    return tx;
   }
 
   private getMappedItemType(itemType: ItemType): OpenseaItemType {

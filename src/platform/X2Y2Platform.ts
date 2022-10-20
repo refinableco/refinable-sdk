@@ -126,6 +126,11 @@ export class X2Y2Platform extends AbstractPlatform {
 
     const signature = await this.refinable.account.sign(signMessage);
 
+    options.onProgress<CancelSaleStatus>({
+      platform: Platform.X2Y2,
+      step: CANCEL_SALE_STATUS_STEP.CANCELING,
+    });
+
     const queryResponse = await this.refinable.graphqlClient.request<
       string,
       MutationX2y2CancelSaleArgs
@@ -145,11 +150,6 @@ export class X2Y2Platform extends AbstractPlatform {
       queryResponse
     )[0];
 
-    options.onProgress<CancelSaleStatus>({
-      platform: Platform.X2Y2,
-      step: CANCEL_SALE_STATUS_STEP.CANCELING,
-    });
-
     const tx = await this.exchangeContract.sendTransaction("cancel", [
       input.itemHashes,
       input.deadline,
@@ -157,8 +157,6 @@ export class X2Y2Platform extends AbstractPlatform {
       input.r,
       input.s,
     ]);
-
-    await tx.wait(options.confirmations ?? 3);
 
     options.onProgress<CancelSaleStatus>({
       platform: Platform.X2Y2,

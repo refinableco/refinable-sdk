@@ -73,12 +73,15 @@ export abstract class AbstractNFT {
     if (!this.item) throw new Error("Unable to do this action, item required");
   }
 
-  abstract cancelSale(params?: {
-    blockchainId?: string;
-    price?: Price;
-    signature?: string;
-    selling?: number;
-  }): Promise<Transaction>;
+  abstract cancelSale(
+    params?: {
+      blockchainId?: string;
+      price?: Price;
+      signature?: string;
+      selling?: number;
+    },
+    callback?: () => void
+  ): Promise<Transaction>;
   abstract burn(
     supply?: number,
     ownerEthAddress?: string

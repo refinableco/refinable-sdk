@@ -432,13 +432,25 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     return soliditySha3(...(hashParams as string[]));
   }
 
-  async cancelSale(): Promise<EvmTransaction> {
+  async cancelSale(
+    argsOrCallback?:
+      | {
+          blockchainId?: string;
+          price?: Price;
+          signature?: string;
+          selling?: number;
+        }
+      | (() => void),
+    callback?: () => void
+  ): Promise<EvmTransaction> {
     this.verifyItem();
 
-    const response = await this.saleContract.sendTransaction("cancel", [
-      this.item.contractAddress,
-      this.item.tokenId,
-    ]);
+    const response = await this.saleContract.sendTransaction(
+      "cancel",
+      [this.item.contractAddress, this.item.tokenId],
+      {},
+      typeof argsOrCallback === "function" ? argsOrCallback : callback
+    );
 
     return response;
   }

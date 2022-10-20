@@ -22,6 +22,11 @@ import { gql } from "graphql-request";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { StrategyStandardSaleForFixedPrice } from "@refinableco/reservoir-sdk/dist/looks-rare/addresses";
 import { ethers } from "ethers";
+import {
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "../nft/interfaces/CancelSaleStatusStep";
+import EvmTransaction from "../transaction/EvmTransaction";
 
 export const LOOKSRARE_LIST_FOR_SALE = gql`
   mutation looksrareListForSale($input: LooksrareListForSaleInput!) {
@@ -211,6 +216,22 @@ export class LooksrarePlatform extends AbstractPlatform {
     });
 
     return response;
+  }
+
+  public cancelSale(
+    offer: PartialOffer,
+    options: {
+      onProgress?: <T extends CancelSaleStatus>(status: T) => void;
+      onError?: (
+        {
+          step,
+          platform,
+        }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
+        error: any
+      ) => void;
+    }
+  ): Promise<EvmTransaction> {
+    throw new Error("not  implemented");
   }
 
   private async getNonce(makerAddress: string) {

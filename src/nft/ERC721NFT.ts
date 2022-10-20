@@ -368,7 +368,6 @@ export class ERC721NFT extends AbstractEvmNFT {
       error
     ) => void;
   }): Promise<void> {
-    this.verifyItem();
     const platformFactory = new PlatformFactory(this.refinable);
 
     const steps = [];
@@ -407,6 +406,10 @@ export class ERC721NFT extends AbstractEvmNFT {
       }
     }
 
+    onInitialize(steps);
+
+    this.verifyItem();
+
     for (const offer of offers) {
       if (offer.platform === Platform.Refinable) {
         onProgress<CancelSaleStatus>({
@@ -414,14 +417,12 @@ export class ERC721NFT extends AbstractEvmNFT {
           step: CANCEL_SALE_STATUS_STEP.SIGN,
         });
 
-        const tx = await this.cancelSale();
-
-        onProgress<CancelSaleStatus>({
-          platform: Platform.Refinable,
-          step: CANCEL_SALE_STATUS_STEP.CANCELING,
+        await this.cancelSale(() => {
+          onProgress<CancelSaleStatus>({
+            platform: Platform.Refinable,
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+          });
         });
-
-        await tx.wait(confirmations ?? 3);
 
         onProgress<CancelSaleStatus>({
           platform: Platform.Refinable,
