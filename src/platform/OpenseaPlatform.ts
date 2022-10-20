@@ -31,7 +31,6 @@ import {
   CANCEL_SALE_STATUS_STEP,
 } from "../nft/interfaces/CancelSaleStatusStep";
 import EvmTransaction from "../transaction/EvmTransaction";
-import { SingleTokenBuilder } from "@refinableco/reservoir-sdk/dist/seaport/builders/single-token";
 
 const Addresses = {
   [ValidChains.Ethereum]: {

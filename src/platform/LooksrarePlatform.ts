@@ -2,7 +2,10 @@ import { parseEther, splitSignature } from "ethers/lib/utils";
 import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
 import { Common, LooksRare, Router } from "@refinableco/reservoir-sdk";
-import { Types as LookrareTypes } from "@refinableco/reservoir-sdk/dist/looks-rare";
+import {
+  Addresses,
+  Types as LookrareTypes,
+} from "@refinableco/reservoir-sdk/dist/looks-rare";
 import { BytesEmpty } from "@refinableco/reservoir-sdk/dist/utils";
 import { Types } from "@refinableco/reservoir-sdk/dist/looks-rare";
 import {
@@ -21,12 +24,16 @@ import axios from "axios";
 import { gql } from "graphql-request";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { StrategyStandardSaleForFixedPrice } from "@refinableco/reservoir-sdk/dist/looks-rare/addresses";
+import ExchangeAbi from "@refinableco/reservoir-sdk/dist/looks-rare/abis/Exchange.json";
 import { ethers } from "ethers";
 import {
+  CancelSaleSignStatus,
   CancelSaleStatus,
   CANCEL_SALE_STATUS_STEP,
 } from "../nft/interfaces/CancelSaleStatusStep";
 import EvmTransaction from "../transaction/EvmTransaction";
+import { Refinable } from "../refinable/Refinable";
+import { ContractWrapper } from "../refinable/contract/ContractWrapper";
 
 export const LOOKSRARE_LIST_FOR_SALE = gql`
   mutation looksrareListForSale($input: LooksrareListForSaleInput!) {
@@ -35,6 +42,22 @@ export const LOOKSRARE_LIST_FOR_SALE = gql`
 `;
 
 export class LooksrarePlatform extends AbstractPlatform {
+  private contractWrapper: ContractWrapper;
+
+  constructor(refinable: Refinable) {
+    super(refinable);
+
+    this.contractWrapper = new ContractWrapper(
+      {
+        address: Addresses[refinable.chainId].Exchange,
+        chainId: refinable.chainId,
+        abi: JSON.stringify(ExchangeAbi),
+      },
+      refinable.provider,
+      {}
+    );
+  }
+
   getApprovalAddress(chainId: number): string {
     return LooksRare.Addresses.Exchange[chainId];
   }
@@ -218,7 +241,7 @@ export class LooksrarePlatform extends AbstractPlatform {
     return response;
   }
 
-  public cancelSale(
+  public async cancelSale(
     offer: PartialOffer,
     options: {
       onProgress?: <T extends CancelSaleStatus>(status: T) => void;
@@ -231,7 +254,32 @@ export class LooksrarePlatform extends AbstractPlatform {
       ) => void;
     }
   ): Promise<EvmTransaction> {
-    throw new Error("not  implemented");
+    options.onProgress<CancelSaleSignStatus>({
+      platform: Platform.Looksrare,
+      step: CANCEL_SALE_STATUS_STEP.SIGN,
+      data: {
+        hash: "",
+        what: "LooksRare order",
+      },
+    });
+
+    const tx = await this.contractWrapper.sendTransaction(
+      "cancelMultipleMakerOrders",
+      [[offer.orderParams.nonce]],
+      {},
+      () =>
+        options.onProgress<CancelSaleStatus>({
+          platform: Platform.Looksrare,
+          step: CANCEL_SALE_STATUS_STEP.CANCELING,
+        })
+    );
+
+    options.onProgress<CancelSaleStatus>({
+      platform: Platform.Looksrare,
+      step: CANCEL_SALE_STATUS_STEP.DONE,
+    });
+
+    return tx;
   }
 
   private async getNonce(makerAddress: string) {
