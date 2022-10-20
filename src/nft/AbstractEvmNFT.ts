@@ -10,6 +10,7 @@ import {
   Price,
   TokenType,
   Platform,
+  SaleOffer as SaleOfferType,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -35,6 +36,10 @@ import {
   PartialNFTItem,
 } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
+import {
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "./interfaces/CancelSaleStatusStep";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
 import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
@@ -170,6 +175,18 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
   abstract isApproved(operatorAddress?: string): Promise<boolean>;
   abstract approve(operatorAddress?: string): Promise<EvmTransaction>;
+  abstract cancelSaleOffers(params: {
+    offers?: SaleOfferType[];
+    confirmations?: number;
+    onInitialize?: (
+      steps: { step: CANCEL_SALE_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends CancelSaleStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
+  }): Promise<void>;
   abstract burn(
     supply?: number,
     ownerEthAddress?: string

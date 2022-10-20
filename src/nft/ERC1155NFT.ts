@@ -160,6 +160,16 @@ export class ERC1155NFT extends AbstractEvmNFT {
     );
   }
 
+  async cancelSaleOffers({
+    confirmations,
+  }: {
+    confirmations: number;
+  }): Promise<void> {
+    const tx = await this.cancelSale();
+
+    await tx.wait(confirmations ?? 3);
+  }
+
   async transfer(
     ownerEthAddress: string,
     recipientEthAddress: string,

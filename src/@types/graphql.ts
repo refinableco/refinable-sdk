@@ -197,6 +197,7 @@ export type Collection = {
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  floor: Price;
   hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
@@ -742,6 +743,7 @@ export type ImportCollectionInput = {
   iconUrl: Scalars["String"];
   name: Scalars["String"];
   slug: Scalars["String"];
+  tokenId?: InputMaybe<Scalars["String"]>;
   type?: InputMaybe<TokenType>;
 };
 
@@ -1162,6 +1164,7 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
+  x2y2CancelSale: Scalars["String"];
   x2y2ListForSale: Scalars["String"];
 };
 
@@ -1313,8 +1316,17 @@ export type MutationUserImportCollectionArgs = {
   input: UserImportCollectionInput;
 };
 
+export type MutationX2y2CancelSaleArgs = {
+  input: X2Y2CancelSaleInput;
+};
+
 export type MutationX2y2ListForSaleArgs = {
   input: X2Y2ListForSaleInput;
+};
+
+export type NewCollectionsFilter = {
+  lastDays?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]>;
 };
 
 export type Notification = {
@@ -1601,6 +1613,7 @@ export type Query = {
   me: User;
   mintableCollections: Array<Collection>;
   moonpay: Moonpay;
+  newCollections: Array<Collection>;
   notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   popularCollections: PopularCollectionsResponse;
@@ -1711,6 +1724,10 @@ export type QueryItemsOnOfferArgs = {
   filter?: InputMaybe<ItemsFilterInput>;
   paging: PagingInput;
   sort?: InputMaybe<SortInput>;
+};
+
+export type QueryNewCollectionsArgs = {
+  filter: NewCollectionsFilter;
 };
 
 export type QueryNotificationsArgs = {
@@ -2201,6 +2218,7 @@ export type UserImportCollectionInput = {
   description?: InputMaybe<Scalars["String"]>;
   iconUrl?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
+  tokenId?: InputMaybe<Scalars["String"]>;
 };
 
 export type UserItemFilterInput = {
@@ -2222,6 +2240,7 @@ export type UserItemOnOfferFilterInput = {
 
 export enum UserRoles {
   Admin = "ADMIN",
+  InternalAdmin = "INTERNAL_ADMIN",
   Moderator = "MODERATOR",
   User = "USER",
 }
@@ -2235,6 +2254,7 @@ export type UserSortedCollection = {
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  floor: Price;
   hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
@@ -2308,6 +2328,13 @@ export type WhitelistVoucher = {
   startTime: Scalars["DateTime"];
   /** @deprecated No longer needed */
   whitelistType: WhitelistType;
+};
+
+export type X2Y2CancelSaleInput = {
+  message: Scalars["String"];
+  offerId: Scalars["Float"];
+  signature: Scalars["String"];
+  user: Scalars["String"];
 };
 
 export type X2Y2InputData = {
