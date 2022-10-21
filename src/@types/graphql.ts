@@ -197,6 +197,7 @@ export type Collection = {
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  floor: Price;
   hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
@@ -408,6 +409,9 @@ export enum ContractTypes {
   Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
   Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
+  ExtLooksrare = "EXT_LOOKSRARE",
+  ExtSeaport = "EXT_SEAPORT",
+  ExtX2Y2 = "EXT_X2Y2",
   RoyaltyRegistry = "ROYALTY_REGISTRY",
   Sale = "SALE",
   ServiceFeeProxy = "SERVICE_FEE_PROXY",
@@ -742,6 +746,7 @@ export type ImportCollectionInput = {
   iconUrl: Scalars["String"];
   name: Scalars["String"];
   slug: Scalars["String"];
+  tokenId?: InputMaybe<Scalars["String"]>;
   type?: InputMaybe<TokenType>;
 };
 
@@ -1317,6 +1322,11 @@ export type MutationX2y2ListForSaleArgs = {
   input: X2Y2ListForSaleInput;
 };
 
+export type NewCollectionsFilter = {
+  lastDays?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]>;
+};
+
 export type Notification = {
   createdAt?: Maybe<Scalars["DateTime"]>;
   eventId?: Maybe<Scalars["String"]>;
@@ -1601,6 +1611,7 @@ export type Query = {
   me: User;
   mintableCollections: Array<Collection>;
   moonpay: Moonpay;
+  newCollections: Array<Collection>;
   notifications: NotificationResponse;
   offer?: Maybe<Offer>;
   popularCollections: PopularCollectionsResponse;
@@ -1713,6 +1724,10 @@ export type QueryItemsOnOfferArgs = {
   sort?: InputMaybe<SortInput>;
 };
 
+export type QueryNewCollectionsArgs = {
+  filter: NewCollectionsFilter;
+};
+
 export type QueryNotificationsArgs = {
   filter?: InputMaybe<NotificationsFilterInput>;
   paging: PagingInput;
@@ -1759,7 +1774,6 @@ export type QuerySearchArgs = {
 export type QueryStoreArgs = {
   domain?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  isExternal?: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type QueryStoreWithFallbackArgs = {
@@ -2201,6 +2215,7 @@ export type UserImportCollectionInput = {
   description?: InputMaybe<Scalars["String"]>;
   iconUrl?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
+  tokenId?: InputMaybe<Scalars["String"]>;
 };
 
 export type UserItemFilterInput = {
@@ -2222,6 +2237,7 @@ export type UserItemOnOfferFilterInput = {
 
 export enum UserRoles {
   Admin = "ADMIN",
+  InternalAdmin = "INTERNAL_ADMIN",
   Moderator = "MODERATOR",
   User = "USER",
 }
@@ -2235,6 +2251,7 @@ export type UserSortedCollection = {
   default: Scalars["Boolean"];
   description?: Maybe<Scalars["String"]>;
   discord?: Maybe<Scalars["String"]>;
+  floor: Price;
   hidden?: Maybe<Scalars["Boolean"]>;
   iconUrl?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
