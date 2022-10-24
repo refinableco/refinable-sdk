@@ -1,13 +1,15 @@
 import { constants, ethers } from "ethers";
 import { z } from "zod";
-import { ContractTypes, Price, PriceInput } from "../../@types/graphql";
+import { ContractTypes } from "../../@types/graphql";
 import { SaleSettings } from "../../interfaces/Contracts/Erc721Lazy";
 import { LibPart } from "../../interfaces/LibPart";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
 import { MintVoucher } from "../../nft/interfaces/MintVoucher";
+import { IPrice } from "../../nft/interfaces/Price";
 import { WhitelistVoucherParams } from "../../nft/interfaces/Voucher";
 import EvmTransaction from "../../transaction/EvmTransaction";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { isNative } from "../../utils/is";
 import { optionalParam } from "../../utils/utils";
 import EvmAccount from "../account/EvmAccount";
 import { Refinable } from "../Refinable";
@@ -15,7 +17,7 @@ import { Contract, IContract } from "./Contract";
 
 interface BuyParams {
   mintVoucher: MintVoucher;
-  price: PriceInput;
+  price: IPrice;
   amount?: number;
   recipient: string;
   whitelistVoucher?: WhitelistVoucherParams;
@@ -149,7 +151,8 @@ export class Erc721LazyMintContract extends Contract {
 
     // Add allows as much as the price requests
     await this.account.approveTokenContractAllowance(
-      await this.chain.getCurrency(params.price.currency),
+      params.price.payToken,
+      params.price.decimals,
       priceTimesAmount,
       this.contractAddress
     );
@@ -193,29 +196,26 @@ export class Erc721LazyMintContract extends Contract {
   private async getBuyTxParams(params: {
     mintVoucher: MintVoucher;
     recipient: string;
-    price: PriceInput;
+    price: IPrice;
     amount?: number;
     whitelistVoucher?: WhitelistVoucherParams;
   }) {
     const amount = params.amount ?? 1;
 
-    const price =
+    const determinedPrice =
       params.whitelistVoucher?.price > 0
         ? params.whitelistVoucher?.price
         : params.price.amount;
-    const priceTimesAmount = price * amount;
 
-    const coin = await this.chain.getCoin({
-      id: params.price.currency,
-    });
+    const priceTimesAmount = determinedPrice * amount;
 
     const parsedPrice = this.chain.parseUnits(
-      coin.contract.decimals,
+      params.price.decimals,
       priceTimesAmount
     );
 
     const voucherPrice = this.chain.parseUnits(
-      coin.contract.decimals,
+      params.price.decimals,
       params.whitelistVoucher?.price ?? 0
     );
 
@@ -239,7 +239,7 @@ export class Erc721LazyMintContract extends Contract {
     return {
       args,
       method,
-      callOverrides: coin.contract.isNative
+      callOverrides: isNative(params.price.payToken)
         ? {
             value: parsedPrice,
           }

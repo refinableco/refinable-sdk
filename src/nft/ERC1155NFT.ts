@@ -6,8 +6,6 @@ import {
   MarketConfig,
   OfferType,
   Platform,
-  Price,
-  PriceInput,
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -21,6 +19,7 @@ import {
   CancelSaleStatus,
   CANCEL_SALE_STATUS_STEP,
 } from "./interfaces/CancelSaleStatusStep";
+import { IPrice } from "./interfaces/Price";
 import { SaleVersion } from "./interfaces/SaleInfo";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
 export class ERC1155NFT extends AbstractEvmNFT {
@@ -47,7 +46,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
 
   async buy(params: {
     signature: string;
-    price: PriceInput;
+    price: IPrice;
     ownerEthAddress: string;
     supply: number;
     amount?: number;
@@ -72,7 +71,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   async buyUsingVoucher(
     params: {
       signature: string;
-      price: PriceInput;
+      price: IPrice;
       ownerEthAddress: string;
       supply: number;
       amount?: number;
@@ -98,7 +97,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async putForSale(params: {
-    price: PriceInput;
+    price: IPrice;
     startTime?: Date;
     endTime?: Date;
     supply?: number;
@@ -149,7 +148,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
         type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
-          currency: price.currency,
+          currency: price.payToken,
           amount: parseFloat(price.amount.toString()),
         },
         supply,
@@ -162,7 +161,14 @@ export class ERC1155NFT extends AbstractEvmNFT {
     });
 
     return this.refinable.offer.createOffer<SaleOffer>(
-      result.createOfferForItems,
+      {
+        ...result.createOfferForItems,
+        price: {
+          amount: result.createOfferForItems.price.amount,
+          decimals: result.createOfferForItems.price.currency.contract.decimals,
+          payToken: result.createOfferForItems.price.currency.contract.address,
+        },
+      },
       this
     );
   }

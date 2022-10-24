@@ -1,19 +1,20 @@
 import {
   PlaceAuctionBidMutation,
   PlaceAuctionBidMutationVariables,
-  PriceInput,
 } from "../@types/graphql";
 import { PLACE_AUCTION_BID } from "../graphql/auction";
 import { AbstractNFT } from "../nft/AbstractNFT";
+import { IOffer } from "../nft/interfaces/Offer";
+import { IPrice } from "../nft/interfaces/Price";
 import { Refinable } from "../refinable/Refinable";
-import { Offer, PartialOffer } from "./Offer";
+import { Offer } from "./Offer";
 
 export class AuctionOffer extends Offer {
-  constructor(refinable: Refinable, offer: PartialOffer, nft: AbstractNFT) {
+  constructor(refinable: Refinable, offer: IOffer, nft: AbstractNFT) {
     super(refinable, offer, nft);
   }
 
-  public async placeBid(price: PriceInput) {
+  public async placeBid(price: IPrice) {
     const result = await this.nft.placeBid({
       auctionContractAddress: this._offer.auction.auctionContractAddress,
       price,

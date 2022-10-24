@@ -5,8 +5,6 @@ import {
   MarketConfig,
   OfferType,
   Platform,
-  Price,
-  PriceInput,
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -26,6 +24,7 @@ import {
   ListCreateStatus,
   ListDoneStatus,
 } from "./interfaces/SaleStatusStep";
+import { IPrice } from "./interfaces/Price";
 
 export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
@@ -89,7 +88,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   async buy(params: {
     signature: string;
     blockchainId: string;
-    price: PriceInput;
+    price: IPrice;
     ownerEthAddress: string;
     startTime?: Date;
     endTime?: Date;
@@ -112,7 +111,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     params: {
       signature: string;
       blockchainId: string;
-      price: PriceInput;
+      price: IPrice;
       ownerEthAddress: string;
       startTime?: Date;
       endTime?: Date;
@@ -135,7 +134,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async putForSale(params: {
-    price: PriceInput;
+    price: IPrice;
     startTime?: Date;
     endTime?: Date;
     launchpadDetails?: LaunchpadDetailsInput;
@@ -277,7 +276,7 @@ export class ERC721NFT extends AbstractEvmNFT {
         type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
-          currency: price.currency,
+          ...price,
           amount: parseFloat(price.amount.toString()),
         },
         startTime,
@@ -301,7 +300,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           type: OfferType.Sale,
           contractAddress: this.item.contractAddress,
           price: {
-            currency: price.currency,
+            currency: price.payToken,
             amount: parseFloat(price.amount.toString()),
           },
           startTime,

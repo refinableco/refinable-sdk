@@ -13,19 +13,20 @@ import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Refinable } from "../refinable/Refinable";
 import { Transaction } from "../transaction/Transaction";
-import { isERC1155Item, isEVMNFT } from "../utils/is";
-import { Offer, PartialOffer } from "./Offer";
+import { isERC1155Item, isEVMNFT, isNative } from "../utils/is";
+import { Offer } from "./Offer";
 import { SimulationFailedError } from "../errors";
 import { simulateUnsignedTx } from "../transaction/simulate";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { TransactionError } from "../errors/TransactionError";
+import { IOffer } from "../nft/interfaces/Offer";
 
 interface BuyParams {
   amount?: number;
 }
 
 export class SaleOffer extends Offer {
-  constructor(refinable: Refinable, offer: PartialOffer, nft: AbstractNFT) {
+  constructor(refinable: Refinable, offer: IOffer, nft: AbstractNFT) {
     super(refinable, offer, nft);
   }
 
@@ -46,7 +47,8 @@ export class SaleOffer extends Offer {
       signature: this._offer.signature,
       price: {
         amount: this._offer.price.amount,
-        currency: this._offer.price.currency.id,
+        payToken: this._offer.price.payToken,
+        decimals: this._offer.price.decimals,
       },
       ownerEthAddress: this._offer.user?.ethAddress,
       supply,
@@ -93,7 +95,8 @@ export class SaleOffer extends Offer {
 
     // 1. Approve token if needed
     await this.refinable.evm.account.approveTokenContractAllowance(
-      await this.chain.getCurrency(this._offer.price.currency.id),
+      this._offer.price.payToken,
+      this._offer.price.decimals,
       this._offer.price.amount,
       await externalPlatform.getApprovalAddress(this._offer.chainId)
     );
@@ -112,13 +115,12 @@ export class SaleOffer extends Offer {
         refinable: this.refinable,
         data: unsignedTx.data,
         to: unsignedTx.to,
-        value:
-          this._offer.price.currency.ticker != "eth" ? "0" : unsignedTx.value,
+        value: !isNative(this._offer.price.payToken) ? "0" : unsignedTx.value,
       },
       opts
     );
 
-    if (resp.data.simulation.status === false) {
+    if (resp.data.success === false) {
       throw new SimulationFailedError();
     }
 
@@ -126,8 +128,7 @@ export class SaleOffer extends Offer {
       // 3. Send transaction
       const response = await this.refinable.evm.signer.sendTransaction({
         ...unsignedTx,
-        value:
-          this._offer.price.currency.ticker != "eth" ? "0" : unsignedTx.value,
+        value: !isNative(this._offer.price.payToken) ? "0" : unsignedTx.value,
       });
 
       const receipt = await response.wait();
@@ -143,7 +144,8 @@ export class SaleOffer extends Offer {
     return this.nft.cancelSale({
       price: {
         amount: this.price.amount,
-        currency: this.price.currency.id,
+        payToken: this.price.payToken,
+        decimals: this.price.decimals,
       },
       signature: this._offer.signature,
       selling,
@@ -161,7 +163,8 @@ export class SaleOffer extends Offer {
       const saleParamsWithOfferSupply = await this.nft.getSaleParamsHash({
         price: {
           amount: this.price.amount,
-          currency: this.price.currency.id,
+          payToken: this.price.payToken,
+          decimals: this.price.decimals,
         },
         ethAddress: this._offer.user?.ethAddress,
         supply: this._offer.totalSupply,

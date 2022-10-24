@@ -3,12 +3,9 @@ import {
   MutationX2y2CancelSaleArgs,
   MutationX2y2ListForSaleArgs,
   Platform,
-  Price,
-  PriceInput,
   QueryGetUnsignedTxArgs,
 } from "../@types/graphql";
 import { Refinable } from "../refinable/Refinable";
-import { PartialOffer } from "../offer/Offer";
 import {
   ListApproveStatus,
   ListSignStatus,
@@ -35,6 +32,8 @@ import { gql } from "graphql-request";
 import { GET_UNSIGNED_PURCHASE_TX } from "../graphql/sale";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { ContractWrapper } from "../refinable/contract/ContractWrapper";
+import { IOffer } from "../nft/interfaces/Offer";
+import { IPrice } from "../nft/interfaces/Price";
 
 export const X2Y2_LIST_FOR_SALE = gql`
   mutation x2y2ListForSale($input: X2Y2ListForSaleInput!) {
@@ -73,7 +72,7 @@ export class X2Y2Platform extends AbstractPlatform {
     return X2Y2.Addresses.Exchange[chainId];
   }
 
-  async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
+  async buy(offer: IOffer, contractAddress: string, tokenId: string) {
     const input = {
       id: offer.orderParams.id,
       type: offer.orderParams.type,
@@ -169,7 +168,7 @@ export class X2Y2Platform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    price: PriceInput,
+    price: IPrice,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (

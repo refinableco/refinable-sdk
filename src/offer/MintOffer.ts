@@ -6,13 +6,14 @@ import {
   LaunchpadDetailsInput,
   MintOfferFragment,
   OfferType,
-  PriceInput,
   UpdateMintOfferMutation,
   UpdateMintOfferMutationVariables,
 } from "../@types/graphql";
 import { CREATE_MINT_OFFER, UPDATE_MINT_OFFER } from "../graphql/sale";
 import { ERCSaleID } from "../nft/ERCSaleId";
 import { MintVoucher } from "../nft/interfaces/MintVoucher";
+import { IOffer } from "../nft/interfaces/Offer";
+import { IPrice } from "../nft/interfaces/Price";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Chain } from "../refinable/Chain";
 import { Erc721LazyMintContract } from "../refinable/contract/Erc721LazyMintContract";
@@ -21,7 +22,7 @@ import EvmSigner from "../refinable/signer/EvmSigner";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
-import { BasicOffer, PartialOffer } from "./Offer";
+import { BasicOffer } from "./Offer";
 
 interface BuyParams {
   amount?: number;
@@ -30,7 +31,7 @@ interface BuyParams {
 
 export interface PutForSaleParams {
   contractAddress: string;
-  price: PriceInput;
+  price: IPrice;
   startTime?: Date;
   endTime?: Date;
   launchpadDetails?: LaunchpadDetailsInput;
@@ -53,10 +54,10 @@ export class MintOffer extends BasicOffer {
   constructor(
     protected readonly refinable: Refinable,
     chainId: number,
-    protected readonly offer?: PartialOffer & MintOfferFragment
+    protected readonly offer?: IOffer & MintOfferFragment
   ) {
     super(refinable, offer);
-    this._chain = new Chain(chainId, this.refinable.coin);
+    this._chain = new Chain(chainId);
   }
 
   get chainId() {
@@ -111,7 +112,8 @@ export class MintOffer extends BasicOffer {
       contractAddress,
       chainId: this.chainId,
       message: {
-        currency: price.currency,
+        payToken: price.payToken,
+        decimals: price.decimals,
         price: price.amount,
         startTime: getUnixEpochTimeStampFromDateOr0(startTime),
         endTime: getUnixEpochTimeStampFromDateOr0(endTime),
@@ -130,7 +132,7 @@ export class MintOffer extends BasicOffer {
         type: OfferType.Mint,
         contractAddress,
         price: {
-          currency: price.currency,
+          currency: price.payToken,
           amount: parseFloat(price.amount.toString()),
         },
         startTime,
@@ -146,7 +148,14 @@ export class MintOffer extends BasicOffer {
       chainId: this.chainId,
     });
 
-    this._offer = response?.createMintOffer;
+    this._offer = {
+      ...response?.createMintOffer,
+      price: {
+        amount: response?.createMintOffer.price.amount,
+        decimals: response?.createMintOffer.price.currency.contract.decimals,
+        payToken: response?.createMintOffer.price.currency.contract.address,
+      },
+    };
     return this;
   }
 
@@ -185,7 +194,14 @@ export class MintOffer extends BasicOffer {
       chainId: this._offer.chainId,
     });
 
-    this._offer = response?.updateMintOffer;
+    this._offer = {
+      ...response?.updateMintOffer,
+      price: {
+        amount: response?.updateMintOffer.price.amount,
+        decimals: response?.updateMintOffer.price.currency.contract.decimals,
+        payToken: response?.updateMintOffer.price.currency.contract.address,
+      },
+    };
     return this;
   }
 
@@ -197,7 +213,8 @@ export class MintOffer extends BasicOffer {
       mintVoucher: await this.getMintVoucher(),
       price: {
         amount: this._offer.price.amount,
-        currency: this._offer.price.currency.id,
+        decimals: this._offer.price.decimals,
+        payToken: this._offer.price.payToken,
       },
       whitelistVoucher: this.whitelistVoucher,
       recipient: params.recipient || this.refinable.accountAddress,
@@ -212,7 +229,8 @@ export class MintOffer extends BasicOffer {
       mintVoucher: await this.getMintVoucher(),
       price: {
         amount: this._offer.price.amount,
-        currency: this._offer.price.currency.id,
+        decimals: this._offer.price.decimals,
+        payToken: this._offer.price.payToken,
       },
       whitelistVoucher: this.whitelistVoucher,
       recipient: params.recipient || this.refinable.accountAddress,
@@ -226,18 +244,15 @@ export class MintOffer extends BasicOffer {
   }
 
   private async getMintVoucher(): Promise<MintVoucher> {
-    const coin = await this._chain.getCoin({
-      id: this.offer.price.currency.id,
-    });
-
     const offerPrice = this._chain.parseUnits(
-      coin.contract.decimals,
+      this.offer.price.decimals,
       this.offer.price.amount
     );
 
     return {
       currency:
-        coin.contract.address ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
+        this.offer.price.payToken ??
+        "0x0000000000000000000000000000000000000000", //using the zero address means Ether
       price: offerPrice ?? "0",
       supply: this.offer.totalSupply.toString() ?? "0",
       payee: this.offer.payee,
@@ -281,7 +296,8 @@ export class MintOffer extends BasicOffer {
     seller: string;
     chainId: number;
     message: {
-      currency: string;
+      decimals: number;
+      payToken: string;
       price: number;
       supply: number;
       startTime: number;
@@ -291,8 +307,7 @@ export class MintOffer extends BasicOffer {
     };
     signer: EvmSigner;
   }) {
-    const coin = await this._chain.getCoin({ id: message.currency });
-    const value = this._chain.parseUnits(coin.contract.decimals, message.price);
+    const value = this._chain.parseUnits(message.decimals, message.price);
 
     const signedData = {
       EIP712Version: "4",
@@ -320,7 +335,7 @@ export class MintOffer extends BasicOffer {
       message: {
         nonce: nonce,
         currency:
-          coin.contract.address ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
+          message.payToken ?? "0x0000000000000000000000000000000000000000", //using the zero address means Ether
         price: value ?? "0",
         supply: message?.supply.toString() ?? "0",
         payee: message.payee,

@@ -35,7 +35,7 @@ export class Contract implements IContract {
   ) {
     Object.assign(this, contract);
 
-    this.chain = new Chain(contract.chainId, this.refinable.coin);
+    this.chain = new Chain(contract.chainId);
   }
 
   get contractWrapper() {

@@ -1,5 +1,4 @@
-import { utils, constants } from "ethers/lib/ethers";
-import { PartialOffer } from "../offer/Offer";
+import { utils } from "ethers/lib/ethers";
 import { AbstractPlatform } from "./AbstractPlatform";
 import { Router, Seaport } from "@refinableco/reservoir-sdk";
 import {
@@ -13,8 +12,6 @@ import {
   MutationOpenseaListForSaleArgs,
   Platform,
   OpenseaItemType,
-  Price,
-  PriceInput,
 } from "../@types/graphql";
 import { gql } from "graphql-request";
 import { Refinable } from "../refinable/Refinable";
@@ -32,6 +29,9 @@ import {
   CANCEL_SALE_STATUS_STEP,
 } from "../nft/interfaces/CancelSaleStatusStep";
 import EvmTransaction from "../transaction/EvmTransaction";
+import { isNative } from "../utils/is";
+import { IPrice } from "../nft/interfaces/Price";
+import { IOffer } from "../nft/interfaces/Offer";
 
 const Addresses = {
   [ValidChains.Ethereum]: {
@@ -143,12 +143,9 @@ export class OpenseaPlatform extends AbstractPlatform {
     return Addresses[this.chainId].Exchange;
   }
 
-  async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
+  async buy(offer: IOffer, contractAddress: string, tokenId: string) {
     const nonce = await this.getNonce(this.refinable.accountAddress);
     const builder = new Seaport.Builders.SingleToken(offer.chainId);
-
-    const chain = new Chain(offer.chainId, this.refinable.coin);
-    const coin = await chain.getCoin({ id: offer.price.currency.id });
 
     const { orderParams } = offer;
 
@@ -159,7 +156,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offerer: orderParams.parameters.offerer,
       contract: contractAddress,
       tokenId: tokenId,
-      paymentToken: coin.contract.address,
+      paymentToken: offer.price.payToken,
       price: orderParams.parameters.consideration[0].startAmount,
       counter: nonce,
       startTime: orderParams.parameters.startTime,
@@ -176,7 +173,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     });
 
     // Router supports only ETH transactions
-    if (coin.contract.isNative) {
+    if (isNative(offer.price.payToken)) {
       const router = new Router.Router(
         this.chainId,
         this.refinable.evm.provider
@@ -188,7 +185,7 @@ export class OpenseaPlatform extends AbstractPlatform {
             contractKind: "erc721",
             contract: contractAddress,
             tokenId: tokenId,
-            currency: coin.contract.address,
+            currency: offer.price.payToken,
             order: builtOrder,
           },
         ],
@@ -211,7 +208,7 @@ export class OpenseaPlatform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    offerPrice: PriceInput,
+    offerPrice: IPrice,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (
@@ -235,13 +232,9 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
-    const currency = await new Chain(
-      this.chainId,
-      this.refinable.coin
-    ).getCurrency(offerPrice.currency);
     const price = utils.parseUnits(
       offerPrice.amount.toString(),
-      currency.decimals
+      offerPrice.decimals
     );
     const item = nft.getItem();
 
@@ -263,7 +256,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offerer: this.refinable.accountAddress,
       contract: item.contractAddress,
       tokenId: item.tokenId,
-      paymentToken: currency.address,
+      paymentToken: offerPrice.payToken,
       price: price.sub(openseaFee).toString(),
       counter: nonce,
       startTime: now,

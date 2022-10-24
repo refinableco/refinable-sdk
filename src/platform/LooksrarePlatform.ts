@@ -1,5 +1,4 @@
 import { parseEther, splitSignature } from "ethers/lib/utils";
-import { PartialOffer } from "../offer/Offer";
 import { AbstractPlatform } from "./AbstractPlatform";
 import { Common, LooksRare, Router } from "@refinableco/reservoir-sdk";
 import {
@@ -15,12 +14,7 @@ import {
   ListStatus,
   LIST_STATUS_STEP,
 } from "../nft/interfaces/SaleStatusStep";
-import {
-  MutationLooksrareListForSaleArgs,
-  Platform,
-  Price,
-  PriceInput,
-} from "../@types/graphql";
+import { MutationLooksrareListForSaleArgs, Platform } from "../@types/graphql";
 import axios from "axios";
 import { gql } from "graphql-request";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
@@ -35,6 +29,8 @@ import {
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Refinable } from "../refinable/Refinable";
 import { ContractWrapper } from "../refinable/contract/ContractWrapper";
+import { IOffer } from "../nft/interfaces/Offer";
+import { IPrice } from "../nft/interfaces/Price";
 
 export const LOOKSRARE_LIST_FOR_SALE = gql`
   mutation looksrareListForSale($input: LooksrareListForSaleInput!) {
@@ -62,7 +58,7 @@ export class LooksrarePlatform extends AbstractPlatform {
   getApprovalAddress(chainId: number): string {
     return LooksRare.Addresses.Exchange[chainId];
   }
-  async buy(offer: PartialOffer, contractAddress: string, tokenId: string) {
+  async buy(offer: IOffer, contractAddress: string, tokenId: string) {
     const { v, r, s } = splitSignature(offer.orderParams.signature);
 
     const builder = new LooksRare.Builders.SingleToken(offer.chainId);
@@ -140,7 +136,7 @@ export class LooksrarePlatform extends AbstractPlatform {
 
   async listForSale(
     nft: AbstractEvmNFT,
-    price: PriceInput,
+    price: IPrice,
     options: {
       onProgress?: <T extends ListStatus>(status: T) => void;
       onError?: (

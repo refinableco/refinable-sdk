@@ -1,10 +1,9 @@
 import {
   LaunchpadDetailsInput,
   OfferType,
-  Price,
   Platform,
-  PriceInput,
 } from "../../@types/graphql";
+import { IPrice } from "./Price";
 
 export enum LIST_STATUS_STEP {
   CALCULATED_STEPS = "calculated-steps",
@@ -41,7 +40,7 @@ export interface ListCreateStatus extends ListStatus {
     signature: string;
     type: OfferType;
     contractAddress: string;
-    price: PriceInput;
+    price: IPrice;
     startTime?: Date;
     endTime?: Date;
     supply: number;

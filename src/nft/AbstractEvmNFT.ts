@@ -9,7 +9,6 @@ import {
   OfferType,
   TokenType,
   Platform,
-  PriceInput,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -23,7 +22,7 @@ import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { Transaction } from "../transaction/Transaction";
 import { parseBPS } from "../utils/chain";
-import { isERC1155Item } from "../utils/is";
+import { isERC1155Item, isNative } from "../utils/is";
 import {
   getUnixEpochTimeStampFromDate,
   getUnixEpochTimeStampFromDateOr0,
@@ -40,6 +39,7 @@ import {
   CancelSaleStatus,
   CANCEL_SALE_STATUS_STEP,
 } from "./interfaces/CancelSaleStatusStep";
+import { IPrice } from "./interfaces/Price";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
 import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
@@ -249,7 +249,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     ownerEthAddress?: string
   ): Promise<EvmTransaction>;
   abstract putForSale(params: {
-    price: PriceInput;
+    price: IPrice;
     supply?: number;
     platforms?: Platform[];
     onInitialize?: (
@@ -269,7 +269,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   abstract buy(params: {
     blockchainId: string;
     signature?: string;
-    price: PriceInput;
+    price: IPrice;
     ownerEthAddress: string;
     supply?: number;
     amount?: number;
@@ -281,7 +281,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     params: {
       blockchainId: string;
       signature?: string;
-      price: PriceInput;
+      price: IPrice;
       ownerEthAddress: string;
       supply?: number;
       amount?: number;
@@ -335,7 +335,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   protected async _buy(params: {
     signature?: string;
     blockchainId?: string;
-    price: PriceInput;
+    price: IPrice;
     ownerEthAddress: string;
     supply?: number;
     amount?: number;
@@ -369,33 +369,33 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       await this._chain.getPriceWithBuyServiceFee(
         {
           amount: voucherPriceAmount,
-          currency: pricePerCopy.currency,
+          payToken: pricePerCopy.payToken,
+          decimals: pricePerCopy.decimals,
         },
         marketConfig.buyServiceFeeBps.value,
         amount
       );
 
     await this.refinableEvmClient.account.approveTokenContractAllowance(
-      await this.getCurrency(priceWithServiceFee.currency),
+      priceWithServiceFee.payToken,
+      priceWithServiceFee.decimals,
       priceWithServiceFee.amount,
       this.saleContract.address
     );
 
-    const coin = await this._chain.getCoin({ id: pricePerCopy.currency });
-
     let value = this.parseUnits(
-      coin.contract.decimals,
+      priceWithServiceFee.decimals,
       priceWithServiceFee.amount
     );
-    const price = this.parseUnits(coin.contract.decimals, pricePerCopy.amount);
+    const price = this.parseUnits(pricePerCopy.decimals, pricePerCopy.amount);
     const voucherPrice = this.parseUnits(
-      coin.contract.decimals,
+      pricePerCopy.decimals,
       voucherPriceAmount
     );
 
     if (params?.voucher?.price > 0) {
       value = this.parseUnits(
-        coin.contract.decimals,
+        pricePerCopy.decimals,
         voucherPriceWithServiceFee.amount
       );
     }
@@ -408,7 +408,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       signature,
       saleVersion: saleID?.version ?? SaleVersion.V1,
       price,
-      payToken: coin.contract.address,
+      payToken: pricePerCopy.payToken,
       seller: ownerEthAddress,
       selling: supply,
       buying: amount,
@@ -433,7 +433,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ],
       {
         // If currency is Native, send msg.value
-        ...(coin.contract.isNative && {
+        ...(isNative(pricePerCopy.payToken) && {
           value,
         }),
       }
@@ -443,7 +443,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }
 
   public async getSaleParamsHash(params: {
-    price: PriceInput;
+    price: IPrice;
     ethAddress?: string;
     supply?: number;
     startTime?: Date;
@@ -452,9 +452,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   }) {
     const { price, ethAddress, supply, startTime, endTime, isV2 } = params;
 
-    const coin = await this._chain.getCoin({ id: price.currency });
-    console.log({ currency: price.currency, coin });
-    const value = this.parseUnits(coin.contract.decimals, price.amount);
+    const value = this.parseUnits(price.decimals, price.amount);
 
     const nonceResult: BigNumber = await this.nonceContract.contract.getNonce(
       this.item.contractAddress,
@@ -468,7 +466,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken - Remove the payment token when we pay in BNB. To keep supporting signatures before multi-currency support which are inherently BNB
-      ...optionalParam(!coin.contract.isNative || isV2, coin.contract.address),
+      ...optionalParam(!isNative(price.payToken) || isV2, price.payToken),
       // uint256 price
       value,
       // uint256 _selling
@@ -544,7 +542,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     auctionStartDate,
     auctionEndDate,
   }: {
-    price: PriceInput;
+    price: IPrice;
     auctionStartDate: Date;
     auctionEndDate: Date;
   }): Promise<{
@@ -556,8 +554,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const addressToApprove = this.auctionContract.address;
     await this.approveIfNeeded(addressToApprove);
 
-    const coin = await this._chain.getCoin({ id: price.currency });
-    const startPrice = this.parseUnits(coin.contract.decimals, price.amount);
+    const startPrice = this.parseUnits(price.decimals, price.amount);
 
     const response = await contractWrapper.sendTransaction("createAuction", [
       // address _token
@@ -565,7 +562,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
-      coin.contract.address,
+      price.payToken,
       // uint256 _startPrice
       startPrice,
       // uint256 _startTimestamp
@@ -595,7 +592,14 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       );
 
     const offer = this.refinable.offer.createOffer<AuctionOffer>(
-      result.createOfferForItems,
+      {
+        ...result.createOfferForItems,
+        price: {
+          amount: result.createOfferForItems.price.amount,
+          decimals: result.createOfferForItems.price.currency.contract.decimals,
+          payToken: result.createOfferForItems.price.currency.contract.address,
+        },
+      },
       this
     );
 
@@ -616,17 +620,13 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     );
 
     await this.refinableEvmClient.account.approveTokenContractAllowance(
-      await this.getCurrency(priceWithServiceFee.currency),
+      priceWithServiceFee.payToken,
+      priceWithServiceFee.decimals,
       priceWithServiceFee.amount,
       auctionContractAddress
     );
 
-    const coin = await this._chain.getCoin({ id: price.currency });
-
-    const value = this.parseUnits(
-      coin.contract.decimals,
-      priceWithServiceFee.amount
-    );
+    const value = this.parseUnits(price.decimals, priceWithServiceFee.amount);
 
     const { contract, contractWrapper } = await this._getAuctionContract(
       auctionContractAddress
@@ -643,7 +643,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
 
     assert(!!auctionIdOrFetch, "AuctionId must be defined");
 
-    const bidAmount = this.parseUnits(coin.contract.decimals, price.amount);
+    const bidAmount = this.parseUnits(price.decimals, price.amount);
 
     const response = await contractWrapper.sendTransaction(
       "placeBid",
@@ -658,7 +658,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ],
       {
         // If currency is Native, send msg.value
-        ...(coin.contract.isNative && {
+        ...(isNative(price.payToken) && {
           value,
         }),
       }
