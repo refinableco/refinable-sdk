@@ -15,6 +15,11 @@ import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
+import {
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "./interfaces/CancelSaleStatusStep";
+import { IPrice } from "./interfaces/Price";
 import { SaleVersion } from "./interfaces/SaleInfo";
 import {
   ListApproveStatus,
@@ -24,7 +29,6 @@ import {
   ListCreateStatus,
   ListDoneStatus,
 } from "./interfaces/SaleStatusStep";
-import { IPrice } from "./interfaces/Price";
 
 export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
@@ -343,6 +347,92 @@ export class ERC721NFT extends AbstractEvmNFT {
       result.createOfferForItems,
       this
     );
+  }
+
+  async cancelSaleOffers({
+    offers,
+    onInitialize,
+    onProgress,
+    onError,
+  }: {
+    offers?: SaleOfferType[];
+    onInitialize?: (
+      steps: { step: CANCEL_SALE_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends CancelSaleStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
+  }): Promise<void> {
+    const platformFactory = new PlatformFactory(this.refinable);
+
+    const steps = [];
+
+    for (const offer of offers) {
+      if (offer.platform === Platform.Refinable) {
+        steps.push(
+          {
+            step: CANCEL_SALE_STATUS_STEP.SIGN,
+            platform: Platform.Refinable,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+            platform: Platform.Refinable,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.DONE,
+            platform: Platform.Refinable,
+          }
+        );
+      } else {
+        steps.push(
+          {
+            step: CANCEL_SALE_STATUS_STEP.SIGN,
+            platform: offer.platform,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+            platform: offer.platform,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.DONE,
+            platform: offer.platform,
+          }
+        );
+      }
+    }
+
+    onInitialize(steps);
+
+    this.verifyItem();
+
+    for (const offer of offers) {
+      if (offer.platform === Platform.Refinable) {
+        onProgress<CancelSaleStatus>({
+          platform: Platform.Refinable,
+          step: CANCEL_SALE_STATUS_STEP.SIGN,
+        });
+
+        await this.cancelSale(() => {
+          onProgress<CancelSaleStatus>({
+            platform: Platform.Refinable,
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+          });
+        });
+
+        onProgress<CancelSaleStatus>({
+          platform: Platform.Refinable,
+          step: CANCEL_SALE_STATUS_STEP.DONE,
+        });
+      } else {
+        const externalPlatform = platformFactory.createPlatform(offer.platform);
+        await externalPlatform.cancelSale(offer.orderParams, {
+          onProgress,
+          onError,
+        });
+      }
+    }
   }
 
   async transfer(

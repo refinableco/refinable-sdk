@@ -100,7 +100,7 @@ export class X2Y2Platform extends AbstractPlatform {
   }
 
   async cancelSale(
-    offer: PartialOffer,
+    offer: IOffer["orderParams"],
     options: {
       onProgress?: <T extends CancelSaleStatus>(status: T) => void;
       onError?: (

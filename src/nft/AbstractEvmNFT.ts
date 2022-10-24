@@ -9,6 +9,7 @@ import {
   OfferType,
   TokenType,
   Platform,
+  SaleOffer as SaleOfferType,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -488,7 +489,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     argsOrCallback?:
       | {
           blockchainId?: string;
-          price?: Price;
+          price?: IPrice;
           signature?: string;
           selling?: number;
         }

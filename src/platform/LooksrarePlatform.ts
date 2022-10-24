@@ -239,7 +239,7 @@ export class LooksrarePlatform extends AbstractPlatform {
   }
 
   public async cancelSale(
-    offer: PartialOffer,
+    offer: IOffer["orderParams"],
     options: {
       onProgress?: <T extends CancelSaleStatus>(status: T) => void;
       onError?: (

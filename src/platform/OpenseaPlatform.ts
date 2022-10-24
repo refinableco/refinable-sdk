@@ -18,10 +18,8 @@ import { Refinable } from "../refinable/Refinable";
 import { ContractWrapper } from "../refinable/contract/ContractWrapper";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { Chain as ValidChains } from "../interfaces/Network";
-
 import ExchangeAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/Exchange.json";
 import ConduitControllerAbi from "@refinableco/reservoir-sdk/dist/seaport/abis/ConduitController.json";
-import { Chain } from "../refinable/Chain";
 import { ItemType } from "@refinableco/reservoir-sdk/dist/seaport/types";
 import {
   CancelSaleSignStatus,
@@ -322,7 +320,7 @@ export class OpenseaPlatform extends AbstractPlatform {
   }
 
   async cancelSale(
-    offer: PartialOffer,
+    offer: IOffer["orderParams"],
     options: {
       onProgress?: <T extends CancelSaleStatus>(status: T) => void;
       onError?: (
@@ -346,7 +344,7 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const builder = new Seaport.Builders.SingleToken(this.refinable.chainId);
 
-    const { orderParams: { parameters, signature } = {} } = offer;
+    const { orderParams: { parameters = {}, signature = "" } = {} } = offer;
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
