@@ -5,6 +5,7 @@ import {
   LaunchpadDetailsInput,
   MarketConfig,
   OfferType,
+  Platform,
   Price,
   TokenType,
 } from "../@types/graphql";
@@ -15,6 +16,10 @@ import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
+import {
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "./interfaces/CancelSaleStatusStep";
 import { SaleVersion } from "./interfaces/SaleInfo";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
 export class ERC1155NFT extends AbstractEvmNFT {
@@ -158,6 +163,54 @@ export class ERC1155NFT extends AbstractEvmNFT {
       result.createOfferForItems,
       this
     );
+  }
+
+  async cancelSaleOffers({
+    onInitialize,
+    onProgress,
+  }: {
+    onInitialize?: (
+      steps: { step: CANCEL_SALE_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends CancelSaleStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
+  }): Promise<void> {
+    const steps = [
+      {
+        step: CANCEL_SALE_STATUS_STEP.SIGN,
+        platform: Platform.Refinable,
+      },
+      {
+        step: CANCEL_SALE_STATUS_STEP.CANCELING,
+        platform: Platform.Refinable,
+      },
+      {
+        step: CANCEL_SALE_STATUS_STEP.DONE,
+        platform: Platform.Refinable,
+      },
+    ];
+
+    onInitialize(steps);
+
+    onProgress<CancelSaleStatus>({
+      platform: Platform.Refinable,
+      step: CANCEL_SALE_STATUS_STEP.SIGN,
+    });
+
+    await this.cancelSale(() => {
+      onProgress<CancelSaleStatus>({
+        platform: Platform.Refinable,
+        step: CANCEL_SALE_STATUS_STEP.CANCELING,
+      });
+    });
+
+    onProgress<CancelSaleStatus>({
+      platform: Platform.Refinable,
+      step: CANCEL_SALE_STATUS_STEP.DONE,
+    });
   }
 
   async transfer(

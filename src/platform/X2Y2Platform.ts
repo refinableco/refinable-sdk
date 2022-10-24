@@ -1,5 +1,6 @@
 import { AbstractPlatform } from "./AbstractPlatform";
 import {
+  MutationX2y2CancelSaleArgs,
   MutationX2y2ListForSaleArgs,
   Platform,
   Price,
@@ -13,17 +14,36 @@ import {
   ListStatus,
   LIST_STATUS_STEP,
 } from "../nft/interfaces/SaleStatusStep";
+import {
+  CancelSaleSignStatus,
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "../nft/interfaces/CancelSaleStatusStep";
 import { Common, X2Y2 } from "@refinableco/reservoir-sdk";
 import { AbstractEvmNFT } from "../nft/AbstractEvmNFT";
 import { BigNumberish } from "ethers";
 import { BaseBuildParams } from "@refinableco/reservoir-sdk/dist/x2y2/builders/base";
-import { parseEther, splitSignature } from "ethers/lib/utils";
+import ExchangeAbi from "@refinableco/reservoir-sdk/dist/x2y2/abis/Exchange.json";
+import {
+  defaultAbiCoder,
+  keccak256,
+  parseEther,
+  splitSignature,
+} from "ethers/lib/utils";
 import { gql } from "graphql-request";
 import { GET_UNSIGNED_PURCHASE_TX } from "../graphql/sale";
+import EvmTransaction from "../transaction/EvmTransaction";
+import { ContractWrapper } from "../refinable/contract/ContractWrapper";
 
 export const X2Y2_LIST_FOR_SALE = gql`
   mutation x2y2ListForSale($input: X2Y2ListForSaleInput!) {
     x2y2ListForSale(input: $input)
+  }
+`;
+
+export const X2Y2_CANCEL_SALE = gql`
+  mutation x2y2CancelSale($input: X2Y2ListForSaleInput!) {
+    x2y2CancelSale(input: $input)
   }
 `;
 
@@ -32,8 +52,20 @@ interface BuildParams extends BaseBuildParams {
 }
 
 export class X2Y2Platform extends AbstractPlatform {
+  private exchangeContract: ContractWrapper;
+
   constructor(refinable: Refinable) {
     super(refinable);
+
+    this.exchangeContract = new ContractWrapper(
+      {
+        address: X2Y2.Addresses.Exchange[refinable.chainId],
+        chainId: refinable.chainId,
+        abi: JSON.stringify(ExchangeAbi),
+      },
+      refinable.provider,
+      {}
+    );
   }
 
   getApprovalAddress(chainId: number): string {
@@ -65,6 +97,73 @@ export class X2Y2Platform extends AbstractPlatform {
       },
     });
     return queryResponse;
+  }
+
+  async cancelSale(
+    offer: PartialOffer,
+    options: {
+      onProgress?: <T extends CancelSaleStatus>(status: T) => void;
+      onError?: (
+        {
+          step,
+          platform,
+        }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
+        error: any
+      ) => void;
+      confirmations?: number;
+    }
+  ): Promise<EvmTransaction> {
+    const signMessage = keccak256("0x");
+
+    options.onProgress<CancelSaleSignStatus>({
+      platform: Platform.X2Y2,
+      step: CANCEL_SALE_STATUS_STEP.SIGN,
+      data: {
+        hash: signMessage,
+        what: "X2Y2 order",
+      },
+    });
+
+    const signature = await this.refinable.account.sign(signMessage);
+
+    options.onProgress<CancelSaleStatus>({
+      platform: Platform.X2Y2,
+      step: CANCEL_SALE_STATUS_STEP.CANCELING,
+    });
+
+    const queryResponse = await this.refinable.graphqlClient.request<
+      string,
+      MutationX2y2CancelSaleArgs
+    >(X2Y2_CANCEL_SALE, {
+      input: {
+        user: this.refinable.accountAddress,
+        message: signMessage,
+        signature,
+        offerId: offer.orderParams?.id,
+      },
+    });
+
+    const input = defaultAbiCoder.decode(
+      [
+        "(bytes32[] itemHashes, uint256 deadline, uint8 v, bytes32 r, bytes32 s)",
+      ],
+      queryResponse
+    )[0];
+
+    const tx = await this.exchangeContract.sendTransaction("cancel", [
+      input.itemHashes,
+      input.deadline,
+      input.v,
+      input.r,
+      input.s,
+    ]);
+
+    options.onProgress<CancelSaleStatus>({
+      platform: Platform.X2Y2,
+      step: CANCEL_SALE_STATUS_STEP.DONE,
+    });
+
+    return tx;
   }
 
   async listForSale(

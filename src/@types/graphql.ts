@@ -1167,6 +1167,7 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
+  x2y2CancelSale: Scalars["String"];
   x2y2ListForSale: Scalars["String"];
 };
 
@@ -1316,6 +1317,10 @@ export type MutationUploadFileArgs = {
 
 export type MutationUserImportCollectionArgs = {
   input: UserImportCollectionInput;
+};
+
+export type MutationX2y2CancelSaleArgs = {
+  input: X2Y2CancelSaleInput;
 };
 
 export type MutationX2y2ListForSaleArgs = {
@@ -2325,6 +2330,13 @@ export type WhitelistVoucher = {
   startTime: Scalars["DateTime"];
   /** @deprecated No longer needed */
   whitelistType: WhitelistType;
+};
+
+export type X2Y2CancelSaleInput = {
+  message: Scalars["String"];
+  offerId: Scalars["Float"];
+  signature: Scalars["String"];
+  user: Scalars["String"];
 };
 
 export type X2Y2InputData = {
