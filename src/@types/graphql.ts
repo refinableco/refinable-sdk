@@ -409,6 +409,9 @@ export enum ContractTypes {
   Erc1155SaleNonceHolder = "ERC1155_SALE_NONCE_HOLDER",
   Erc1155Token = "ERC1155_TOKEN",
   Erc1155WhitelistedToken = "ERC1155_WHITELISTED_TOKEN",
+  ExtLooksrare = "EXT_LOOKSRARE",
+  ExtSeaport = "EXT_SEAPORT",
+  ExtX2Y2 = "EXT_X2Y2",
   RoyaltyRegistry = "ROYALTY_REGISTRY",
   Sale = "SALE",
   ServiceFeeProxy = "SERVICE_FEE_PROXY",
@@ -1776,7 +1779,6 @@ export type QuerySearchArgs = {
 export type QueryStoreArgs = {
   domain?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  isExternal?: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type QueryStoreWithFallbackArgs = {
