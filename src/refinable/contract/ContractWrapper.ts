@@ -89,7 +89,7 @@ export class ContractWrapper implements IContractWrapper {
     method: string,
     args: any[],
     callOverrides: CallOverrides = {},
-    callback?: () => void
+    onAwaitingForTransaction?: (tx: ContractTransaction) => void
   ): Promise<EvmTransaction> {
     // one time verification that this is a valid contract (to avoid sending funds to wrong addresses)
     if (!this.isValidContract) {
@@ -120,8 +120,8 @@ export class ContractWrapper implements IContractWrapper {
       callOverrides
     );
 
-    if (typeof callback === "function") {
-      callback();
+    if (typeof onAwaitingForTransaction === "function") {
+      onAwaitingForTransaction(tx);
     }
 
     const receipt = await tx.wait();
