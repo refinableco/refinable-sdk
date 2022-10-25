@@ -195,37 +195,20 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     const steps = [];
 
     for (const offer of offers) {
-      if (offer.platform === Platform.Refinable) {
-        steps.push(
-          {
-            step: CANCEL_SALE_STATUS_STEP.SIGN,
-            platform: Platform.Refinable,
-          },
-          {
-            step: CANCEL_SALE_STATUS_STEP.CANCELING,
-            platform: Platform.Refinable,
-          },
-          {
-            step: CANCEL_SALE_STATUS_STEP.DONE,
-            platform: Platform.Refinable,
-          }
-        );
-      } else {
-        steps.push(
-          {
-            step: CANCEL_SALE_STATUS_STEP.SIGN,
-            platform: offer.platform,
-          },
-          {
-            step: CANCEL_SALE_STATUS_STEP.CANCELING,
-            platform: offer.platform,
-          },
-          {
-            step: CANCEL_SALE_STATUS_STEP.DONE,
-            platform: offer.platform,
-          }
-        );
-      }
+      steps.push(
+        {
+          step: CANCEL_SALE_STATUS_STEP.SIGN,
+          platform: offer.platform,
+        },
+        {
+          step: CANCEL_SALE_STATUS_STEP.CANCELING,
+          platform: offer.platform,
+        },
+        {
+          step: CANCEL_SALE_STATUS_STEP.DONE,
+          platform: offer.platform,
+        }
+      );
     }
 
     onInitialize(steps);
