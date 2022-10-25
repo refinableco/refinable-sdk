@@ -304,7 +304,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           type: OfferType.Sale,
           contractAddress: this.item.contractAddress,
           price: {
-            currency: price.payToken,
+            payToken: price.address,
             amount: parseFloat(price.amount.toString()),
           },
           startTime,
@@ -313,7 +313,6 @@ export class ERC721NFT extends AbstractEvmNFT {
           launchpadDetails,
           blockchainId,
         },
-        chainId: this.item.chainId,
       });
     } catch (ex) {
       onError(

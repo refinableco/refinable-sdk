@@ -200,7 +200,7 @@ export type Coin = {
 };
 
 export type CoinContractArgs = {
-  chainId?: InputMaybe<Scalars["Int"]>;
+  chainId: Scalars["Int"];
 };
 
 export type CoinContract = {
@@ -279,7 +279,7 @@ export type CollectionActivityEdge = {
 
 export type CollectionActivityFilter = {
   collectionIds: Array<Scalars["String"]>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
+  currencies?: InputMaybe<Array<Scalars["String"]>>;
   lastDays?: InputMaybe<Scalars["Int"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
@@ -309,8 +309,7 @@ export type CollectionMetadataFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
-  contentType?: InputMaybe<ContentType>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
+  currencies?: InputMaybe<Array<Scalars["String"]>>;
   metadata?: InputMaybe<Scalars["JSON"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
@@ -363,11 +362,6 @@ export type CollectionsResponse = {
   pageInfo?: Maybe<CollectionPageInfo>;
   totalCount?: Maybe<Scalars["Float"]>;
 };
-
-export enum ContentType {
-  CommunityContent = "COMMUNITY_CONTENT",
-  VerifiedContent = "VERIFIED_CONTENT",
-}
 
 export type ContractCount = {
   minted: Scalars["Int"];
@@ -1016,8 +1010,7 @@ export type ItemsFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
-  contentType?: InputMaybe<ContentType>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
+  currencies?: InputMaybe<Array<Scalars["String"]>>;
   metadata?: InputMaybe<Scalars["JSON"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
@@ -1203,7 +1196,6 @@ export type Mutation = {
   updateUser: User;
   uploadFile: Scalars["String"];
   userImportCollection: Collection;
-  x2y2CancelSale: Scalars["String"];
   x2y2ListForSale: Scalars["String"];
 };
 
@@ -1353,10 +1345,6 @@ export type MutationUploadFileArgs = {
 
 export type MutationUserImportCollectionArgs = {
   input: UserImportCollectionInput;
-};
-
-export type MutationX2y2CancelSaleArgs = {
-  input: X2Y2CancelSaleInput;
 };
 
 export type MutationX2y2ListForSaleArgs = {
@@ -1562,31 +1550,16 @@ export type PreviewFileProperties = {
 };
 
 export type Price = {
+  address: Scalars["String"];
   amount: Scalars["Float"];
   currency: Coin;
+  decimals: Scalars["Int"];
   priceInUSD?: Maybe<Scalars["Float"]>;
 };
 
-export enum PriceCurrency {
-  Ape = "APE",
-  Bnb = "BNB",
-  Busd = "BUSD",
-  Eth = "ETH",
-  Fine = "FINE",
-  Gart = "GART",
-  High = "HIGH",
-  Matic = "MATIC",
-  Pfi = "PFI",
-  Pst = "PST",
-  Usdc = "USDC",
-  Usdt = "USDT",
-  Weth = "WETH",
-  Wspp = "WSPP",
-}
-
 export type PriceInput = {
   amount: Scalars["Float"];
-  currency: Scalars["String"];
+  payToken: Scalars["String"];
 };
 
 export type Properties = {
@@ -1921,8 +1894,7 @@ export type SearchFilterInput = {
   chainIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionIds?: InputMaybe<Array<Scalars["String"]>>;
   collectionSlugs?: InputMaybe<Array<Scalars["String"]>>;
-  contentType?: InputMaybe<ContentType>;
-  currencies?: InputMaybe<Array<PriceCurrency>>;
+  currencies?: InputMaybe<Array<Scalars["String"]>>;
   metadata?: InputMaybe<Scalars["JSON"]>;
   offerTypes?: InputMaybe<Array<OfferType>>;
   platforms?: InputMaybe<Array<Platform>>;
@@ -2178,6 +2150,7 @@ export type UpdateStoreCollectionsInput = {
 export type UpdateStoreInput = {
   backgroundColor?: InputMaybe<Scalars["String"]>;
   banner?: InputMaybe<Scalars["String"]>;
+  coins?: InputMaybe<Array<Scalars["String"]>>;
   contracts?: InputMaybe<Array<ContractInput>>;
   customGa?: InputMaybe<Scalars["String"]>;
   customLinks?: InputMaybe<Array<CustomLinkInput>>;
@@ -2380,13 +2353,6 @@ export type WhitelistVoucher = {
   whitelistType: WhitelistType;
 };
 
-export type X2Y2CancelSaleInput = {
-  message: Scalars["String"];
-  offerId: Scalars["Float"];
-  signature: Scalars["String"];
-  user: Scalars["String"];
-};
-
 export type X2Y2InputData = {
   currency: Scalars["String"];
   deadline: Scalars["Float"];
@@ -2444,21 +2410,6 @@ export type CreatePurchaseSessionMutationVariables = Exact<{
 
 export type CreatePurchaseSessionMutation = {
   createPurchaseSession: { id: string; url: string };
-};
-
-export type GetCoinQueryVariables = Exact<{
-  input: GetCoinInput;
-  chainId: Scalars["Int"];
-}>;
-
-export type GetCoinQuery = {
-  coin: {
-    id: string;
-    ticker: string;
-    priceInUSD: number;
-    name: string;
-    contract?: { address: string; decimals: number; isNative: boolean } | null;
-  };
 };
 
 export type CreateCollectionMutationVariables = Exact<{
@@ -2802,25 +2753,10 @@ export type Offer_MintOffer_Fragment = {
   user: { id: string; ethAddress?: string | null };
   price: {
     amount: number;
-    currency: {
-      id: string;
-      ticker: string;
-      priceInUSD: number;
-      coingeckoId: string;
-      name: string;
-      contract?: {
-        isNative: boolean;
-        decimals: number;
-        address: string;
-        chainId: number;
-      } | null;
-      contracts: Array<{
-        chainId: number;
-        isNative: boolean;
-        decimals: number;
-        address: string;
-      }>;
-    };
+    decimals: number;
+    address: string;
+    priceInUSD?: number | null;
+    currency: { id: string; ticker: string; coingeckoId: string; name: string };
   };
   auction?: {
     id: string;
@@ -2891,25 +2827,10 @@ export type Offer_SaleOffer_Fragment = {
   user: { id: string; ethAddress?: string | null };
   price: {
     amount: number;
-    currency: {
-      id: string;
-      ticker: string;
-      priceInUSD: number;
-      coingeckoId: string;
-      name: string;
-      contract?: {
-        isNative: boolean;
-        decimals: number;
-        address: string;
-        chainId: number;
-      } | null;
-      contracts: Array<{
-        chainId: number;
-        isNative: boolean;
-        decimals: number;
-        address: string;
-      }>;
-    };
+    decimals: number;
+    address: string;
+    priceInUSD?: number | null;
+    currency: { id: string; ticker: string; coingeckoId: string; name: string };
   };
   auction?: {
     id: string;
@@ -3081,7 +3002,6 @@ export type GetUserOfferItemsQuery = {
 
 export type GetOfferQueryVariables = Exact<{
   id: Scalars["ID"];
-  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3122,24 +3042,14 @@ export type GetOfferQuery = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3220,24 +3130,14 @@ export type GetOfferQuery = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3459,7 +3359,6 @@ export type FinishMintMutation = {
 
 export type CreateOfferForEditionsMutationVariables = Exact<{
   input: CreateOfferInput;
-  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3483,24 +3382,14 @@ export type CreateOfferForEditionsMutation = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3571,24 +3460,14 @@ export type CreateOfferForEditionsMutation = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3645,7 +3524,6 @@ export type CreateOfferForEditionsMutation = {
 
 export type CreateMintOfferMutationVariables = Exact<{
   input: CreateMintOfferInput;
-  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3672,24 +3550,14 @@ export type CreateMintOfferMutation = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3764,24 +3632,14 @@ export type CreateMintOfferMutation = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3839,7 +3697,6 @@ export type CreateMintOfferMutation = {
 export type UpdateMintOfferMutationVariables = Exact<{
   id: Scalars["ID"];
   input: UpdateMintOfferInput;
-  chainId: Scalars["Int"];
   storeId?: InputMaybe<Scalars["ID"]>;
 }>;
 
@@ -3866,24 +3723,14 @@ export type UpdateMintOfferMutation = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {
@@ -3958,24 +3805,14 @@ export type UpdateMintOfferMutation = {
         user: { id: string; ethAddress?: string | null };
         price: {
           amount: number;
+          decimals: number;
+          address: string;
+          priceInUSD?: number | null;
           currency: {
             id: string;
             ticker: string;
-            priceInUSD: number;
             coingeckoId: string;
             name: string;
-            contract?: {
-              isNative: boolean;
-              decimals: number;
-              address: string;
-              chainId: number;
-            } | null;
-            contracts: Array<{
-              chainId: number;
-              isNative: boolean;
-              decimals: number;
-              address: string;
-            }>;
           };
         };
         auction?: {

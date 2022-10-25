@@ -69,7 +69,6 @@ export class OfferClient {
 
   async getOffer<O extends BasicOffer = BasicOffer>(
     id: string,
-    chainId: number,
     storeId?: string
   ): Promise<O> {
     const queryResponse = await this.refinable.graphqlClient.request<
@@ -77,33 +76,18 @@ export class OfferClient {
       GetOfferQueryVariables
     >(GET_OFFER, {
       id,
-      chainId,
       storeId,
     });
 
     if (!queryResponse?.offer) return null;
 
     if (queryResponse.offer.__typename === "MintOffer") {
-      return this.createMintOffer({
-        ...queryResponse?.offer,
-        price: {
-          amount: queryResponse?.offer.price.amount,
-          decimals: queryResponse?.offer.price.currency.contract.decimals,
-          payToken: queryResponse?.offer.price.currency.contract.address,
-        },
-      }) as any;
+      return this.createMintOffer(queryResponse?.offer) as any;
     } else {
       const nft = this.refinable.createNft(queryResponse?.offer?.item);
       return OfferFactory.createOffer(
         this.refinable,
-        {
-          ...queryResponse?.offer,
-          price: {
-            amount: queryResponse?.offer.price.amount,
-            decimals: queryResponse?.offer.price.currency.contract.decimals,
-            payToken: queryResponse?.offer.price.currency.contract.address,
-          },
-        },
+        queryResponse?.offer,
         nft
       );
     }

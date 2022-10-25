@@ -148,7 +148,7 @@ export class ERC1155NFT extends AbstractEvmNFT {
         type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
-          currency: price.payToken,
+          payToken: price.address,
           amount: parseFloat(price.amount.toString()),
         },
         supply,
@@ -157,18 +157,10 @@ export class ERC1155NFT extends AbstractEvmNFT {
         launchpadDetails,
         blockchainId,
       },
-      chainId: this.item.chainId,
     });
 
     return this.refinable.offer.createOffer<SaleOffer>(
-      {
-        ...result.createOfferForItems,
-        price: {
-          amount: result.createOfferForItems.price.amount,
-          decimals: result.createOfferForItems.price.currency.contract.decimals,
-          payToken: result.createOfferForItems.price.currency.contract.address,
-        },
-      },
+      result.createOfferForItems,
       this
     );
   }

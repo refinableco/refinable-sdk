@@ -45,11 +45,7 @@ export class SaleOffer extends Offer {
 
     const buyParams: NFTBuyParams = {
       signature: this._offer.signature,
-      price: {
-        amount: this._offer.price.amount,
-        payToken: this._offer.price.payToken,
-        decimals: this._offer.price.decimals,
-      },
+      price: this._offer.price,
       ownerEthAddress: this._offer.user?.ethAddress,
       supply,
       blockchainId: this._offer.blockchainId,
@@ -95,7 +91,7 @@ export class SaleOffer extends Offer {
 
     // 1. Approve token if needed
     await this.refinable.evm.account.approveTokenContractAllowance(
-      this._offer.price.payToken,
+      this._offer.price.address,
       this._offer.price.decimals,
       this._offer.price.amount,
       await externalPlatform.getApprovalAddress(this._offer.chainId)
@@ -115,7 +111,7 @@ export class SaleOffer extends Offer {
         refinable: this.refinable,
         data: unsignedTx.data,
         to: unsignedTx.to,
-        value: !isNative(this._offer.price.payToken) ? "0" : unsignedTx.value,
+        value: !isNative(this._offer.price.address) ? "0" : unsignedTx.value,
       },
       opts
     );
@@ -128,7 +124,7 @@ export class SaleOffer extends Offer {
       // 3. Send transaction
       const response = await this.refinable.evm.signer.sendTransaction({
         ...unsignedTx,
-        value: !isNative(this._offer.price.payToken) ? "0" : unsignedTx.value,
+        value: !isNative(this._offer.price.address) ? "0" : unsignedTx.value,
       });
 
       const receipt = await response.wait();
@@ -142,11 +138,7 @@ export class SaleOffer extends Offer {
     const selling = await this.getSupplyOnSale();
 
     return this.nft.cancelSale({
-      price: {
-        amount: this.price.amount,
-        payToken: this.price.payToken,
-        decimals: this.price.decimals,
-      },
+      price: this.price,
       signature: this._offer.signature,
       selling,
       blockchainId: this._offer.blockchainId,
@@ -161,11 +153,7 @@ export class SaleOffer extends Offer {
       const saleID = ERCSaleID.fromBlockchainId(this._offer.blockchainId);
 
       const saleParamsWithOfferSupply = await this.nft.getSaleParamsHash({
-        price: {
-          amount: this.price.amount,
-          payToken: this.price.payToken,
-          decimals: this.price.decimals,
-        },
+        price: this.price,
         ethAddress: this._offer.user?.ethAddress,
         supply: this._offer.totalSupply,
         endTime: this._offer.endTime,

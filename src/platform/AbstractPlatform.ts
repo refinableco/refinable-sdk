@@ -27,7 +27,11 @@ export abstract class AbstractPlatform {
       ) => void;
     }
   ): Promise<EvmTransaction>;
-  abstract buy(offer: IOffer, contractAddress: string, tokenId: string);
+  abstract buy(
+    MakerOrderParams: IOffer["orderParams"],
+    contractAddress: string,
+    tokenId: string
+  );
   abstract listForSale(
     nft: AbstractEvmNFT,
     price: IPrice,

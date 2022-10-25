@@ -38,7 +38,7 @@ export const GET_USER_OFFER_ITEMS = gql`
 `;
 
 export const GET_OFFER = gql`
-  query getOffer($id: ID!, $chainId: Int!, $storeId: ID) {
+  query getOffer($id: ID!, $storeId: ID) {
     offer(id: $id) {
       __typename
       ...Offer

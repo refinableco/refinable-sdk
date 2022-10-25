@@ -112,7 +112,7 @@ export class MintOffer extends BasicOffer {
       contractAddress,
       chainId: this.chainId,
       message: {
-        payToken: price.payToken,
+        payToken: price.address,
         decimals: price.decimals,
         price: price.amount,
         startTime: getUnixEpochTimeStampFromDateOr0(startTime),
@@ -132,7 +132,7 @@ export class MintOffer extends BasicOffer {
         type: OfferType.Mint,
         contractAddress,
         price: {
-          currency: price.payToken,
+          payToken: price.address,
           amount: parseFloat(price.amount.toString()),
         },
         startTime,
@@ -145,17 +145,10 @@ export class MintOffer extends BasicOffer {
         description,
         payee,
       },
-      chainId: this.chainId,
     });
 
-    this._offer = {
-      ...response?.createMintOffer,
-      price: {
-        amount: response?.createMintOffer.price.amount,
-        decimals: response?.createMintOffer.price.currency.contract.decimals,
-        payToken: response?.createMintOffer.price.currency.contract.address,
-      },
-    };
+    this._offer = response?.createMintOffer;
+
     return this;
   }
 
@@ -191,17 +184,10 @@ export class MintOffer extends BasicOffer {
         name,
         description,
       },
-      chainId: this._offer.chainId,
     });
 
-    this._offer = {
-      ...response?.updateMintOffer,
-      price: {
-        amount: response?.updateMintOffer.price.amount,
-        decimals: response?.updateMintOffer.price.currency.contract.decimals,
-        payToken: response?.updateMintOffer.price.currency.contract.address,
-      },
-    };
+    this._offer = response?.updateMintOffer;
+
     return this;
   }
 
@@ -211,11 +197,7 @@ export class MintOffer extends BasicOffer {
     return contract.buy({
       ...params,
       mintVoucher: await this.getMintVoucher(),
-      price: {
-        amount: this._offer.price.amount,
-        decimals: this._offer.price.decimals,
-        payToken: this._offer.price.payToken,
-      },
+      price: this._offer.price,
       whitelistVoucher: this.whitelistVoucher,
       recipient: params.recipient || this.refinable.accountAddress,
     });
@@ -227,11 +209,7 @@ export class MintOffer extends BasicOffer {
     return contract.estimateGasBuy({
       ...params,
       mintVoucher: await this.getMintVoucher(),
-      price: {
-        amount: this._offer.price.amount,
-        decimals: this._offer.price.decimals,
-        payToken: this._offer.price.payToken,
-      },
+      price: this._offer.price,
       whitelistVoucher: this.whitelistVoucher,
       recipient: params.recipient || this.refinable.accountAddress,
     });
@@ -251,7 +229,7 @@ export class MintOffer extends BasicOffer {
 
     return {
       currency:
-        this.offer.price.payToken ??
+        this.offer.price.address ??
         "0x0000000000000000000000000000000000000000", //using the zero address means Ether
       price: offerPrice ?? "0",
       supply: this.offer.totalSupply.toString() ?? "0",

@@ -370,7 +370,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       await this._chain.getPriceWithBuyServiceFee(
         {
           amount: voucherPriceAmount,
-          payToken: pricePerCopy.payToken,
+          address: pricePerCopy.address,
           decimals: pricePerCopy.decimals,
         },
         marketConfig.buyServiceFeeBps.value,
@@ -378,7 +378,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       );
 
     await this.refinableEvmClient.account.approveTokenContractAllowance(
-      priceWithServiceFee.payToken,
+      priceWithServiceFee.address,
       priceWithServiceFee.decimals,
       priceWithServiceFee.amount,
       this.saleContract.address
@@ -409,7 +409,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       signature,
       saleVersion: saleID?.version ?? SaleVersion.V1,
       price,
-      payToken: pricePerCopy.payToken,
+      payToken: pricePerCopy.address,
       seller: ownerEthAddress,
       selling: supply,
       buying: amount,
@@ -434,7 +434,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ],
       {
         // If currency is Native, send msg.value
-        ...(isNative(pricePerCopy.payToken) && {
+        ...(isNative(pricePerCopy.address) && {
           value,
         }),
       }
@@ -467,7 +467,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken - Remove the payment token when we pay in BNB. To keep supporting signatures before multi-currency support which are inherently BNB
-      ...optionalParam(!isNative(price.payToken) || isV2, price.payToken),
+      ...optionalParam(!isNative(price.address) || isV2, price.address),
       // uint256 price
       value,
       // uint256 _selling
@@ -563,7 +563,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       // uint256 _tokenId
       this.item.tokenId,
       // address _payToken
-      price.payToken,
+      price.address,
       // uint256 _startPrice
       startPrice,
       // uint256 _startTimestamp
@@ -588,18 +588,12 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
             startTime: auctionStartDate,
             endTime: auctionEndDate,
           },
-          chainId: this.item.chainId,
         }
       );
 
     const offer = this.refinable.offer.createOffer<AuctionOffer>(
       {
         ...result.createOfferForItems,
-        price: {
-          amount: result.createOfferForItems.price.amount,
-          decimals: result.createOfferForItems.price.currency.contract.decimals,
-          payToken: result.createOfferForItems.price.currency.contract.address,
-        },
       },
       this
     );
@@ -621,7 +615,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     );
 
     await this.refinableEvmClient.account.approveTokenContractAllowance(
-      priceWithServiceFee.payToken,
+      priceWithServiceFee.address,
       priceWithServiceFee.decimals,
       priceWithServiceFee.amount,
       auctionContractAddress
@@ -659,7 +653,7 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       ],
       {
         // If currency is Native, send msg.value
-        ...(isNative(price.payToken) && {
+        ...(isNative(price.address) && {
           value,
         }),
       }

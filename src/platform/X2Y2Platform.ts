@@ -1,6 +1,5 @@
 import { AbstractPlatform } from "./AbstractPlatform";
 import {
-  MutationX2y2CancelSaleArgs,
   MutationX2y2ListForSaleArgs,
   Platform,
   QueryGetUnsignedTxArgs,
@@ -72,16 +71,20 @@ export class X2Y2Platform extends AbstractPlatform {
     return X2Y2.Addresses.Exchange[chainId];
   }
 
-  async buy(offer: IOffer, contractAddress: string, tokenId: string) {
+  async buy(
+    orderParams: IOffer["orderParams"],
+    contractAddress: string,
+    tokenId: string
+  ) {
     const input = {
-      id: offer.orderParams.id,
-      type: offer.orderParams.type,
-      currency: offer.orderParams.currency,
-      price: offer.orderParams.price,
-      maker: offer.orderParams.maker,
-      taker: offer.orderParams.taker ?? this.refinable.accountAddress,
-      deadline: offer.orderParams.end_at,
-      itemHash: offer.orderParams.item_hash,
+      id: orderParams.id,
+      type: orderParams.type,
+      currency: orderParams.currency,
+      price: orderParams.price,
+      maker: orderParams.maker,
+      taker: orderParams.taker ?? this.refinable.accountAddress,
+      deadline: orderParams.end_at,
+      itemHash: orderParams.item_hash,
       nft: {
         token: contractAddress,
         tokenId,
@@ -133,7 +136,7 @@ export class X2Y2Platform extends AbstractPlatform {
 
     const queryResponse = await this.refinable.graphqlClient.request<
       string,
-      MutationX2y2CancelSaleArgs
+      any
     >(X2Y2_CANCEL_SALE, {
       input: {
         user: this.refinable.accountAddress,

@@ -141,11 +141,13 @@ export class OpenseaPlatform extends AbstractPlatform {
     return Addresses[this.chainId].Exchange;
   }
 
-  async buy(offer: IOffer, contractAddress: string, tokenId: string) {
+  async buy(
+    orderParams: IOffer["orderParams"],
+    contractAddress: string,
+    tokenId: string
+  ) {
     const nonce = await this.getNonce(this.refinable.accountAddress);
-    const builder = new Seaport.Builders.SingleToken(offer.chainId);
-
-    const { orderParams } = offer;
+    const builder = new Seaport.Builders.SingleToken(this.chainId);
 
     // THIS HAS TO BE A 1:1 MATCH TO order.orderParams
     const builtOrder = builder.build({
@@ -154,7 +156,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offerer: orderParams.parameters.offerer,
       contract: contractAddress,
       tokenId: tokenId,
-      paymentToken: offer.price.payToken,
+      paymentToken: orderParams.price.payToken, // TODO: Verify whther correct
       price: orderParams.parameters.consideration[0].startAmount,
       counter: nonce,
       startTime: orderParams.parameters.startTime,
@@ -171,7 +173,8 @@ export class OpenseaPlatform extends AbstractPlatform {
     });
 
     // Router supports only ETH transactions
-    if (isNative(offer.price.payToken)) {
+    if (isNative(orderParams.price.payToken)) {
+      // TODO: Verify whther correct
       const router = new Router.Router(
         this.chainId,
         this.refinable.evm.provider
@@ -183,7 +186,7 @@ export class OpenseaPlatform extends AbstractPlatform {
             contractKind: "erc721",
             contract: contractAddress,
             tokenId: tokenId,
-            currency: offer.price.payToken,
+            currency: orderParams.price.payToken, // TODO: Verify whther correct
             order: builtOrder,
           },
         ],
@@ -254,7 +257,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offerer: this.refinable.accountAddress,
       contract: item.contractAddress,
       tokenId: item.tokenId,
-      paymentToken: offerPrice.payToken,
+      paymentToken: offerPrice.address,
       price: price.sub(openseaFee).toString(),
       counter: nonce,
       startTime: now,

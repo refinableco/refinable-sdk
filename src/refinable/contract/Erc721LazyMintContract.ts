@@ -151,7 +151,7 @@ export class Erc721LazyMintContract extends Contract {
 
     // Add allows as much as the price requests
     await this.account.approveTokenContractAllowance(
-      params.price.payToken,
+      params.price.address,
       params.price.decimals,
       priceTimesAmount,
       this.contractAddress
@@ -239,7 +239,7 @@ export class Erc721LazyMintContract extends Contract {
     return {
       args,
       method,
-      callOverrides: isNative(params.price.payToken)
+      callOverrides: isNative(params.price.address)
         ? {
             value: parsedPrice,
           }

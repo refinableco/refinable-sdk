@@ -22,6 +22,5 @@ export interface IOffer
     | "chainId"
     | "platform"
     | "orderParams"
-  > {
-  price: IPrice;
-}
+    | "price"
+  > {}

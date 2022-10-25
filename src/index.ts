@@ -1,7 +1,6 @@
 import {
   CreateItemInput,
   OfferType,
-  PriceCurrency,
   TokenType,
   ContractTypes,
 } from "./@types/graphql";
@@ -64,7 +63,6 @@ export {
   StandardRoyaltyStrategy,
   ProfitDistributionStrategy,
   NFTBuilder,
-  PriceCurrency,
   PartialNFTItem,
   is,
   Offer,

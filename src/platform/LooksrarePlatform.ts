@@ -58,13 +58,17 @@ export class LooksrarePlatform extends AbstractPlatform {
   getApprovalAddress(chainId: number): string {
     return LooksRare.Addresses.Exchange[chainId];
   }
-  async buy(offer: IOffer, contractAddress: string, tokenId: string) {
-    const { v, r, s } = splitSignature(offer.orderParams.signature);
+  async buy(
+    orderParams: IOffer["orderParams"],
+    contractAddress: string,
+    tokenId: string
+  ) {
+    const { v, r, s } = splitSignature(orderParams.signature);
 
-    const builder = new LooksRare.Builders.SingleToken(offer.chainId);
+    const builder = new LooksRare.Builders.SingleToken(this.refinable.chainId);
 
     const builtOrder = builder.build({
-      ...offer.orderParams,
+      ...orderParams,
       collection: contractAddress,
       tokenId: tokenId,
       v,
@@ -75,7 +79,7 @@ export class LooksrarePlatform extends AbstractPlatform {
     });
 
     // Router supports only ETH transactions
-    if (offer.orderParams?.currency === ethers.constants.AddressZero) {
+    if (orderParams?.currency === ethers.constants.AddressZero) {
       const router = new Router.Router(1, this.refinable.evm.provider);
 
       return await router.fillListingsTx(
@@ -86,10 +90,10 @@ export class LooksrarePlatform extends AbstractPlatform {
             contract: contractAddress,
             tokenId,
             order: builtOrder,
-            currency: offer.orderParams.currency,
+            currency: orderParams.currency,
           },
         ],
-        offer.orderParams.signer,
+        orderParams.signer,
         {
           referrer: "refinable.com",
         }
@@ -102,9 +106,9 @@ export class LooksrarePlatform extends AbstractPlatform {
       return exchange.fillOrderTx(this.refinable.accountAddress, order, {
         isOrderAsk: false,
         taker: this.refinable.accountAddress,
-        price: offer.orderParams.price,
+        price: orderParams.price,
         tokenId: tokenId,
-        minPercentageToAsk: offer.orderParams.minPercentageToAsk,
+        minPercentageToAsk: orderParams.minPercentageToAsk,
         params: BytesEmpty,
       });
     }

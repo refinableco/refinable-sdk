@@ -12,9 +12,8 @@ export class Store implements PartialStore {
   }
 
   async getOffer<O extends BasicOffer = BasicOffer>(
-    offerId: string,
-    chainId: number
+    offerId: string
   ): Promise<O> {
-    return this.refinable.offer.getOffer<O>(offerId, chainId, this.id);
+    return this.refinable.offer.getOffer<O>(offerId, this.id);
   }
 }
