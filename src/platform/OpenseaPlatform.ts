@@ -52,6 +52,11 @@ const Addresses = {
   },
 } as const;
 
+const TokenKind = {
+  erc721: "erc721",
+  erc1155: "erc1155",
+} as const;
+
 export type SpentItem = {
   itemType: ItemType;
   token: string;
@@ -152,7 +157,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     // THIS HAS TO BE A 1:1 MATCH TO order.orderParams
     const builtOrder = builder.build({
       side: "sell",
-      tokenKind: "erc721",
+      tokenKind: TokenKind.erc721,
       offerer: orderParams.parameters.offerer,
       contract: contractAddress,
       tokenId: tokenId,
@@ -252,6 +257,7 @@ export class OpenseaPlatform extends AbstractPlatform {
      */
     const builtOrder = builder.build({
       side: "sell",
+      // hardcoded until we support 1155
       tokenKind: "erc721",
       offerer: this.refinable.accountAddress,
       contract: item.contractAddress,
@@ -350,10 +356,15 @@ export class OpenseaPlatform extends AbstractPlatform {
 
     const nonce = await this.getNonce(this.refinable.accountAddress);
 
+    const tokenKind =
+      parameters?.offer?.[0]?.itemType === ItemType.ERC721
+        ? TokenKind.erc721
+        : TokenKind.erc1155;
+
     // THIS HAS TO BE A 1:1 MATCH TO order.orderParams
     const builtOrder = builder.build({
       side: "sell",
-      tokenKind: "erc721",
+      tokenKind: tokenKind,
       offerer: parameters?.offerer,
       contract: parameters?.offer[0]?.token,
       tokenId: parameters?.offer[0]?.identifierOrCriteria,

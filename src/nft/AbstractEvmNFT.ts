@@ -17,6 +17,7 @@ import { CREATE_OFFER } from "../graphql/sale";
 import { LibPart } from "../interfaces/LibPart";
 import { AuctionOffer } from "../offer/AuctionOffer";
 import { SaleOffer } from "../offer/SaleOffer";
+import { PlatformFactory } from "../platform";
 import { RefinableEvmClient } from "../refinable/client/RefinableEvmClient";
 import { ContractWrapper } from "../refinable/contract/ContractWrapper";
 import { Refinable } from "../refinable/Refinable";
@@ -173,11 +174,13 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
     }
   }
 
-  abstract isApproved(operatorAddress?: string): Promise<boolean>;
-  abstract approve(operatorAddress?: string): Promise<EvmTransaction>;
-  abstract cancelSaleOffers(params: {
+  async cancelSaleOffers({
+    offers,
+    onInitialize,
+    onProgress,
+    onError,
+  }: {
     offers?: SaleOfferType[];
-    confirmations?: number;
     onInitialize?: (
       steps: { step: CANCEL_SALE_STATUS_STEP; platform: Platform }[]
     ) => void;
@@ -186,7 +189,79 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       { step, platform }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
       error
     ) => void;
-  }): Promise<void>;
+  } = {}): Promise<void> {
+    const platformFactory = new PlatformFactory(this.refinable);
+
+    const steps = [];
+
+    for (const offer of offers) {
+      if (offer.platform === Platform.Refinable) {
+        steps.push(
+          {
+            step: CANCEL_SALE_STATUS_STEP.SIGN,
+            platform: Platform.Refinable,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+            platform: Platform.Refinable,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.DONE,
+            platform: Platform.Refinable,
+          }
+        );
+      } else {
+        steps.push(
+          {
+            step: CANCEL_SALE_STATUS_STEP.SIGN,
+            platform: offer.platform,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+            platform: offer.platform,
+          },
+          {
+            step: CANCEL_SALE_STATUS_STEP.DONE,
+            platform: offer.platform,
+          }
+        );
+      }
+    }
+
+    onInitialize(steps);
+
+    this.verifyItem();
+
+    for (const offer of offers) {
+      if (offer.platform === Platform.Refinable) {
+        onProgress<CancelSaleStatus>({
+          platform: Platform.Refinable,
+          step: CANCEL_SALE_STATUS_STEP.SIGN,
+        });
+
+        await this.cancelSale(() => {
+          onProgress<CancelSaleStatus>({
+            platform: Platform.Refinable,
+            step: CANCEL_SALE_STATUS_STEP.CANCELING,
+          });
+        });
+
+        onProgress<CancelSaleStatus>({
+          platform: Platform.Refinable,
+          step: CANCEL_SALE_STATUS_STEP.DONE,
+        });
+      } else {
+        const externalPlatform = platformFactory.createPlatform(offer.platform);
+        await externalPlatform.cancelSale(offer, {
+          onProgress,
+          onError,
+        });
+      }
+    }
+  }
+
+  abstract isApproved(operatorAddress?: string): Promise<boolean>;
+  abstract approve(operatorAddress?: string): Promise<EvmTransaction>;
   abstract burn(
     supply?: number,
     ownerEthAddress?: string

@@ -165,54 +165,6 @@ export class ERC1155NFT extends AbstractEvmNFT {
     );
   }
 
-  async cancelSaleOffers({
-    onInitialize,
-    onProgress,
-  }: {
-    onInitialize?: (
-      steps: { step: CANCEL_SALE_STATUS_STEP; platform: Platform }[]
-    ) => void;
-    onProgress?: <T extends CancelSaleStatus>(status: T) => void;
-    onError?: (
-      { step, platform }: { step: CANCEL_SALE_STATUS_STEP; platform: Platform },
-      error
-    ) => void;
-  }): Promise<void> {
-    const steps = [
-      {
-        step: CANCEL_SALE_STATUS_STEP.SIGN,
-        platform: Platform.Refinable,
-      },
-      {
-        step: CANCEL_SALE_STATUS_STEP.CANCELING,
-        platform: Platform.Refinable,
-      },
-      {
-        step: CANCEL_SALE_STATUS_STEP.DONE,
-        platform: Platform.Refinable,
-      },
-    ];
-
-    onInitialize(steps);
-
-    onProgress<CancelSaleStatus>({
-      platform: Platform.Refinable,
-      step: CANCEL_SALE_STATUS_STEP.SIGN,
-    });
-
-    await this.cancelSale(() => {
-      onProgress<CancelSaleStatus>({
-        platform: Platform.Refinable,
-        step: CANCEL_SALE_STATUS_STEP.CANCELING,
-      });
-    });
-
-    onProgress<CancelSaleStatus>({
-      platform: Platform.Refinable,
-      step: CANCEL_SALE_STATUS_STEP.DONE,
-    });
-  }
-
   async transfer(
     ownerEthAddress: string,
     recipientEthAddress: string,
