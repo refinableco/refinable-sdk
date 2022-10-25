@@ -156,7 +156,7 @@ export class OpenseaPlatform extends AbstractPlatform {
       offerer: orderParams.parameters.offerer,
       contract: contractAddress,
       tokenId: tokenId,
-      paymentToken: orderParams.price.payToken, // TODO: Verify whther correct
+      paymentToken: orderParams.consideration[0].token,
       price: orderParams.parameters.consideration[0].startAmount,
       counter: nonce,
       startTime: orderParams.parameters.startTime,
@@ -173,8 +173,7 @@ export class OpenseaPlatform extends AbstractPlatform {
     });
 
     // Router supports only ETH transactions
-    if (isNative(orderParams.price.payToken)) {
-      // TODO: Verify whther correct
+    if (isNative(orderParams.consideration[0].token)) {
       const router = new Router.Router(
         this.chainId,
         this.refinable.evm.provider
@@ -186,7 +185,7 @@ export class OpenseaPlatform extends AbstractPlatform {
             contractKind: "erc721",
             contract: contractAddress,
             tokenId: tokenId,
-            currency: orderParams.price.payToken, // TODO: Verify whther correct
+            currency: orderParams.consideration[0].token,
             order: builtOrder,
           },
         ],
