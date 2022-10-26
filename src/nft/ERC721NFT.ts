@@ -6,6 +6,7 @@ import {
   OfferType,
   Platform,
   TokenType,
+  SaleOffer as SaleOfferType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
