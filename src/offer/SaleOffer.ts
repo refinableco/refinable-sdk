@@ -2,7 +2,6 @@ import { Buffer } from "buffer";
 import { ethers } from "ethers";
 import {
   Platform,
-  PriceCurrency,
   PurchaseItemMutation,
   PurchaseItemMutationVariables,
   PurchaseMetadata,
@@ -14,19 +13,20 @@ import { ERCSaleID } from "../nft/ERCSaleId";
 import { SaleVersion } from "../nft/interfaces/SaleInfo";
 import { Refinable } from "../refinable/Refinable";
 import { Transaction } from "../transaction/Transaction";
-import { isERC1155Item, isEVMNFT } from "../utils/is";
-import { Offer, PartialOffer } from "./Offer";
+import { isERC1155Item, isEVMNFT, isNative } from "../utils/is";
+import { Offer } from "./Offer";
 import { SimulationFailedError } from "../errors";
 import { simulateUnsignedTx } from "../transaction/simulate";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { TransactionError } from "../errors/TransactionError";
+import { IOffer } from "../nft/interfaces/Offer";
 
 interface BuyParams {
   amount?: number;
 }
 
 export class SaleOffer extends Offer {
-  constructor(refinable: Refinable, offer: PartialOffer, nft: AbstractNFT) {
+  constructor(refinable: Refinable, offer: IOffer, nft: AbstractNFT) {
     super(refinable, offer, nft);
   }
 
@@ -91,7 +91,8 @@ export class SaleOffer extends Offer {
 
     // 1. Approve token if needed
     await this.refinable.evm.account.approveTokenContractAllowance(
-      this.chain.getCurrency(this._offer.price.currency),
+      this._offer.price.address,
+      this._offer.price.decimals,
       this._offer.price.amount,
       await externalPlatform.getApprovalAddress(this._offer.chainId)
     );
@@ -110,26 +111,20 @@ export class SaleOffer extends Offer {
         refinable: this.refinable,
         data: unsignedTx.data,
         to: unsignedTx.to,
-        value:
-          this._offer.price.currency != PriceCurrency.Eth
-            ? "0"
-            : unsignedTx.value,
+        value: !isNative(this._offer.price.address) ? "0" : unsignedTx.value,
       },
       opts
     );
 
     if (resp.data.success === false) {
-      throw new SimulationFailedError(resp.data.error?.message);
+      throw new SimulationFailedError();
     }
 
     try {
       // 3. Send transaction
       const response = await this.refinable.evm.signer.sendTransaction({
         ...unsignedTx,
-        value:
-          this._offer.price.currency != PriceCurrency.Eth
-            ? "0"
-            : unsignedTx.value,
+        value: !isNative(this._offer.price.address) ? "0" : unsignedTx.value,
       });
 
       const receipt = await response.wait();

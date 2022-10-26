@@ -1,8 +1,7 @@
 import { utils } from "ethers";
-import { Price, PriceCurrency } from "../@types/graphql";
 import { chainMap } from "../config/chains";
-import { IChainConfig } from "../interfaces/Config";
-import { getSupportedCurrency } from "../utils/chain";
+import { IChainConfig, NativeCurrency } from "../interfaces/Config";
+import { IPrice } from "../nft/interfaces/Price";
 
 export class Chain {
   protected _chain: IChainConfig;
@@ -18,48 +17,25 @@ export class Chain {
     return this._chain.supportedCurrencies;
   }
 
-  public getPaymentToken(priceCurrency: PriceCurrency) {
-    const currency = this._chain.supportedCurrencies.find(
-      (c) => c.symbol === priceCurrency
-    );
-
-    if (!currency) throw new Error("Unsupported currency");
-
-    return currency.address;
-  }
-
-  public getCurrency(priceCurrency: PriceCurrency) {
-    return getSupportedCurrency(this._chain.supportedCurrencies, priceCurrency);
-  }
-
-  public isNativeCurrency(priceCurrency: PriceCurrency) {
-    const currency = this.getCurrency(priceCurrency);
-
-    return currency && currency.native === true;
-  }
-  public parseCurrency(priceCurrency: PriceCurrency, amount: number) {
-    const currency = this.getCurrency(priceCurrency);
-
-    return utils.parseUnits(amount.toString(), currency.decimals).toString();
+  public parseUnits(decimals: number, amount: number) {
+    return utils.parseUnits(amount.toString(), decimals).toString();
   }
 
   public async getPriceWithBuyServiceFee(
-    price: Price,
+    price: IPrice,
     serviceFeeBps: number,
     amount = 1
-  ): Promise<Price> {
-    const currency = this.getCurrency(price.currency);
-
+  ): Promise<IPrice> {
     // We need to do this because of the rounding in our contracts
     const weiAmount = utils
-      .parseUnits(price.amount.toString(), currency.decimals)
+      .parseUnits(price.amount.toString(), price.decimals)
       .mul(10000 + serviceFeeBps)
       .div(10000)
       .toString();
 
     return {
       ...price,
-      amount: Number(utils.formatUnits(weiAmount, currency.decimals)) * amount,
+      amount: Number(utils.formatUnits(weiAmount, price.decimals)) * amount,
     };
   }
 }

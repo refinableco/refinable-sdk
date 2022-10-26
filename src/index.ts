@@ -1,7 +1,6 @@
 import {
   CreateItemInput,
   OfferType,
-  PriceCurrency,
   TokenType,
   ContractTypes,
 } from "./@types/graphql";
@@ -20,9 +19,10 @@ import {
 } from "./nft/royaltyStrategies/Royalty";
 export * from "./nft/interfaces/SaleInfo";
 export * from "./nft/interfaces/Voucher";
+export * from "./nft/interfaces/Offer";
 import { StandardRoyaltyStrategy } from "./nft/royaltyStrategies/StandardRoyaltyStrategy";
 import { AuctionOffer } from "./offer/AuctionOffer";
-import { Offer, PartialOffer, BasicOffer } from "./offer/Offer";
+import { Offer, BasicOffer } from "./offer/Offer";
 import { SaleOffer } from "./offer/SaleOffer";
 import { MintOffer } from "./offer/MintOffer";
 import { ClientType, Refinable } from "./refinable/Refinable";
@@ -46,7 +46,6 @@ export {
   MintOffer,
   AuctionOffer,
   OfferType,
-  PartialOffer,
   AbstractNFT,
   AbstractEvmNFT,
   EvmTokenType,
@@ -64,7 +63,6 @@ export {
   StandardRoyaltyStrategy,
   ProfitDistributionStrategy,
   NFTBuilder,
-  PriceCurrency,
   PartialNFTItem,
   is,
   Offer,

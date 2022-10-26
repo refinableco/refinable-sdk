@@ -5,6 +5,7 @@ import { NativeCurrency } from "../../interfaces/Config";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
 import EvmTransaction from "../../transaction/EvmTransaction";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { isNative } from "../../utils/is";
 import { getSignerAndProvider } from "../../utils/singer";
 import { ContractWrapper } from "../contract/ContractWrapper";
 
@@ -128,16 +129,17 @@ export default class EvmAccount implements Account {
    * @returns {Promise<EvmTransaction>}
    */
   public async approveTokenContractAllowance(
-    token: NativeCurrency,
+    tokenAddress: string,
+    decimals,
     amount: number,
     spenderAddress: string
   ): Promise<EvmTransaction> {
     // Native currency does not need to be approved
-    if (token.native === true) return;
+    if (isNative(tokenAddress) === true) return;
 
     const erc20Contract = new ContractWrapper(
       {
-        address: token.address,
+        address: tokenAddress,
         abi: [
           `function approve(address _spender, uint256 _value)`,
           `function allowance(address _owner, address _spender) public view returns (uint remaining)`,
@@ -150,7 +152,7 @@ export default class EvmAccount implements Account {
 
     const formattedAmount = ethers.utils.parseUnits(
       amount.toString(),
-      token.decimals
+      decimals
     );
 
     const address = await this.getAddress();
@@ -171,9 +173,8 @@ export default class EvmAccount implements Account {
          * having to increase/decrease is actually a result of a failing amount before
          */
         if (
-          token.name === "USDT" &&
-          token.address.toLowerCase() ==
-            "0xdac17f958d2ee523a2206206994597c13d831ec7"
+          tokenAddress.toLowerCase() ==
+          "0xdac17f958d2ee523a2206206994597c13d831ec7"
         ) {
           // FROM USDT: https://etherscan.io/address/0xdAC17F958D2ee523a2206206994597C13D831ec7#code
           // To change the approve amount you first have to reduce the addresses`

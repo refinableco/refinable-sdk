@@ -5,8 +5,8 @@ import {
   MarketConfig,
   OfferType,
   Platform,
-  Price,
   TokenType,
+  SaleOffer as SaleOfferType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
 import { SaleOffer } from "../offer/SaleOffer";
@@ -16,6 +16,11 @@ import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
+import {
+  CancelSaleStatus,
+  CANCEL_SALE_STATUS_STEP,
+} from "./interfaces/CancelSaleStatusStep";
+import { IPrice } from "./interfaces/Price";
 import { SaleVersion } from "./interfaces/SaleInfo";
 import {
   ListApproveStatus,
@@ -88,7 +93,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   async buy(params: {
     signature: string;
     blockchainId: string;
-    price: Price;
+    price: IPrice;
     ownerEthAddress: string;
     startTime?: Date;
     endTime?: Date;
@@ -111,7 +116,7 @@ export class ERC721NFT extends AbstractEvmNFT {
     params: {
       signature: string;
       blockchainId: string;
-      price: Price;
+      price: IPrice;
       ownerEthAddress: string;
       startTime?: Date;
       endTime?: Date;
@@ -134,7 +139,7 @@ export class ERC721NFT extends AbstractEvmNFT {
   }
 
   async putForSale(params: {
-    price: Price;
+    price: IPrice;
     startTime?: Date;
     endTime?: Date;
     launchpadDetails?: LaunchpadDetailsInput;
@@ -276,7 +281,7 @@ export class ERC721NFT extends AbstractEvmNFT {
         type: OfferType.Sale,
         contractAddress: this.item.contractAddress,
         price: {
-          currency: price.currency,
+          ...price,
           amount: parseFloat(price.amount.toString()),
         },
         startTime,
@@ -300,7 +305,7 @@ export class ERC721NFT extends AbstractEvmNFT {
           type: OfferType.Sale,
           contractAddress: this.item.contractAddress,
           price: {
-            currency: price.currency,
+            payToken: price.address,
             amount: parseFloat(price.amount.toString()),
           },
           startTime,

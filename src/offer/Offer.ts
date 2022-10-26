@@ -1,38 +1,14 @@
-import { OfferFragment } from "../@types/graphql";
 import { AbstractNFT } from "../nft/AbstractNFT";
+import { IOffer } from "../nft/interfaces/Offer";
 import { WhitelistVoucherParams } from "../nft/interfaces/Voucher";
 import { Chain } from "../refinable/Chain";
 import { Refinable } from "../refinable/Refinable";
 import { getUnixEpochTimeStampFromDateOr0 } from "../utils/time";
 
-export interface PartialOffer
-  extends Pick<
-    OfferFragment,
-    | "id"
-    | "type"
-    | "signature"
-    | "contractAddress"
-    | "price"
-    | "user"
-    | "totalSupply"
-    | "auction"
-    | "blockchainId"
-    | "startTime"
-    | "endTime"
-    | "whitelistStage"
-    | "whitelistVoucher"
-    | "launchpadDetails"
-    | "marketConfig"
-    | "supply"
-    | "chainId"
-    | "platform"
-    | "orderParams"
-  > {}
-
 export class BasicOffer {
   constructor(
     protected readonly refinable: Refinable,
-    protected _offer: PartialOffer
+    protected _offer: IOffer
   ) {}
 
   get id() {
@@ -55,7 +31,7 @@ export class BasicOffer {
     const amount = this.currentStage?.price ?? this._offer.price.amount;
 
     return {
-      currency: this._offer.price.currency,
+      ...this._offer.price,
       amount,
     };
   }
@@ -118,7 +94,7 @@ export class Offer extends BasicOffer {
   protected chain: Chain;
   constructor(
     protected readonly refinable: Refinable,
-    protected _offer: PartialOffer,
+    protected _offer: IOffer,
     protected readonly nft?: AbstractNFT
   ) {
     super(refinable, _offer);

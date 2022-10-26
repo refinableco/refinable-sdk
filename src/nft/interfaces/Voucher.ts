@@ -1,4 +1,4 @@
-import { PartialOffer } from "../../offer/Offer";
+import { IOffer } from "./Offer";
 
 export enum WhitelistType {
   PUBLIC = 0,
@@ -7,7 +7,7 @@ export enum WhitelistType {
 }
 
 export type WhitelistVoucherParams = Omit<
-  PartialOffer["whitelistVoucher"],
+  IOffer["whitelistVoucher"],
   "startTime"
 > & {
   startTime: number;

@@ -8,6 +8,7 @@ import {
 import { ProviderSignerWallet } from "../../interfaces/Signer";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
 import { Chain } from "../Chain";
+import { Refinable } from "../Refinable";
 import { ContractWrapper } from "./ContractWrapper";
 
 export interface IContract extends Omit<ContractOutput, "__typename" | "id"> {
@@ -28,6 +29,7 @@ export class Contract implements IContract {
   protected _contractWrapper?: ContractWrapper;
 
   constructor(
+    protected readonly refinable: Refinable,
     contract: IContract,
     protected readonly evmOptions: RefinableEvmOptions
   ) {

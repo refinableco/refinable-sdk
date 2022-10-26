@@ -1,20 +1,23 @@
 import { constants, ethers } from "ethers";
 import { z } from "zod";
-import { ContractTypes, Price } from "../../@types/graphql";
+import { ContractTypes } from "../../@types/graphql";
 import { SaleSettings } from "../../interfaces/Contracts/Erc721Lazy";
 import { LibPart } from "../../interfaces/LibPart";
 import { ProviderSignerWallet } from "../../interfaces/Signer";
 import { MintVoucher } from "../../nft/interfaces/MintVoucher";
+import { IPrice } from "../../nft/interfaces/Price";
 import { WhitelistVoucherParams } from "../../nft/interfaces/Voucher";
 import EvmTransaction from "../../transaction/EvmTransaction";
 import { RefinableEvmOptions } from "../../types/RefinableOptions";
+import { isNative } from "../../utils/is";
 import { optionalParam } from "../../utils/utils";
 import EvmAccount from "../account/EvmAccount";
+import { Refinable } from "../Refinable";
 import { Contract, IContract } from "./Contract";
 
 interface BuyParams {
   mintVoucher: MintVoucher;
-  price: Price;
+  price: IPrice;
   amount?: number;
   recipient: string;
   whitelistVoucher?: WhitelistVoucherParams;
@@ -49,8 +52,12 @@ export class Erc721LazyMintContract extends Contract {
   });
   private account: EvmAccount;
 
-  constructor(contract: IContract, evmOptions: RefinableEvmOptions) {
-    super(contract, evmOptions);
+  constructor(
+    refinable: Refinable,
+    contract: IContract,
+    evmOptions: RefinableEvmOptions
+  ) {
+    super(refinable, contract, evmOptions);
   }
 
   connect(signerOrProvider: ProviderSignerWallet) {
@@ -144,12 +151,13 @@ export class Erc721LazyMintContract extends Contract {
 
     // Add allows as much as the price requests
     await this.account.approveTokenContractAllowance(
-      this.chain.getCurrency(params.price.currency),
+      params.price.address,
+      params.price.decimals,
       priceTimesAmount,
       this.contractAddress
     );
 
-    const { method, args, callOverrides } = this.getBuyTxParams({
+    const { method, args, callOverrides } = await this.getBuyTxParams({
       recipient: params.recipient,
       amount: amountToClaim,
       price: params.price,
@@ -169,7 +177,7 @@ export class Erc721LazyMintContract extends Contract {
   public async estimateGasBuy(params: BuyParams) {
     const amountToClaim = params.amount ?? 1;
 
-    const { method, args, callOverrides } = this.getBuyTxParams({
+    const { method, args, callOverrides } = await this.getBuyTxParams({
       recipient: params.recipient,
       amount: amountToClaim,
       price: params.price,
@@ -185,32 +193,31 @@ export class Erc721LazyMintContract extends Contract {
     return await this.contractWrapper.contract.estimateGas[method](...args);
   }
 
-  private getBuyTxParams(params: {
+  private async getBuyTxParams(params: {
     mintVoucher: MintVoucher;
     recipient: string;
-    price: Price;
+    price: IPrice;
     amount?: number;
     whitelistVoucher?: WhitelistVoucherParams;
   }) {
     const amount = params.amount ?? 1;
 
-    const price =
+    const determinedPrice =
       params.whitelistVoucher?.price > 0
         ? params.whitelistVoucher?.price
         : params.price.amount;
-    const priceTimesAmount = price * amount;
 
-    const parsedPrice = this.chain.parseCurrency(
-      params.price.currency,
+    const priceTimesAmount = determinedPrice * amount;
+
+    const parsedPrice = this.chain.parseUnits(
+      params.price.decimals,
       priceTimesAmount
     );
 
-    const voucherPrice = this.chain.parseCurrency(
-      params.price.currency,
+    const voucherPrice = this.chain.parseUnits(
+      params.price.decimals,
       params.whitelistVoucher?.price ?? 0
     );
-
-    const isNativeCurrency = this.chain.isNativeCurrency(params.price.currency);
 
     const args: unknown[] = [
       // LibMintVoucher.MintVoucher calldata mintVoucher
@@ -232,7 +239,7 @@ export class Erc721LazyMintContract extends Contract {
     return {
       args,
       method,
-      callOverrides: isNativeCurrency
+      callOverrides: isNative(params.price.address)
         ? {
             value: parsedPrice,
           }

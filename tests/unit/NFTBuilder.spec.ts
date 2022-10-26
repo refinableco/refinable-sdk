@@ -16,8 +16,9 @@ import EvmTransaction from "../../src/transaction/EvmTransaction";
 import { getMockRefinableClient } from "../helpers/client";
 import { getEvmTxReceipt } from "./Transactions.spec";
 
-const getContract = (override: Partial<IContract> = {}) =>
+const getContract = (refinable: Refinable, override: Partial<IContract> = {}) =>
   new Contract(
+    refinable,
     {
       tags: [ContractTag.TokenV1_0_0],
       chainId: 1,
@@ -144,7 +145,7 @@ describe("NFTBuilder", () => {
     });
 
     it("Should be able to mint V1 ERC721 TOKEN", async () => {
-      const tokenContract = getContract();
+      const tokenContract = getContract(refinable);
 
       jest
         .spyOn(refinable.graphqlClient, "request")
@@ -168,12 +169,15 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
-        ITEM.tokenId,
-        ITEM_CREATE_RESPONSE.signature,
-        [[ETH_ADDRESS, 10]],
-        ITEM.properties.ipfsDocument,
-      ]);
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith(
+        "mint",
+        [
+          ITEM.tokenId,
+          ITEM_CREATE_RESPONSE.signature,
+          [[ETH_ADDRESS, 10]],
+          ITEM.properties.ipfsDocument,
+        ]
+      );
     });
     it("Should be able to mint V1 ERC1155 TOKEN", async () => {
       const erc1155Builder = new NFTBuilder(refinable, {
@@ -182,7 +186,7 @@ describe("NFTBuilder", () => {
         supply: 9,
       });
 
-      const tokenContract = getContract({
+      const tokenContract = getContract(refinable, {
         type: ContractTypes.Erc1155Token,
       });
 
@@ -215,17 +219,20 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
-        ITEM.tokenId,
-        ITEM_CREATE_RESPONSE.signature,
-        [[ETH_ADDRESS, 10]],
-        "9",
-        ITEM.properties.ipfsDocument,
-      ]);
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith(
+        "mint",
+        [
+          ITEM.tokenId,
+          ITEM_CREATE_RESPONSE.signature,
+          [[ETH_ADDRESS, 10]],
+          "9",
+          ITEM.properties.ipfsDocument,
+        ]
+      );
     });
 
     it("Should be able to mint V2 ERC721 TOKEN", async () => {
-      const tokenContract = getContract({
+      const tokenContract = getContract(refinable, {
         tags: [ContractTag.TokenV2_0_0],
       });
 
@@ -251,18 +258,21 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
-        ITEM.tokenId,
-        ITEM_CREATE_RESPONSE.signature,
-        [[ETH_ADDRESS, 10]],
-        ITEM.properties.ipfsDocument,
-        0,
-        0,
-      ]);
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith(
+        "mint",
+        [
+          ITEM.tokenId,
+          ITEM_CREATE_RESPONSE.signature,
+          [[ETH_ADDRESS, 10]],
+          ITEM.properties.ipfsDocument,
+          0,
+          0,
+        ]
+      );
     });
 
     it("Should be able to mint V3 ERC721 TOKEN", async () => {
-      const tokenContract = getContract({
+      const tokenContract = getContract(refinable, {
         tags: [ContractTag.TokenV3_0_0],
       });
 
@@ -288,15 +298,18 @@ describe("NFTBuilder", () => {
         getEvmTxReceipt().transactionHash
       );
 
-      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith("mint", [
-        ITEM.tokenId,
-        ITEM_CREATE_RESPONSE.signature,
-        [[ETH_ADDRESS, 10]],
-        ITEM.properties.ipfsDocument,
-        0,
-        0,
-        [],
-      ]);
+      expect(contractMock.contractWrapper.sendTransaction).toHaveBeenCalledWith(
+        "mint",
+        [
+          ITEM.tokenId,
+          ITEM_CREATE_RESPONSE.signature,
+          [[ETH_ADDRESS, 10]],
+          ITEM.properties.ipfsDocument,
+          0,
+          0,
+          [],
+        ]
+      );
     });
   });
 
@@ -310,7 +323,7 @@ describe("NFTBuilder", () => {
     });
 
     it("Should be able to finish minting an NFT", async () => {
-      const tokenContract = getContract();
+      const tokenContract = getContract(refinable);
 
       jest
         .spyOn(refinable.graphqlClient, "request")
@@ -351,7 +364,7 @@ describe("NFTBuilder", () => {
         ...BUILD_DATA,
         contractAddress: undefined,
       });
-      const tokenContract = getContract();
+      const tokenContract = getContract(refinable);
 
       jest
         .spyOn(refinable.graphqlClient, "request")
@@ -383,7 +396,7 @@ describe("NFTBuilder", () => {
         ...BUILD_DATA,
         contractAddress: "0x4fabb145d64652a948d72533023f6e7a623c7c53",
       });
-      const tokenContract = getContract();
+      const tokenContract = getContract(refinable);
 
       jest
         .spyOn(refinable.graphqlClient, "request")

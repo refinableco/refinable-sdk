@@ -9,7 +9,8 @@ import {
 } from "../../@types/graphql";
 import { GET_OFFER, GET_USER_OFFER_ITEMS } from "../../graphql/items";
 import { AbstractNFT } from "../../nft/AbstractNFT";
-import { BasicOffer, Offer, PartialOffer } from "../../offer/Offer";
+import { IOffer } from "../../nft/interfaces/Offer";
+import { BasicOffer, Offer } from "../../offer/Offer";
 import { OfferFactory } from "../../offer/OfferFactory";
 import { limit } from "../../utils/limitItems";
 import { Refinable } from "../Refinable";
@@ -18,7 +19,7 @@ export class OfferClient {
   constructor(private readonly refinable: Refinable) {}
 
   public async createMintOffer(
-    offer?: PartialOffer & MintOfferFragment
+    offer?: IOffer & MintOfferFragment
   ): Promise<MintOffer> {
     const chainId =
       offer?.chainId != null
@@ -28,7 +29,7 @@ export class OfferClient {
   }
 
   createOffer<O extends Offer = Offer>(
-    offer: PartialOffer & { type: O["type"] },
+    offer: IOffer & { type: O["type"] },
     nft: AbstractNFT
   ): O {
     return OfferFactory.createOffer<O>(this.refinable, offer, nft);
