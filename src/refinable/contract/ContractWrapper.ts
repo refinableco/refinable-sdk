@@ -98,7 +98,7 @@ export class ContractWrapper implements IContractWrapper {
       this.isValidContract = code !== "0x";
       if (!this.isValidContract) {
         throw new Error(
-          `The address you're trying to send a transaction to is not a smart contract. Make sure you are on the correct network and the contract address is correct, chainId is ${chainId}, addres ${this.address}`
+          `The address you're trying to send a transaction to is not a smart contract. Make sure you are on the correct network and the contract address is correct, chainId is ${chainId}, address ${this.address}`
         );
       }
     }
