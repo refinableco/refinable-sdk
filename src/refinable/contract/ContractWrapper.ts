@@ -92,11 +92,11 @@ export class ContractWrapper implements IContractWrapper {
   ): Promise<EvmTransaction> {
     // one time verification that this is a valid contract (to avoid sending funds to wrong addresses)
     if (!this.isValidContract) {
-      const chainId = (await this.provider.getNetwork()).chainId;
       
       const code = await this.provider.getCode(this.address);
       this.isValidContract = code !== "0x";
       if (!this.isValidContract) {
+        const chainId = (await this.provider.getNetwork()).chainId;
         throw new Error(
           `The address you're trying to send a transaction to is not a smart contract. Make sure you are on the correct network and the contract address is correct, chainId is ${chainId}, address ${this.address}`
         );
