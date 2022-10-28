@@ -10,6 +10,7 @@ import {
   TokenType,
   Platform,
   SaleOffer as SaleOfferType,
+  CreateOfferForEditionsMutationVariables,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -572,24 +573,26 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
       getUnixEpochTimeStampFromDate(auctionEndDate),
     ]);
 
-    const result =
-      await this.refinable.graphqlClient.request<CreateOfferForEditionsMutation>(
-        CREATE_OFFER,
-        {
-          input: {
-            chainId: this.item.chainId,
-            tokenId: this.item.tokenId,
-            contractAddress: this.item.contractAddress,
-            type: OfferType.Auction,
-            price,
-            supply: 1,
-            offerContractAddress: this.auctionContract.address,
-            transactionHash: response.txId,
-            startTime: auctionStartDate,
-            endTime: auctionEndDate,
-          },
-        }
-      );
+    const result = await this.refinable.graphqlClient.request<
+      CreateOfferForEditionsMutation,
+      CreateOfferForEditionsMutationVariables
+    >(CREATE_OFFER, {
+      input: {
+        chainId: this.item.chainId,
+        tokenId: this.item.tokenId,
+        contractAddress: this.item.contractAddress,
+        type: OfferType.Auction,
+        price: {
+          payToken: price.address,
+          amount: parseFloat(price.amount.toString()),
+        },
+        supply: 1,
+        offerContractAddress: this.auctionContract.address,
+        transactionHash: response.txId,
+        startTime: auctionStartDate,
+        endTime: auctionEndDate,
+      },
+    });
 
     const offer = this.refinable.offer.createOffer<AuctionOffer>(
       {

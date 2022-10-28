@@ -5,7 +5,6 @@ import {
   LaunchpadDetailsInput,
   MarketConfig,
   OfferType,
-  Platform,
   TokenType,
 } from "../@types/graphql";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -15,10 +14,6 @@ import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
 import { ERCSaleID } from "./ERCSaleId";
-import {
-  CancelSaleStatus,
-  CANCEL_SALE_STATUS_STEP,
-} from "./interfaces/CancelSaleStatusStep";
 import { IPrice } from "./interfaces/Price";
 import { SaleVersion } from "./interfaces/SaleInfo";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
