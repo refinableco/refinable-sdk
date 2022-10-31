@@ -11,6 +11,7 @@ import {
   Platform,
   SaleOffer as SaleOfferType,
   CreateOfferForEditionsMutationVariables,
+  LaunchpadDetailsInput,
 } from "../@types/graphql";
 import { FeeType } from "../enums/fee-type.enum";
 import { CREATE_OFFER } from "../graphql/sale";
@@ -43,7 +44,7 @@ import {
 } from "./interfaces/CancelSaleStatusStep";
 import { IPrice } from "./interfaces/Price";
 import { SaleInfo, SaleVersion } from "./interfaces/SaleInfo";
-import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
+import { ListApproveStatus, ListCreateStatus, ListDoneStatus, ListSignStatus, ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
 
 export type EvmTokenType = TokenType.Erc1155 | TokenType.Erc721;
@@ -325,6 +326,220 @@ export abstract class AbstractEvmNFT extends AbstractNFT {
   /**
    *  == SALE ==
    */
+
+  protected async _putForSale(params: {
+    price: IPrice;
+    startTime?: Date;
+    endTime?: Date;
+    supply: number;
+    launchpadDetails?: LaunchpadDetailsInput;
+    platforms?: Platform[];
+    onInitialize?: (
+      steps: { step: LIST_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends ListStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: LIST_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
+  }): Promise<SaleOffer> {
+    const {
+      price,
+      startTime,
+      endTime,
+      launchpadDetails,
+      platforms = [],
+      onInitialize = () => true,
+      onProgress = () => true,
+      onError = () => true,
+      supply = 1
+    } = params;
+
+    // calculate steps
+    const steps = [
+      {
+        step: LIST_STATUS_STEP.APPROVE,
+        platform: Platform.Refinable,
+      },
+      {
+        step: LIST_STATUS_STEP.SIGN,
+        platform: Platform.Refinable,
+      },
+      {
+        step: LIST_STATUS_STEP.CREATE,
+        platform: Platform.Refinable,
+      },
+    ];
+
+    if (Array.isArray(platforms)) {
+      for (const platform of platforms) {
+        steps.push(
+          {
+            step: LIST_STATUS_STEP.APPROVE,
+            platform,
+          },
+          {
+            step: LIST_STATUS_STEP.SIGN,
+            platform,
+          },
+          {
+            step: LIST_STATUS_STEP.CREATE,
+            platform,
+          }
+        );
+      }
+    }
+
+    onInitialize(steps);
+
+    this.verifyItem();
+
+    // validate launchpad
+    if (startTime && launchpadDetails?.stages) {
+      for (let i = 0; i < launchpadDetails.stages.length; i++) {
+        const stage = launchpadDetails.stages[i];
+        if (stage.startTime >= startTime) {
+          throw new Error(
+            `The start time of the ${stage.stage} stage (index: ${i}) is after the start time of the public sale, this whitelist won't have any effect. Please remove this stage or adjust its startTime`
+          );
+        }
+      }
+    }
+
+    let saleParamsHash;
+    try {
+      await this.approveIfNeeded(this.transferProxyContract.address, () => {
+        onProgress<ListApproveStatus>({
+          step: LIST_STATUS_STEP.APPROVE,
+          platform: Platform.Refinable,
+          data: {
+            addressToApprove: this.transferProxyContract.address,
+          },
+        });
+      });
+
+      saleParamsHash = await this.getSaleParamsHash({
+        price,
+        ethAddress: this.refinable.accountAddress,
+        startTime,
+        endTime,
+        isV2: true,
+        supply
+      });
+    } catch (ex) {
+      onError(
+        {
+          step: LIST_STATUS_STEP.APPROVE,
+          platform: Platform.Refinable,
+        },
+        ex
+      );
+      throw ex;
+    }
+
+    onProgress<ListSignStatus>({
+      step: LIST_STATUS_STEP.SIGN,
+      platform: Platform.Refinable,
+      data: {
+        what: "Sale Parameters",
+        hash: saleParamsHash,
+      },
+    });
+
+    let signedHash, saleId, blockchainId;
+
+    try {
+      signedHash = await this.refinable.account.sign(saleParamsHash as string);
+      saleId = await this.getSaleId();
+      blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
+    } catch (ex) {
+      onError(
+        {
+          step: LIST_STATUS_STEP.SIGN,
+          platform: Platform.Refinable,
+        },
+        ex
+      );
+      throw ex;
+    }
+
+    onProgress<ListCreateStatus>({
+      step: LIST_STATUS_STEP.CREATE,
+      platform: Platform.Refinable,
+      data: {
+        chainId: this.item.chainId,
+        tokenId: this.item.tokenId,
+        signature: signedHash,
+        type: OfferType.Sale,
+        contractAddress: this.item.contractAddress,
+        price: {
+          ...price,
+          amount: parseFloat(price.amount.toString()),
+        },
+        startTime,
+        endTime,
+        supply,
+        launchpadDetails,
+        blockchainId,
+      },
+    });
+
+    let result;
+    try {
+      result = await this.refinable.graphqlClient.request<
+        CreateOfferForEditionsMutation,
+        CreateOfferForEditionsMutationVariables
+      >(CREATE_OFFER, {
+        input: {
+          chainId: this.item.chainId,
+          tokenId: this.item.tokenId,
+          signature: signedHash,
+          type: OfferType.Sale,
+          contractAddress: this.item.contractAddress,
+          price: {
+            payToken: price.address,
+            amount: parseFloat(price.amount.toString()),
+          },
+          startTime,
+          endTime,
+          supply,
+          launchpadDetails,
+          blockchainId,
+        },
+      });
+    } catch (ex) {
+      onError(
+        {
+          step: LIST_STATUS_STEP.CREATE,
+          platform: Platform.Refinable,
+        },
+        ex
+      );
+      throw ex;
+    }
+
+    onProgress<ListDoneStatus>({
+      step: LIST_STATUS_STEP.DONE,
+      platform: Platform.Refinable,
+      data: result,
+    });
+
+    // third party platforms
+    if (Array.isArray(platforms)) {
+      const platformFactory = new PlatformFactory(this.refinable);
+      for (const platform of platforms) {
+        const platformInstance = platformFactory.createPlatform(platform);
+        await platformInstance.listForSale(this, price, {
+          onProgress,
+        });
+      }
+    }
+
+    return this.refinable.offer.createOffer<SaleOffer>(
+      result.createOfferForItems,
+      this
+    );
+  }
 
   async getSaleId() {
     return this.saleContract.contract.getID(
