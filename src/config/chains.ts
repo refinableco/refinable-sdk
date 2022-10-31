@@ -111,6 +111,12 @@ export const chainMap: Record<Chain, IChainConfig> = {
         decimals: 9,
         address: "0xd1ecfdd45c49057479c4ca95e045855370bc4f5b",
       },
+      {
+        name: 'HIGH',
+        symbol: 'HIGH',
+        decimals: 18,
+        address: '0x5f4Bde007Dc06b867f86EBFE4802e34A1fFEEd63',
+      },
     ],
   },
   [Chain.BscTestnet]: {
