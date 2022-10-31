@@ -75,6 +75,7 @@ export const parseMetaMaskError = (metaMaskError: any): LocalError => {
     data?.message ??
     error?.message ??
     error?.error?.message ??
+    metaMaskError?.message ??
     "Something went wrong. Please try again later.";
 
   // rpc errors are special as they're wrapped, extract the value and handle that

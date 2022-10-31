@@ -1,34 +1,26 @@
 import {
-  CreateOfferForEditionsMutation,
-  CreateOfferForEditionsMutationVariables,
   LaunchpadDetailsInput,
   MarketConfig,
-  OfferType,
   Platform,
   TokenType,
 } from "../@types/graphql";
-import { CREATE_OFFER } from "../graphql/sale";
+import { InsufficientBalanceError } from "../errors/InsufficientBalanceError";
 import { SaleOffer } from "../offer/SaleOffer";
-import { PlatformFactory } from "../platform";
 import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
-import { ERCSaleID } from "./ERCSaleId";
 import { IPrice } from "./interfaces/Price";
-import { SaleVersion } from "./interfaces/SaleInfo";
-import {
-  ListApproveStatus,
-  ListStatus,
-  LIST_STATUS_STEP,
-  ListSignStatus,
-  ListCreateStatus,
-  ListDoneStatus,
-} from "./interfaces/SaleStatusStep";
+import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 
 export class ERC721NFT extends AbstractEvmNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
     super(TokenType.Erc721, refinable, item);
+  }
+
+  async getOwner(): Promise<string> {
+    const nftTokenContract = await this.getTokenContractWrapper();
+    return nftTokenContract.read.ownerOf(this._item.tokenId);
   }
 
   async approve(operatorAddress: string): Promise<EvmTransaction> {
@@ -148,200 +140,26 @@ export class ERC721NFT extends AbstractEvmNFT {
       error
     ) => void;
   }): Promise<SaleOffer> {
-    const {
-      price,
-      startTime,
-      endTime,
-      launchpadDetails,
-      platforms = [],
-      onInitialize = () => true,
-      onProgress = () => true,
-      onError = () => true,
-    } = params;
+    // Check if current user has sufficient balance to put for sale
+    const ownerEthAddress = await this.getOwner();
 
-    // calculate steps
-    const steps = [
-      {
-        step: LIST_STATUS_STEP.APPROVE,
-        platform: Platform.Refinable,
-      },
-      {
-        step: LIST_STATUS_STEP.SIGN,
-        platform: Platform.Refinable,
-      },
-      {
-        step: LIST_STATUS_STEP.CREATE,
-        platform: Platform.Refinable,
-      },
-    ];
+    if (
+      ownerEthAddress.toLowerCase() !==
+      this.refinable.accountAddress.toLowerCase()
+    )
+      throw new InsufficientBalanceError();
 
-    if (Array.isArray(platforms)) {
-      for (const platform of platforms) {
-        steps.push(
-          {
-            step: LIST_STATUS_STEP.APPROVE,
-            platform,
-          },
-          {
-            step: LIST_STATUS_STEP.SIGN,
-            platform,
-          },
-          {
-            step: LIST_STATUS_STEP.CREATE,
-            platform,
-          }
-        );
-      }
-    }
-
-    onInitialize(steps);
-
-    this.verifyItem();
-
-    // validate launchpad
-    if (startTime && launchpadDetails?.stages) {
-      for (let i = 0; i < launchpadDetails.stages.length; i++) {
-        const stage = launchpadDetails.stages[i];
-        if (stage.startTime >= startTime) {
-          throw new Error(
-            `The start time of the ${stage.stage} stage (index: ${i}) is after the start time of the public sale, this whitelist won't have any effect. Please remove this stage or adjust its startTime`
-          );
-        }
-      }
-    }
-
-    let saleParamsHash;
-    try {
-      await this.approveIfNeeded(this.transferProxyContract.address, () => {
-        onProgress<ListApproveStatus>({
-          step: LIST_STATUS_STEP.APPROVE,
-          platform: Platform.Refinable,
-          data: {
-            addressToApprove: this.transferProxyContract.address,
-          },
-        });
-      });
-
-      saleParamsHash = await this.getSaleParamsHash({
-        price,
-        ethAddress: this.refinable.accountAddress,
-        startTime,
-        endTime,
-        isV2: true,
-      });
-    } catch (ex) {
-      onError(
-        {
-          step: LIST_STATUS_STEP.APPROVE,
-          platform: Platform.Refinable,
-        },
-        ex
-      );
-      throw ex;
-    }
-
-    onProgress<ListSignStatus>({
-      step: LIST_STATUS_STEP.SIGN,
-      platform: Platform.Refinable,
-      data: {
-        what: "Sale Parameters",
-        hash: saleParamsHash,
-      },
+    return this._putForSale({
+      price: params.price,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      launchpadDetails: params.launchpadDetails,
+      onError: params.onError,
+      onInitialize: params.onInitialize,
+      onProgress: params.onProgress,
+      platforms: params.platforms,
+      supply: 1,
     });
-
-    let signedHash, saleId, blockchainId;
-
-    try {
-      signedHash = await this.refinable.account.sign(saleParamsHash as string);
-      saleId = await this.getSaleId();
-      blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
-    } catch (ex) {
-      onError(
-        {
-          step: LIST_STATUS_STEP.SIGN,
-          platform: Platform.Refinable,
-        },
-        ex
-      );
-      throw ex;
-    }
-
-    onProgress<ListCreateStatus>({
-      step: LIST_STATUS_STEP.CREATE,
-      platform: Platform.Refinable,
-      data: {
-        chainId: this.item.chainId,
-        tokenId: this.item.tokenId,
-        signature: signedHash,
-        type: OfferType.Sale,
-        contractAddress: this.item.contractAddress,
-        price: {
-          ...price,
-          amount: parseFloat(price.amount.toString()),
-        },
-        startTime,
-        endTime,
-        supply: 1,
-        launchpadDetails,
-        blockchainId,
-      },
-    });
-
-    let result;
-    try {
-      result = await this.refinable.graphqlClient.request<
-        CreateOfferForEditionsMutation,
-        CreateOfferForEditionsMutationVariables
-      >(CREATE_OFFER, {
-        input: {
-          chainId: this.item.chainId,
-          tokenId: this.item.tokenId,
-          signature: signedHash,
-          type: OfferType.Sale,
-          contractAddress: this.item.contractAddress,
-          price: {
-            payToken: price.address,
-            amount: parseFloat(price.amount.toString()),
-          },
-          startTime,
-          endTime,
-          supply: 1,
-          launchpadDetails,
-          blockchainId,
-        },
-      });
-    } catch (ex) {
-      onError(
-        {
-          step: LIST_STATUS_STEP.CREATE,
-          platform: Platform.Refinable,
-        },
-        ex
-      );
-      throw ex;
-    }
-
-    onProgress<ListDoneStatus>({
-      step: LIST_STATUS_STEP.DONE,
-      platform: Platform.Refinable,
-      data: result,
-    });
-
-    // third party platforms
-    if (Array.isArray(platforms)) {
-      const platformFactory = new PlatformFactory(this.refinable);
-      for (const platform of platforms) {
-        const platformInstance = platformFactory.createPlatform(platform);
-        await platformInstance.listForSale(this, price, {
-          onProgress,
-        });
-      }
-    }
-
-    return this.refinable.offer.createOffer<SaleOffer>(
-      result.createOfferForItems,
-      this
-    );
   }
 
   async transfer(

@@ -1,25 +1,34 @@
 import { ethers } from "ethers";
 import {
-  CreateOfferForEditionsMutation,
-  CreateOfferForEditionsMutationVariables,
   LaunchpadDetailsInput,
   MarketConfig,
-  OfferType,
+  Platform,
   TokenType,
 } from "../@types/graphql";
-import { CREATE_OFFER } from "../graphql/sale";
+import { InsufficientBalanceError } from "../errors/InsufficientBalanceError";
 import { SaleOffer } from "../offer/SaleOffer";
 import { Refinable } from "../refinable/Refinable";
 import EvmTransaction from "../transaction/EvmTransaction";
 import { AbstractEvmNFT } from "./AbstractEvmNFT";
 import { PartialNFTItem } from "./AbstractNFT";
-import { ERCSaleID } from "./ERCSaleId";
 import { IPrice } from "./interfaces/Price";
-import { SaleVersion } from "./interfaces/SaleInfo";
+import { ListStatus, LIST_STATUS_STEP } from "./interfaces/SaleStatusStep";
 import { WhitelistVoucherParams } from "./interfaces/Voucher";
+
 export class ERC1155NFT extends AbstractEvmNFT {
   constructor(refinable: Refinable, item: PartialNFTItem) {
     super(TokenType.Erc1155, refinable, item);
+  }
+
+  async getBalance(ownerAddress?: string): Promise<number> {
+    const nftTokenContract = await this.getTokenContractWrapper();
+
+    return (
+      await nftTokenContract.read.balanceOf(
+        ownerAddress ?? this.refinable.accountAddress,
+        this.item.tokenId
+      )
+    )?.toNumber();
   }
 
   async approve(operatorAddress: string): Promise<EvmTransaction> {
@@ -92,72 +101,36 @@ export class ERC1155NFT extends AbstractEvmNFT {
   }
 
   async putForSale(params: {
+    supply?: number;
     price: IPrice;
     startTime?: Date;
     endTime?: Date;
-    supply?: number;
     launchpadDetails?: LaunchpadDetailsInput;
+    onInitialize?: (
+      steps: { step: LIST_STATUS_STEP; platform: Platform }[]
+    ) => void;
+    onProgress?: <T extends ListStatus>(status: T) => void;
+    onError?: (
+      { step, platform }: { step: LIST_STATUS_STEP; platform: Platform },
+      error
+    ) => void;
   }): Promise<SaleOffer> {
-    const { price, startTime, endTime, launchpadDetails, supply = 1 } = params;
+    // Check if current user has sufficient balance to put for sale
+    const currentUserBalance = await this.getBalance();
 
-    this.verifyItem();
+    if (currentUserBalance < params.supply) throw new InsufficientBalanceError(currentUserBalance);
 
-    // validate launchpad
-    if (startTime && launchpadDetails?.stages) {
-      for (let i = 0; i < launchpadDetails.stages.length; i++) {
-        const stage = launchpadDetails.stages[i];
-        if (stage.startTime >= startTime) {
-          throw new Error(
-            `The start time of the ${stage.stage} stage (index: ${i}) is after the start time of the public sale, this whitelist won't have any effect. Please remove this stage or adjust its startTime`
-          );
-        }
-      }
-    }
-
-    const addressForApproval = this.transferProxyContract.address;
-
-    await this.approveIfNeeded(addressForApproval);
-
-    const saleParamHash = await this.getSaleParamsHash({
-      price,
-      ethAddress: this.refinable.accountAddress,
-      supply,
-      startTime,
-      endTime,
-      isV2: true,
+    return this._putForSale({
+      price: params.price,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      launchpadDetails: params.launchpadDetails,
+      onError: params.onError,
+      onInitialize: params.onInitialize,
+      onProgress: params.onProgress,
+      platforms: [],
+      supply: params.supply,
     });
-
-    const signedHash = await this.refinable.account.sign(saleParamHash);
-
-    const saleId = await this.getSaleId();
-    const blockchainId = new ERCSaleID(saleId, SaleVersion.V2).toBlockchainId();
-
-    const result = await this.refinable.graphqlClient.request<
-      CreateOfferForEditionsMutation,
-      CreateOfferForEditionsMutationVariables
-    >(CREATE_OFFER, {
-      input: {
-        chainId: this.item.chainId,
-        tokenId: this.item.tokenId,
-        signature: signedHash,
-        type: OfferType.Sale,
-        contractAddress: this.item.contractAddress,
-        price: {
-          payToken: price.address,
-          amount: parseFloat(price.amount.toString()),
-        },
-        supply,
-        startTime,
-        endTime,
-        launchpadDetails,
-        blockchainId,
-      },
-    });
-
-    return this.refinable.offer.createOffer<SaleOffer>(
-      result.createOfferForItems,
-      this
-    );
   }
 
   async transfer(

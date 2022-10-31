@@ -49,7 +49,7 @@ export class NFTBuilder<NFTClass extends AbstractEvmNFT = AbstractEvmNFT>
       type: TokenType.Erc721,
     };
 
-    return this;
+    return this as any;
   }
 
   erc1155(
